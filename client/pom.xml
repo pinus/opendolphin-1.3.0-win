@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>jp.motomachi-hifuka</groupId>
     <artifactId>open.dolphin.client</artifactId>
@@ -17,7 +16,6 @@
         <version.org.hibernate>5.0.10.Final</version.org.hibernate>
         <version.org.glassfish.tyrus.bundles>1.13</version.org.glassfish.tyrus.bundles>
         <version.org.postgresql>42.1.4</version.org.postgresql>
-
     </properties>
 
     <dependencies>
@@ -82,16 +80,6 @@
             <artifactId>mail</artifactId>
             <version>1.4.5</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>glulogic</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.intellij</groupId>
-            <artifactId>annotations</artifactId>
-            <version>9.0.4</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -103,12 +91,10 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                    <compilerArgument>-XDignore.symbol.file</compilerArgument>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
-
-            <!-- compose a jar file containing dependent jars -->
+            <!-- compile a jar file containing dependent jars -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -134,9 +120,8 @@
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
+                <version>1.8</version>
                 <executions>
-
                     <!-- make dist folder -->
                     <execution>
                         <phase>install</phase>
@@ -145,59 +130,25 @@
                         </goals>
                         <configuration>
                             <target>
-                                <property name="targetdir" value="${basedir}/target"/>
-                                <property name="distdir" value="${targetdir}/dist"/>
-                                <fileset id="jnilibs" dir="${basedir}">
-                                    <include name="libGlulogicMT.jnilib"/>
-                                </fileset>
-
-                                <delete dir="${distdir}"/>
-                                <copy tofile="${distdir}/opendolphin.jar">
-                                    <fileset
-                                            file="${targetdir}/open.dolphin.client-1.3.0.10-jar-with-dependencies.jar"/>
+                                <delete dir = "${basedir}/target/dist" />
+                                <copy tofile="${basedir}/target/dist/opendolphin.jar">
+                                    <fileset file="${basedir}/target/open.dolphin.client-1.3.0.10-jar-with-dependencies.jar"/>
                                 </copy>
-                                <copy todir="${distdir}">
-                                    <fileset refid="jnilibs"/>
-                                </copy>
-                                <copy todir="${distdir}/schema">
+                                <copy todir="${basedir}/target/dist/schema">
                                     <fileset dir="${basedir}/schema"/>
                                 </copy>
-
-                                <taskdef name="bundleapp"
-                                         classname="com.oracle.appbundler.AppBundlerTask"
-                                         classpath="lib/appbundler-1.0ea.jar"/>
-                                <property environment="env"/>
-                                <property name="icon.name" value="OpenDolphin-ICN.icns"/>
-                                <property name="macosx.app.name" value="OpenDolphin"/>
-                                <bundleapp outputdirectory="${distdir}"
-                                           name="${macosx.app.name}"
-                                           displayname="${macosx.app.name}"
-                                           identifier="${macosx.app.name}"
-                                           mainclassname="open.dolphin.client.Dolphin"
-                                           icon="${basedir}/icons/${icon.name}">
-                                    <!--
-                                                        <runtime dir="${env.JAVA_HOME}" />
-                                        -->
-                                    <classpath file="${distdir}/opendolphin.jar"/>
-                                    <option value="-Xdock:icon=Contents/Resources/${icon.name}"/>
-                                    <option value="-Dapple.laf.useScreenMenuBar=true"/>
-                                    <option value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
-                                    <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
-                                    <option value="-Dapple.awt.application.name=${macosx.app.name}"/>
-                                    <option value="-Duser.dir=$APP_ROOT/.."/>
-                                </bundleapp>
-                                <copy todir="${distdir}/OpenDolphin.app/Contents/MacOS">
-                                    <fileset refid="jnilibs"/>
-                                </copy>
-                                <copy todir="${distdir}/OpenDolphin.app/Contents/Java/schema">
-                                    <fileset dir="${basedir}/schema"/>
-                                </copy>
-
+                                <!-- launch4j -->
+                                <exec executable="java.exe">
+                                    <arg value="-jar" />
+                                    <arg value="C:\Program Files (x86)\Launch4j\launch4j.jar" />
+                                    <arg value="${basedir}\launch4j.xml" />
+                                </exec>
                             </target>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>
