@@ -80,6 +80,11 @@
             <artifactId>mail</artifactId>
             <version>1.4.5</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>glulogic</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
