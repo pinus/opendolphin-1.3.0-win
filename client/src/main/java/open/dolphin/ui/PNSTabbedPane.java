@@ -186,20 +186,20 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
             });
 
             // AppForegroundListener
-            com.apple.eawt.Application app = com.apple.eawt.Application.getApplication();
-            app.addAppEventListener(new com.apple.eawt.AppForegroundListener() {
-                @Override
-                public void appRaisedToForeground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
-                    appForeground = true;
-                    buttonPanel.repaint();
-                }
-
-                @Override
-                public void appMovedToBackground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
-                    appForeground = false;
-                    buttonPanel.repaint();
-                }
-            });
+//            com.apple.eawt.Application app = com.apple.eawt.Application.getApplication();
+//            app.addAppEventListener(new com.apple.eawt.AppForegroundListener() {
+//                @Override
+//                public void appRaisedToForeground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = true;
+//                    buttonPanel.repaint();
+//                }
+//
+//                @Override
+//                public void appMovedToBackground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = false;
+//                    buttonPanel.repaint();
+//                }
+//            });
 
         }
     }
