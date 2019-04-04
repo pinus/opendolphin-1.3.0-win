@@ -179,7 +179,7 @@ public class DiagnosisInspector implements IInspector {
         }
 
         // ショートカットキー登録
-        ActionMap map = MenuActionManager.getActionMap(this);
+        ActionMap map = MenuActionManager.createActionMap(this);
         InputMap im = diagList.getInputMap();
         ActionMap am = diagList.getActionMap();
 

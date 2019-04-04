@@ -123,7 +123,7 @@ public class UserStampBox extends AbstractStampBox {
 
                     } else {
                         // それ以外の popup でも PPane にスタンプを挿入できるようにする
-                        List<Chart> allFrames = EditorFrame.getAllEditorFrames();
+                        List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
                         if (!allFrames.isEmpty()) {
                             popup.insert(new JPopupMenu.Separator(), 0);
                             allFrames.forEach(chart -> popup.insert(new SendStampAction(chart, stampTree), 0));
@@ -151,10 +151,10 @@ public class UserStampBox extends AbstractStampBox {
                         }
 
                     } else {
-                        List<Chart> allFrames = EditorFrame.getAllEditorFrames();
+                        List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
                         if (!allFrames.isEmpty()) {
-                            Chart frame = allFrames.get(0);
-                            KartePane pane = ((EditorFrame) frame).getEditor().getPPane();
+                            EditorFrame frame = allFrames.get(0);
+                            KartePane pane = frame.getEditor().getPPane();
                             List<ModuleInfoBean> stampList = getStampList(selected);
                             // caret を最後に送ってから import する
                             JTextPane textPane = pane.getTextPane();

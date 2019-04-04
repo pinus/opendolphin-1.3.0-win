@@ -23,7 +23,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.dnd.*;
-import java.awt.event.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.ParseException;
@@ -206,17 +209,17 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
         // ショートカット登録
         // Windows XP で全画面表示すると，getRootPane() が null になる
-        //ActionMap am = myPanel.getRootPane().getActionMap();
+        //ActionMap am = myPanel.getRootPane().createActionMap();
         //InputMap im = myPanel.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap am = myPanel.getActionMap();
         InputMap im = myPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         // delete key
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
+        im.put(KeyStroke.getKeyStroke("BACK_SPACE"), "delete");
         am.put("delete", new ProxyAction(deleteButton::doClick));
 
         // duplicate
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.META_DOWN_MASK), "duplicate");
+        im.put(KeyStroke.getKeyStroke("meta D"), "duplicate");
         am.put("duplicate", new ProxyAction(this::duplicateDiagnosis));
 
         // tableModel 用設定

@@ -7,7 +7,6 @@ import open.dolphin.helper.DBTask;
 import open.dolphin.helper.StringTool;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
-import open.dolphin.ui.PNSBorderFactory;
 import open.dolphin.util.DateUtils;
 import open.dolphin.util.ModelUtils;
 import org.apache.log4j.Logger;
@@ -30,27 +29,14 @@ import java.util.prefs.Preferences;
  */
 public class KarteEditor extends AbstractChartDocument implements IInfoModel {
     private static final long serialVersionUID = 1L;
-
-    // TimeStamp のカラー
-    private static final Color TIMESTAMP_FORE = Color.BLUE;
-    private static final int TIMESTAMP_FONT_SIZE = 12;
-    private static final Font TIMESTAMP_FONT = new Font("Dialog", Font.PLAIN, TIMESTAMP_FONT_SIZE);
     private static final String DEFAULT_TITLE = "経過記録";
-    // タイムスタンプの foreground
-    private final Color timeStampFore = TIMESTAMP_FORE;
-    // タイムスタンプフォント
-    private final Font timeStampFont = TIMESTAMP_FONT;
-    private final Logger logger = ClientContext.getBootLogger();
-    // このエディタを構成するコンポーネント
-    private JLabel timeStampLabel;
-    // Timestamp
-    private String timeStamp;
+
     // SOA Pane
     private KartePane soaPane;
     // P Pane
     private KartePane pPane;
     // 2号カルテ JPanel
-    private PrintablePanel panel2;
+    private KartePanel kartePanel;
     // 編集可能かどうかのフラグ. このフラグで KartePane を初期化する
     private boolean editable;
     // 修正時に true
@@ -67,6 +53,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
     private Autosave autosave;
     // dirty フラグ
     private boolean dirty;
+    // Logger
+    private final Logger logger = ClientContext.getBootLogger();
 
     public KarteEditor() {
         init();
@@ -123,13 +111,13 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
     }
 
     /**
-     * 2号カルテ panel2 を印刷する.
+     * 2号カルテ kartePanel を印刷する.
      */
     @Override
     public void print() {
         PageFormat pageFormat = getContext().getContext().getPageFormat();
         String name = getContext().getPatient().getFullName();
-        panel2.printPanel(pageFormat, 1, true, name, getActualHeight() + 30);
+        kartePanel.printPanel(pageFormat, 1, true, name, getActualHeight() + 30);
     }
 
     public void insertImage() {
@@ -210,23 +198,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
      * 2号カルテモードで初期化する.
      */
     public void initialize() {
-
         stateMgr = new StateMgr();
-
-        KartePanel kp2 = KartePanelFactory.createEditorPanel();
-        panel2 = kp2;
-
-        // TimeStampLabel を生成する
-        timeStampLabel = kp2.getTimeStampLabel();
-        timeStampLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeStampLabel.setForeground(timeStampFore);
-        timeStampLabel.setFont(timeStampFont);
-
-        kp2.getTimeStampPanel().setBorder(PNSBorderFactory.createTitleBarBorder(new Insets(0, 0, 0, 0)));
+        kartePanel = KartePanelFactory.createEditorPanel();
 
         // SOA Pane を生成する
         soaPane = new KartePane();
-        soaPane.setTextPane(kp2.getSoaTextPane());
+        soaPane.setTextPane(kartePanel.getSoaTextPane());
         soaPane.setParent(this);
         soaPane.setRole(ROLE_SOA);
         soaPane.getTextPane().setTransferHandler(new SOATransferHandler(soaPane));
@@ -238,12 +215,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
 
         // P Pane を生成する
         pPane = new KartePane();
-        pPane.setTextPane(kp2.getPTextPane());
+        pPane.setTextPane(kartePanel.getPTextPane());
         pPane.setParent(this);
         pPane.setRole(ROLE_P);
         pPane.getTextPane().setTransferHandler(new PTransferHandler(pPane));
 
-        setUI(kp2);
+        setUI(kartePanel);
 
         // 初期化の前にモデルがセットしてある.
         // Model を表示する
@@ -286,9 +263,9 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
      * DocumentModelを表示する.
      */
     private void displayModel() {
-
         // Timestamp を表示する
-        String now = ModelUtils.getDateAsFormatString(new Date(), IInfoModel.KARTE_DATE_FORMAT);
+        String now = DateUtils.todayToIsoDate();
+        String timeStamp;
 
         if (modify) {
             String firstConfirm = ModelUtils.getDateAsFormatString(getDocument().getDocInfo().getFirstConfirmDate(), IInfoModel.KARTE_DATE_FORMAT);
@@ -321,9 +298,34 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         String selecteIns = Arrays.stream(ins)
                 .filter(i -> Objects.nonNull(i.getGUID()))
                 .filter(i -> i.getGUID().equals(getDocument().getDocInfo().getHealthInsuranceGUID()))
-                .findAny().map(PVTHealthInsuranceModel::toString).orElse(null);
+                .findAny().map(m -> {
+                    StringBuilder sb = new StringBuilder();
+                    String insClass = m.getInsuranceClass();
+                    if (Objects.nonNull(insClass)) {
+                        if (insClass.length() > 2) { insClass = insClass.substring(0, 2); }
+                        sb.append(insClass);
+                    } else {
+                        sb.append("自費");
+                    }
+                    PVTPublicInsuranceItemModel[] pubs = m.getPVTPublicInsuranceItem();
+                    if (Objects.nonNull(pubs)) {
+                        sb.append(" ");
+                        String[] items = Arrays.stream(pubs)
+                                .map(PVTPublicInsuranceItemModel::toString)
+                                .map(str -> str.replaceAll("独自", ""))
+                                .map(str -> str.length() > 2 ? str.substring(0, 2) : str)
+                                .toArray(String[]::new);
+                        sb.append(String.join("・", items));
+                    }
+                    return sb.toString();
+                }).orElse(null);
 
         StringBuilder sb = new StringBuilder();
+        sb.append(getContext().getPatient().getKanaName().replaceAll("　", " "));
+        sb.append("：");
+        sb.append(getContext().getPatient().getPatientId());
+        sb.append(" ");
+
         sb.append(timeStamp);
         if (selecteIns != null) {
             sb.append(" (");
@@ -331,7 +333,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
             sb.append(")");
         }
 
-        timeStampLabel.setText(sb.toString());
+        getContext().getFrame().setTitle(sb.toString());
     }
 
     /**

@@ -79,7 +79,7 @@ public class StampBoxPlugin extends AbstractMainTool {
     // mac でメニューが消えないようにするために使う
     private MenuSupport mediator;
     // ロックボタン
-    private PNSToggleButton lockBtn;
+    private PNSSafeToggleButton lockBtn;
     // ExtraMenu(gear) ボタン
     private JButton extraBtn;
     // ExtraMenu を押すと呼ばれる
@@ -295,9 +295,8 @@ public class StampBoxPlugin extends AbstractMainTool {
             String[] enables = new String[]{
                     GUIConst.ACTION_SHOW_SCHEMABOX,
                     GUIConst.ACTION_SET_KARTE_ENVIROMENT,
-                    "showWaitingList",
-                    "showPatientSearch",
-                    "focusDiagnosisInspector"
+                    GUIConst.ACTION_SHOW_WAITING_LIST,
+                    GUIConst.ACTION_SHOW_PATIENT_SEARCH
             };
             mediator.enableMenus(enables);
 
@@ -445,7 +444,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         });
 
         // ロックボタンを生成する
-        lockBtn = new PNSToggleButton();
+        lockBtn = new PNSSafeToggleButton();
         lockBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         //lockBtn.setIcon(GUIConst.ICON_LOCK_16);
         lockBtn.setIcon(GUIConst.ICON_PADLOCK_CLOSED_16);
@@ -921,16 +920,6 @@ public class StampBoxPlugin extends AbstractMainTool {
      */
     public List<ModuleInfoBean> getAllStamps(String entity) {
         return getCurrentBox().getAllStamps(entity);
-    }
-
-    /**
-     * ChartIml が開いていたら，DiagnosisInspector にフォーカスする.
-     */
-    public void focusDiagnosisInspector() {
-        if (!ChartImpl.getAllChart().isEmpty()) {
-            ChartImpl chart = ChartImpl.getAllChart().get(0);
-            chart.getChartMediator().focusDiagnosisInspector();
-        }
     }
 
     /**

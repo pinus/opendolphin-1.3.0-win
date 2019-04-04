@@ -1,237 +1,426 @@
 package open.dolphin.client;
 
-import com.sun.glass.events.KeyEvent;
-import open.dolphin.event.ProxyAction;
-import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.stampbox.StampBoxPlugin;
-import open.dolphin.stampbox.StampTree;
-import open.dolphin.stampbox.StampTreeMenuBuilder;
 import open.dolphin.ui.CompletableSearchField;
+import open.dolphin.ui.Focuser;
+import open.dolphin.ui.PNSToggleButton;
 
 import javax.swing.*;
+import javax.swing.event.CaretListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.List;
+import java.awt.geom.AffineTransform;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 /**
- * ChartImpl と EditorFrame 特有の JToolBar.
+ * EditorFrame 特有の JToolBar.
  *
  * @author pns
  */
 public class ChartToolBar extends JToolBar {
     private static final long serialVersionUID = 1L;
 
-    private final MainWindow window;
-    private final ChartImpl realChart;
+    private final EditorFrame editorFrame;
     private final ChartMediator mediator;
     private final Preferences prefs;
 
-    public ChartToolBar(final Chart chart) {
+    private FontButton boldButton;
+    private FontButton italicButton;
+    private FontButton underlineButton;
+    private ColorButton colorButton;
+
+    private JustifyButton leftJustify;
+    private JustifyButton centerJustify;
+    private JustifyButton rightJustify;
+
+    private JComboBox<Integer> sizeCombo;
+    private CompletableSearchField stampSearchField;
+
+    private boolean pause = false;
+
+    public ChartToolBar(final EditorFrame chart) {
         super();
-        window = chart.getContext();
         mediator = chart.getChartMediator();
         prefs = Preferences.userNodeForPackage(ChartToolBar.class).node(ChartToolBar.class.getName());
-
-        realChart = chart instanceof ChartImpl ?
-                (ChartImpl) chart : (ChartImpl) ((EditorFrame) chart).getChart();
+        editorFrame = chart;
 
         initComponents();
+        connect();
     }
 
+    /**
+     * コンポネントの組み立て.
+     */
     private void initComponents() {
-
         setFloatable(false);
         setOpaque(false);
         setBorderPainted(false);
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        add(createStampButton());
-        //add(createTextStampButton());
-        add(createSchemaButton());
-        add(createWindowButton());
+        add(Box.createHorizontalStrut(4));
+        add(createFontPanel());
+        add(createSizePanel());
+        add(Box.createHorizontalStrut(24));
+        add(createJustifyPanel());
+        add(Box.createHorizontalStrut(24));
         add(createDiagnosisSearchPanel());
+        add(Box.createHorizontalStrut(4));
     }
 
-    private JButton createStampButton() {
-        JButton stampButton = new JButton();
-        stampButton.setBorderPainted(false);
-        stampButton.setName("stampBtn");
-        stampButton.setAction(mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP));
-        stampButton.setText("");
-        stampButton.setToolTipText("スタンプを挿入します。");
-        //stampButton.setIcon(GUIConst.ICON_STAMP_22);
-        stampButton.setIcon(GUIConst.ICON_STAMP_32);
-        stampButton.setOpaque(false);
-        stampButton.addActionListener(e -> {
-            JButton b = (JButton) e.getSource();
-            JPopupMenu popup = new JPopupMenu();
-            mediator.addStampMenu(popup);
-            Point loc = b.getLocation();
-            popup.show(b.getParent(), loc.x + b.getWidth() / 2, loc.y + b.getHeight() / 2);
+    /**
+     * リスナーの接続を行う.
+     */
+    private void connect() {
+
+        boldButton.addActionListener(e -> {
+            mediator.fontBold();
+            Focuser.requestFocus(mediator.getCurrentComponent());
         });
-        return stampButton;
-    }
-
-    private JButton createTextStampButton() {
-        JButton textStampButton = new JButton();
-        textStampButton.setBorderPainted(false);
-        textStampButton.setName("textBtn");
-        textStampButton.setAction(mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT));
-        textStampButton.setText("");
-        textStampButton.setToolTipText("テキストスタンプを挿入します。");
-        textStampButton.setIcon(GUIConst.ICON_STAMP_TEXT_22);
-        textStampButton.setOpaque(false);
-        textStampButton.addActionListener(e -> {
-            JButton b = (JButton) e.getSource();
-            JPopupMenu popup = new JPopupMenu();
-            mediator.addTextMenu(popup);
-            Point loc = b.getLocation();
-            popup.show(b.getParent(), loc.x + b.getWidth() / 2, loc.y + b.getHeight() / 2);
+        italicButton.addActionListener(e -> {
+            mediator.fontItalic();
+            Focuser.requestFocus(mediator.getCurrentComponent());
         });
-        return textStampButton;
-    }
-
-    private JButton createSchemaButton() {
-        JButton schemaButton = new JButton();
-        schemaButton.setBorderPainted(false);
-        schemaButton.setName("schemaBtn");
-        schemaButton.setAction(mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA));
-        schemaButton.setText("");
-        schemaButton.setToolTipText("シェーマボックスを起動します。");
-        //schemaButton.setIcon(GUIConst.ICON_GRAPHICS_BRUSH_22);
-        schemaButton.setIcon(GUIConst.ICON_BRUSH_32);
-        schemaButton.setOpaque(false);
-        schemaButton.addActionListener(e -> window.showSchemaBox());
-        return schemaButton;
-    }
-
-    private JButton createWindowButton() {
-        JButton windowButton = new JButton();
-        windowButton.setBorderPainted(false);
-        //windowButton.setIcon(GUIConst.ICON_WINDOWS_22);
-        windowButton.setIcon(GUIConst.ICON_WINDOW_STACK_32);
-        windowButton.setToolTipText("開いているカルテの一覧を表示します。");
-        windowButton.setOpaque(false);
-        windowButton.addActionListener(e -> {
-            JPopupMenu popup = new JPopupMenu();
-            final List<WindowSupport> windows = WindowSupport.getAllWindows();
-            Action action;
-            String name;
-
-            int count = 0;
-            // カルテを popup に追加
-            for (WindowSupport ws : windows) {
-                action = ws.getWindowAction();
-                name = action.getValue(Action.NAME).toString();
-                if (name.contains("カルテ")) {
-                    action.putValue(Action.SMALL_ICON, WindowSupport.getIcon(ws.getFrame()));
-                    popup.add(action);
-                    count++;
-                }
-            }
-            if (count != 0) {
-                popup.addSeparator();
-                count = 0;
-            }
-
-            // インスペクタを popup に追加
-            for (WindowSupport ws : windows) {
-                action = ws.getWindowAction();
-                name = action.getValue(Action.NAME).toString();
-                if (name.contains("インスペクタ")) {
-                    action.putValue(Action.SMALL_ICON, WindowSupport.getIcon(ws.getFrame()));
-                    popup.add(action);
-                    count++;
-                }
-            }
-
-            // インスペクタウインドウ整列
-            if (count != 0) {
-                popup.addSeparator();
-
-                //Action a = new ProxyAction("インスペクタを整列", GUIConst.ICON_WINDOWS_22, () -> {
-                Action a = new ProxyAction("インスペクタを整列", GUIConst.ICON_WINDOW_STACK_16, () -> {
-                    int x = WindowSupport.INITIAL_X;
-                    int y = WindowSupport.INITIAL_Y;
-                    int width = 0;
-                    int height = 0;
-
-                    for (WindowSupport ws : windows) {
-                        JFrame f = ws.getFrame();
-                        if (f.getTitle().contains("インスペクタ")) {
-                            if (width == 0) {
-                                width = f.getBounds().width;
-                            }
-                            if (height == 0) {
-                                height = f.getBounds().height;
-                            }
-
-                            f.setBounds(x, y, width, height);
-                            f.toFront();
-                            x += WindowSupport.INITIAL_DX;
-                            y += WindowSupport.INITIAL_DY;
-                        }
-                    }
-                });
-                popup.add(a);
-            }
-            JButton b = (JButton) e.getSource();
-            Point loc = b.getLocation();
-            popup.show(b.getParent(), loc.x + b.getWidth() / 2, loc.y + b.getHeight() / 2);
+        underlineButton.addActionListener(e -> {
+            mediator.fontUnderline();
+            Focuser.requestFocus(mediator.getCurrentComponent());
         });
 
-        return windowButton;
+        colorButton.addActionListener(e -> {
+            ColorButton b = (ColorButton) e.getSource();
+            JPopupMenu menu = new JPopupMenu();
+            ColorChooserComp chooser = new ColorChooserComp();
+            menu.add(chooser);
+            chooser.addPropertyChangeListener(ColorChooserComp.SELECTED_COLOR, pe -> {
+                Color color = (Color) pe.getNewValue();
+                mediator.colorAction(color);
+                repaint();
+                menu.setVisible(false);
+                Focuser.requestFocus(mediator.getCurrentComponent());
+            });
+            menu.show(b, 0, b.getHeight());
+            b.setSelected(false);
+        });
+
+        leftJustify.addActionListener(e -> {
+            mediator.leftJustify();
+            Focuser.requestFocus(mediator.getCurrentComponent());
+        });
+        centerJustify.addActionListener(e -> {
+            mediator.centerJustify();
+            Focuser.requestFocus(mediator.getCurrentComponent());
+        });
+        rightJustify.addActionListener(e -> {
+            mediator.rightJustify();
+            Focuser.requestFocus(mediator.getCurrentComponent());
+        });
+
+        sizeCombo.addItemListener(e -> {
+            if (pause) { return; }
+            int size = (int) e.getItem();
+            mediator.setFontSize(size);
+            Focuser.requestFocus(mediator.getCurrentComponent());
+        });
+
+        // caret を listen してボタンを制御する
+        CaretListener caretListener = e -> {
+            JTextPane pane = (JTextPane)e.getSource();
+            int p = pane.getSelectionStart() - 1;
+            AttributeSet a = pane.getStyledDocument().getCharacterElement(p).getAttributes();
+
+            boldButton.setSelected(StyleConstants.isBold(a));
+            italicButton.setSelected(StyleConstants.isItalic(a));
+            underlineButton.setSelected((StyleConstants.isUnderline(a)));
+            colorButton.setColor(StyleConstants.getForeground(a));
+
+            int align = StyleConstants.getAlignment(a);
+            leftJustify.setSelected(align == StyleConstants.ALIGN_LEFT);
+            centerJustify.setSelected(align == StyleConstants.ALIGN_CENTER);
+            rightJustify.setSelected(align == StyleConstants.ALIGN_RIGHT);
+
+            int size = StyleConstants.getFontSize(a);
+            pause = true;
+            sizeCombo.setSelectedItem(size);
+            SwingUtilities.invokeLater(() -> pause = false);
+        };
+        editorFrame.getEditor().getSOAPane().getTextPane().addCaretListener(caretListener);
+        editorFrame.getEditor().getPPane().getTextPane().addCaretListener(caretListener);
     }
 
+    /**
+     * Font size 設定パネル.
+     *
+     * @return Size Panel
+     */
+    private JPanel createSizePanel() {
+        sizeCombo = new JComboBox<>(mediator.FONT_SIZE);
+        sizeCombo.setBorder(BorderFactory.createEmptyBorder());
+        sizeCombo.setSelectedItem(mediator.DEFAULT_FONT_SIZE);
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panel.add(sizeCombo);
+        return panel;
+    }
+
+    /**
+     * Bold, Italic, Underline ボタンのパネルを作る.
+     *
+     * @return Font Panel
+     */
+    private JPanel createFontPanel() {
+        boldButton = new FontButton("B", "bold left");
+        italicButton = new FontButton("I", "italic");
+        underlineButton = new FontButton("U", "underline center");
+        colorButton = new ColorButton("right");
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        add(boldButton);
+        add(italicButton);
+        add(underlineButton);
+        add(colorButton);
+        return panel;
+    }
+
+    /**
+     * 書式ボタンのパネルを作る.
+     *
+     * @return Justification Panel
+     */
+    private JPanel createJustifyPanel() {
+        leftJustify = new JustifyButton("left");
+        centerJustify = new JustifyButton("center");
+        rightJustify = new JustifyButton("right");
+        ButtonGroup justifyGroup = new ButtonGroup();
+        justifyGroup.add(leftJustify);
+        justifyGroup.add(centerJustify);
+        justifyGroup.add(rightJustify);
+        leftJustify.setSelected(true);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        add(leftJustify);
+        add(centerJustify);
+        add(rightJustify);
+        return panel;
+    }
+
+    /**
+     * Color ボタン.
+     */
+    private class ColorButton extends PNSToggleButton {
+        private String LETTER = "A";
+        private double SCALE = 1.3d;
+        private Font font = new Font("Arial", Font.BOLD, 12)
+                .deriveFont(AffineTransform.getScaleInstance(SCALE, 1));
+        private Color color = Color.BLACK;
+
+        public ColorButton(String format) {
+            super(format);
+            setPreferredSize(new Dimension(48, 24));
+            setMaximumSize(new Dimension(48, 24));
+            setMinimumSize(new Dimension(48, 24));
+            setBorderPainted(false);
+            setSelected(false);
+        }
+
+        public void setColor(Color color) {
+            this.color = color;
+            repaint();
+        }
+
+        @Override
+        public void paintIcon(Graphics2D g) {
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+            int strW = (int) ((double)fm.stringWidth(LETTER) * SCALE);
+            int strH = fm.getAscent()-4;
+            int w = getWidth();
+            int h = getHeight();
+
+            g.drawString(LETTER, (w - strW) / 2, (h + strH) / 2);
+            g.setColor(color);
+            g.fillRect((w - strW) / 2 - 1, h - 8, strW, 4);
+        }
+    }
+
+    /**
+     * Bold, Italic, Underline ボタン.
+     */
+    private class FontButton extends PNSToggleButton {
+        private double SCALE = 1.3d;
+        private Font boldFont = new Font("Courier", Font.BOLD, 14)
+                .deriveFont(AffineTransform.getScaleInstance(SCALE, 1));
+        private Font italicFont = new Font("Courier", Font.ITALIC, 14)
+                .deriveFont(AffineTransform.getScaleInstance(SCALE, 1));
+        private Font plainFont = new Font("Courier", Font.PLAIN, 14)
+                .deriveFont(AffineTransform.getScaleInstance(SCALE, 1));
+
+        private String letter;
+        private boolean bold, italic, underline;
+
+        public FontButton(String letter, String format) {
+            super(format);
+            this.letter = letter;
+            bold = format.contains("bold");
+            italic = format.contains("italic");
+            underline = format.contains("underline");
+
+            setPreferredSize(new Dimension(48, 24));
+            setMaximumSize(new Dimension(48, 24));
+            setMinimumSize(new Dimension(48, 24));
+            setBorderPainted(false);
+            setSelected(false);
+        }
+
+        @Override
+        public void paintIcon(Graphics2D g) {
+            FontMetrics fm = g.getFontMetrics();
+            int strW = (int) ((double)fm.stringWidth(letter) * SCALE);
+            int strH = fm.getAscent()-4;
+            int w = getWidth();
+            int h = getHeight();
+
+            if (bold) {
+                g.setFont(boldFont);
+            } else if (italic) {
+                g.setFont(italicFont);
+            } else {
+                g.setFont(plainFont);
+            }
+
+            int x = (w - strW) / 2;
+            int y = (h + strH) / 2;
+            // fine tuning
+            if (italic) {
+                x = x - (int) (4d * SCALE);
+                y = y + 1;
+            } else if (bold){
+                y = y + 1;
+            }
+            g.drawString(letter, x, y);
+            if (underline) {
+                g.drawLine((w - strW) / 2, h - 5, (w + strW) / 2, h - 5);
+            }
+        }
+    }
+
+    /**
+     * 書式ボタン.
+     */
+    private class JustifyButton extends PNSToggleButton {
+        private int LONG = 20;
+        private int SHORT = 14;
+
+        public JustifyButton(String format) {
+            super(format);
+            setPreferredSize(new Dimension(48, 24));
+            setMaximumSize(new Dimension(48, 24));
+            setMinimumSize(new Dimension(48, 24));
+            setBorderPainted(false);
+            setSelected(false);
+        }
+
+        @Override
+        public void paintIcon(Graphics2D g) {
+            int interval = 3;
+            int l = (getWidth() - LONG) / 2;
+            int s = swingConstant == SwingConstants.LEFT
+                    ? l
+                    : swingConstant == SwingConstants.RIGHT
+                    ? l + (LONG-SHORT)
+                    : (getWidth() - SHORT) / 2;
+
+            int y = 6;
+            g.drawLine(l, y, l+LONG, y); y += interval;
+            g.drawLine(s, y, s+SHORT, y); y += interval;
+            g.drawLine(l, y, l+LONG, y); y += interval;
+            g.drawLine(s, y, s+SHORT, y); y += interval;
+            g.drawLine(l, y, l+LONG, y);
+        }
+    }
+
+    /**
+     * スタンプ検索パネル.
+     *
+     * @return Stamp Search Panel
+     */
     private JPanel createDiagnosisSearchPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-        CompletableSearchField keywordFld = new CompletableSearchField(30);
-        keywordFld.setLabel("病名検索");
-        keywordFld.setPreferences(prefs);
-        keywordFld.putClientProperty("Quaqua.TextField.style", "search");
-        keywordFld.setPreferredSize(new Dimension(10, 26));
-        keywordFld.addActionListener(e -> {
-            String text = keywordFld.getText();
+        stampSearchField = new CompletableSearchField(30);
+        stampSearchField.setLabel("スタンプ検索");
+        stampSearchField.setPreferences(prefs);
+        stampSearchField.putClientProperty("Quaqua.TextField.style", "search");
+        stampSearchField.setPreferredSize(new Dimension(10, 26));
+        stampSearchField.addActionListener(e -> {
+            String text = stampSearchField.getText();
 
             if (text != null && !text.equals("")) {
-                JPopupMenu popup = new JPopupMenu();
-                String pattern = ".*" + keywordFld.getText() + ".*";
+                String pattern = ".*" + stampSearchField.getText() + ".*";
 
-                StampBoxPlugin stampBox = mediator.getStampBox();
-                StampTree tree = stampBox.getStampTree(IInfoModel.ENTITY_DIAGNOSIS);
+                JPopupMenu popup = mediator.createAllStampPopup(pattern, ev -> {
 
-                StampTreeMenuBuilder builder = new StampTreeMenuBuilder(tree, pattern);
-                //builder.addStampTreeMenuListener(new DefaultStampTreeMenuListener(realChart.getDiagnosisDocument().getDiagnosisTable()));
-                builder.addStampTreeMenuListener(ev -> {
-                    JComponent c = realChart.getDiagnosisDocument().getDiagnosisTable();
-                    TransferHandler handler = c.getTransferHandler();
-                    handler.importData(c, ev.getTransferable());
+                    JComponent c = null;
+                    switch (ev.getEntity()) {
+                        case IInfoModel.ENTITY_DIAGNOSIS:
+                            c = ((ChartImpl) editorFrame.getChart()).getDiagnosisDocument().getDiagnosisTable();
+                            break;
+
+                        case IInfoModel.ENTITY_TEXT:
+                            c = mediator.getCurrentComponent();
+                            break;
+
+                        default:
+//                        case IInfoModel.ENTITY_PATH:
+//                        case IInfoModel.ENTITY_GENERAL_ORDER:
+//                        case IInfoModel.ENTITY_OTHER_ORDER:
+//                        case IInfoModel.ENTITY_TREATMENT:
+//                        case IInfoModel.ENTITY_SURGERY_ORDER:
+//                        case IInfoModel.ENTITY_RADIOLOGY_ORDER:
+//                        case IInfoModel.ENTITY_LABO_TEST:
+//                        case IInfoModel.ENTITY_PHYSIOLOGY_ORDER:
+//                        case IInfoModel.ENTITY_BACTERIA_ORDER:
+//                        case IInfoModel.ENTITY_INJECTION_ORDER:
+//                        case IInfoModel.ENTITY_MED_ORDER:
+//                        case IInfoModel.ENTITY_BASE_CHARGE_ORDER:
+//                        case IInfoModel.ENTITY_INSTRACTION_CHARGE_ORDER:
+                            c = editorFrame.getEditor().getPPane().getTextPane();
+                            break;
+                    }
+
+                    if (Objects.nonNull(c)) {
+                        TransferHandler handler = c.getTransferHandler();
+                        handler.importData(c, ev.getTransferable());
+                    }
+
                     // transfer 後にキーワードフィールドをクリアする
-                    keywordFld.setText("");
+                    stampSearchField.setText("");
                 });
-                builder.buildRootless(popup);
 
                 if (popup.getComponentCount() != 0) {
-                    Point loc = keywordFld.getLocation();
-                    popup.show(keywordFld.getParent(), loc.x, loc.y + keywordFld.getHeight());
+                    popup.show(stampSearchField, 0, stampSearchField.getHeight());
                 }
             }
         });
 
         // ctrl-return でもリターンキーの notify-field-accept が発生するようにする
-        InputMap map = keywordFld.getInputMap();
-        Object value = map.get(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-        map.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), value);
+        InputMap map = stampSearchField.getInputMap();
+        Object value = map.get(KeyStroke.getKeyStroke("ENTER"));
+        map.put(KeyStroke.getKeyStroke("ctrl ENTER"), value);
 
-        panel.add(keywordFld, BorderLayout.CENTER);
-        panel.add(Box.createVerticalStrut(9), BorderLayout.NORTH);
-        panel.add(Box.createVerticalStrut(9), BorderLayout.SOUTH);
-        panel.add(Box.createHorizontalStrut(5), BorderLayout.WEST);
-        panel.add(Box.createHorizontalStrut(5), BorderLayout.EAST);
+        panel.add(stampSearchField);
 
         return panel;
+    }
+
+    /**
+     * stamp search field を返す.
+     * @return stamp search field
+     */
+    public CompletableSearchField getStampSearchField() {
+        return stampSearchField;
     }
 }

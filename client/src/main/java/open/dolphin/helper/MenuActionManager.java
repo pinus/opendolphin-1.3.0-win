@@ -19,7 +19,7 @@ public class MenuActionManager {
     private final ActionMap actionMap;
 
     public MenuActionManager(Object obj) {
-        actionMap = getActionMap(obj);
+        actionMap = createActionMap(obj);
     }
 
     /**
@@ -28,7 +28,7 @@ public class MenuActionManager {
      * @param obj {@code @MenuAction} を付けたインスタンス
      * @return ActionMap
      */
-    public static ActionMap getActionMap(final Object obj) {
+    public static ActionMap createActionMap(final Object obj) {
 
         ActionMap map = new ActionMap();
 

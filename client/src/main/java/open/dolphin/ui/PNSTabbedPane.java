@@ -548,20 +548,9 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
     /**
      * タブボタンクラス.
      */
-    private class TabButton extends JToggleButton implements ActionListener {
+    private class TabButton extends JToggleButton implements IPNSButton, ActionListener {
         private static final long serialVersionUID = 1L;
 
-        private final Color INACTIVE_FRAME = new Color(219, 219, 219);
-        private final Color INACTIVE_FILL_SELECTED = new Color(227, 227, 227);
-        private final Color INACTIVE_FILL = new Color(246, 246, 246);
-        private final Color ACTIVE_FRAME = new Color(175, 175, 175);
-        private final Color ACTIVE_SEPARATOR = new Color(218, 218, 218);
-        private final Color ACTIVE_FRAME_SELECTED = new Color(91, 91, 91);
-        private final Color ACTIVE_SEPARATOR_SELECTED = new Color(91, 91, 91);
-        private final Color ACTIVE_FILL = new Color(240, 240, 240);
-        private final Color ACTIVE_FILL_SELECTED = new Color(100, 100, 100);
-        private final Color INACTIVE_TEXT = new Color(180, 180, 180);
-        private final Color INACTIVE_TEXT_SELECTED = new Color(50, 50, 50);
         public boolean isTop;
         public boolean isBottom;
         public boolean isRightEnd;
@@ -672,7 +661,7 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
             if (this.isLeftEnd && isTop && isBottom) {
                 // 左端のボタンの角を取る
                 // fill
-                int r = 6;
+                int r = RADIUS;
                 g.setColor(fillColor);
                 g.fillRoundRect(0, 0, w, h, r * 2, r * 2); // 全体を角丸で塗って
                 g.fillRect(w - r, 0, r, h); // 右端を四角く塗り直す
@@ -687,7 +676,7 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
             } else if (this.isRightEnd && isTop && isBottom) {
                 // 右端のボタンの角を取る
                 // fill
-                int r = 6;
+                int r = RADIUS;
                 g.setColor(fillColor);
                 g.fillRoundRect(0, 0, w - 1, h, r * 2, r * 2); // 右端のボタンは 1ドット狭い
                 g.fillRect(0, 0, r, h);

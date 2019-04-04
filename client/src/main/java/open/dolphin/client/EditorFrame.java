@@ -26,15 +26,13 @@ import java.util.List;
 public class EditorFrame extends AbstractMainTool implements Chart {
 
     // 全インスタンスを保持するリスト
-    private static final List<Chart> allEditorFrames = new ArrayList<>(3);
+    private static final List<EditorFrame> allEditorFrames = new ArrayList<>(3);
     // このフレームの実のコンテキストチャート
     private Chart realChart;
     // このフレームに表示する KarteViewer オブジェクト
     private KarteViewer2 view;
     // このフレームに表示する KarteEditor オブジェクト
     private KarteEditor editor;
-    // ToolBar パネル
-    private JPanel myToolPanel;
     // スクローラコンポーネント
     private JScrollPane scroller;
     // Status パネル
@@ -47,6 +45,9 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     private ChartMediator mediator;
     // Block GlassPane
     private BlockGlass blockGlass;
+    // ChartToolBar
+    private ChartToolBar chartToolBar;
+
     /**
      * EditorFrame オブジェクトを生成する.
      */
@@ -58,7 +59,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      *
      * @return 全インスタンスを保持するリスト
      */
-    public static List<Chart> getAllEditorFrames() {
+    public static List<EditorFrame> getAllEditorFrames() {
         return Collections.unmodifiableList(allEditorFrames);
     }
 
@@ -94,10 +95,20 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         }
     }
 
+    /**
+     * このフレームの KarteEditor を返す.
+     *
+     * @return KarteEditor
+     */
     public KarteEditor getEditor() {
         return editor;
     }
 
+    /**
+     * このフレームの DocumentModel を返す.
+     *
+     * @return
+     */
     private DocumentModel getDocumentModel() {
         DocumentModel docModel = null;
         if (mode == null) {
@@ -115,6 +126,10 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         return docModel;
     }
 
+    /**
+     * このフレームの DocumentModel の DocInfo status を返す.
+     * @return DocInfoModel の status
+     */
     public String getDocInfoStatus() {
         DocumentModel docModel = getDocumentModel();
         String ret = null;
@@ -124,6 +139,10 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         return ret;
     }
 
+    /**
+     * このフレームの DocumentModel の primary key を返す.
+     * @return primary key
+     */
     public long getParentDocPk() {
         long pk = 0;
 
@@ -141,12 +160,17 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         return pk;
     }
 
+    /**
+     * このフレームの元になった ChartImpl を返す.
+     *
+     * @return ChartImpl
+     */
     public Chart getChart() {
         return realChart;
     }
 
     /**
-     * ChartImpl コンテキストを設定する.
+     * このフレームの元の ChartImpl コンテキストを設定する.
      *
      * @param chartCtx ChartImpl コンテキスト
      */
@@ -349,14 +373,33 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         return (mode == EditorMode.EDITOR) && editor.isDirty();
     }
 
+    /**
+     * 全部の PVTHealthInsuranceModel を返す.
+     *
+     * @return array of PVTHealthInsuranceModel
+     */
     @Override
     public PVTHealthInsuranceModel[] getHealthInsurances() {
         return realChart.getHealthInsurances();
     }
 
+    /**
+     * UID に一致する PVTHealthInsuranceModel を返す.
+     *
+     * @return matched PVTHealthInsuranceModel
+     */
     @Override
     public PVTHealthInsuranceModel getHealthInsuranceToApply(String uuid) {
         return realChart.getHealthInsuranceToApply(uuid);
+    }
+
+    /**
+     * ToolBar を返す.
+     *
+     * @return ChartToolBar
+     */
+    public ChartToolBar getChartToolBar() {
+        return chartToolBar;
     }
 
     /**
@@ -442,16 +485,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         appMenu.setMenuSupports(realChart.getContext().getMenuSupport(), mediator);
         appMenu.build(myMenuBar);
         mediator.registerActions(appMenu.getActionMap());
-        myToolPanel = appMenu.getToolPanelProduct();
-        //content.add(myToolPanel, BorderLayout.NORTH);
-        myToolPanel.setOpaque(false);
-        comPanel.add(myToolPanel);
-
-        //
-        // このクラス固有のToolBarを生成する
-        //
-        ChartToolBar toolBar = new ChartToolBar(this);
-        myToolPanel.add(toolBar);
 
         //statusPanel = new StatusPanel();
 
@@ -525,6 +558,12 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                 editor.getUI().scrollRectToVisible(new Rectangle(0, 0, editor.getUI().getWidth(), 50));
             }
         });
+
+        //
+        // このクラス固有のToolBarを生成する
+        //
+        chartToolBar = new ChartToolBar(this);
+        comPanel.add(chartToolBar);
     }
 
     /**

@@ -178,9 +178,8 @@ public class ImageBox extends AbstractMainTool {
             String[] enables = new String[]{
                     GUIConst.ACTION_SHOW_STAMPBOX,
                     GUIConst.ACTION_SET_KARTE_ENVIROMENT,
-                    "showWaitingList",
-                    "showPatientSearch",
-                    "focusDiagnosisInspector"
+                    GUIConst.ACTION_SHOW_WAITING_LIST,
+                    GUIConst.ACTION_SHOW_PATIENT_SEARCH
             };
             mediator.enableMenus(enables);
         } else {
@@ -294,16 +293,6 @@ public class ImageBox extends AbstractMainTool {
      */
     public void setSuffix(String[] suffix) {
         this.suffix = suffix;
-    }
-
-    /**
-     * ChartIml が開いていたら，DiagnosisInspector にフォーカスする.
-     */
-    public void focusDiagnosisInspector() {
-        if (!ChartImpl.getAllChart().isEmpty()) {
-            ChartImpl chart = ChartImpl.getAllChart().get(0);
-            chart.getChartMediator().focusDiagnosisInspector();
-        }
     }
 
     private class DirectoryFilter implements FileFilter {

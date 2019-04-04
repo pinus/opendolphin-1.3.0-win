@@ -1,6 +1,5 @@
 package open.dolphin.helper;
 
-import open.dolphin.client.ClientContext;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -8,7 +7,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -31,12 +29,11 @@ import java.util.stream.Stream;
 public class MenuSupport implements MenuListener {
 
     private final Object[] chains = new Object[4];
-    private final Logger logger = ClientContext.getBootLogger();
+    private final Logger logger = Logger.getLogger(MenuSupport.class);
     private ActionMap actions;
 
     public MenuSupport(Object owner) {
         setDefaultChains(owner);
-        //logger.setLevel(Level.DEBUG);
     }
 
     private void setDefaultChains(Object owner) {
@@ -57,7 +54,7 @@ public class MenuSupport implements MenuListener {
     }
 
     /**
-     * メニューの ActionMap.
+     * メニューの ActionMap を登録する.
      *
      * @param actions ActionMap
      */
@@ -65,43 +62,77 @@ public class MenuSupport implements MenuListener {
         this.actions = actions;
     }
 
-    public Action getAction(String name) {
+    /**
+     * action key の action を返す.
+     *
+     * @param actionKey aciton key name
+     * @return Action
+     */
+    public Action getAction(String actionKey) {
         if (actions != null) {
-            return actions.get(name);
+            return actions.get(actionKey);
         }
         return null;
     }
 
+    /**
+     * ActionMap を返す.
+     *
+     * @return ActionMap
+     */
     public ActionMap getActions() {
         return actions;
     }
 
+    /**
+     * 全てのメニューを disable する.
+     */
     public void disableAllMenus() {
         if (actions != null) {
-            Arrays.asList(actions.keys()).forEach(obj -> actions.get(obj).setEnabled(false));
+            Stream.of(actions.keys()).forEach(obj -> actions.get(obj).setEnabled(false));
         }
     }
 
-    public void disableMenus(String[] menus) {
-        enableMenus(menus, false);
+    /**
+     * action key に該当する menu を disable する.
+     *
+     * @param actionKeys array of action key
+     */
+    public void disableMenus(String[] actionKeys) {
+        enableMenus(actionKeys, false);
     }
 
-    public void enableMenus(String[] menus) {
-        enableMenus(menus, true);
+    /**
+     * action key に該当する menu を enable する.
+     *
+     * @param actionKeys array of action key
+     */
+    public void enableMenus(String[] actionKeys) {
+        enableMenus(actionKeys, true);
     }
 
-    public void enableMenus(String[] menus, boolean enable) {
-        if (actions != null && menus != null) {
-            Stream.of(menus)
+    /**
+     * action key に該当する menu を enable/disable する.
+     *
+     * @param actionKeys array of action key
+     */
+    public void enableMenus(String[] actionKeys, boolean enable) {
+        if (actions != null && actionKeys != null) {
+            Stream.of(actionKeys)
                     .map(actions::get)
                     .filter(Objects::nonNull)
                     .forEach(action -> action.setEnabled(enable));
         }
     }
 
-    public void enableAction(String name, boolean enabled) {
+    /**
+     * action key に該当する menu を enable/disable する.
+     *
+     * @param actionKey action key
+     */
+    public void enableAction(String actionKey, boolean enabled) {
         if (actions != null) {
-            Action action = actions.get(name);
+            Action action = actions.get(actionKey);
             if (action != null) {
                 action.setEnabled(enabled);
             }

@@ -16,9 +16,6 @@ import open.dolphin.inspector.DocumentHistory;
 import open.dolphin.inspector.IInspector;
 import open.dolphin.inspector.PatientInspector;
 import open.dolphin.project.Project;
-import open.dolphin.stampbox.StampBoxPlugin;
-import open.dolphin.stampbox.StampTree;
-import open.dolphin.stampbox.StampTreeMenuBuilder;
 import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.ModelUtils;
@@ -28,7 +25,6 @@ import org.apache.log4j.Logger;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
@@ -77,6 +73,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private BlockGlass blockGlass;
     // 最新の受診歴
     private LastVisit lastVisit;
+    // 病名検索フィールド
+    private CompletableSearchField stampSearchField;
 
     /**
      * Create new ChartImpl.
@@ -608,54 +606,38 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         appMenu.build(myMenuBar);
         mediator.registerActions(appMenu.getActionMap());
 
-        // ToolBar は廃止
-        //JPanel myToolPanel = appMenu.getToolPanelProduct();
-        //myToolPanel.setOpaque(false);
-        // このクラス固有のToolBarを生成する
-        //ChartToolBar toolBar = new ChartToolBar(this);
-        //myToolPanel.add(toolBar);
-
         // 病名検索フィールド
-        CompletableSearchField keywordFld = new CompletableSearchField(15);
-        keywordFld.setPreferredSize(new Dimension(300, 26)); // width は JTextField の columns が優先される
-        keywordFld.setLabel("病名検索");
-        keywordFld.setPreferences(Preferences.userNodeForPackage(ChartToolBar.class).node(ChartImpl.class.getName()));
-        keywordFld.addActionListener(e -> {
-            String text = keywordFld.getText();
+        stampSearchField = new CompletableSearchField(15);
+        stampSearchField.setPreferredSize(new Dimension(300, 26)); // width は JTextField の columns が優先される
+        stampSearchField.setLabel("病名検索");
+        stampSearchField.setPreferences(Preferences.userNodeForPackage(ChartToolBar.class).node(ChartImpl.class.getName()));
+        stampSearchField.addActionListener(e -> {
+            String text = stampSearchField.getText();
+            String pattern = ".*" + stampSearchField.getText() + ".*";
 
             if (text != null && !text.equals("")) {
-                JPopupMenu popup = new JPopupMenu();
-                String pattern = ".*" + keywordFld.getText() + ".*";
-
-                StampBoxPlugin stampBox = mediator.getStampBox();
-                StampTree tree = stampBox.getStampTree(IInfoModel.ENTITY_DIAGNOSIS);
-
-                StampTreeMenuBuilder builder = new StampTreeMenuBuilder(tree, pattern);
-                //builder.addStampTreeMenuListener(new DefaultStampTreeMenuListener(realChart.getDiagnosisDocument().getDiagnosisTable()));
-                builder.addStampTreeMenuListener(ev -> {
+                JPopupMenu popup = mediator.createDiagnosisPopup(pattern, ev -> {
                     JComponent c = getDiagnosisDocument().getDiagnosisTable();
                     TransferHandler handler = c.getTransferHandler();
                     handler.importData(c, ev.getTransferable());
                     // transfer 後にキーワードフィールドをクリアする
-                    keywordFld.setText("");
+                    stampSearchField.setText("");
                 });
-                builder.buildRootless(popup);
 
                 if (popup.getComponentCount() != 0) {
-                    Point loc = keywordFld.getLocation();
-                    popup.show(keywordFld.getParent(), loc.x, loc.y + keywordFld.getHeight());
+                    popup.show(stampSearchField,0, stampSearchField.getHeight());
                 }
             }
         });
 
         JPanel keywordPanel = new JPanel();
         keywordPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        keywordPanel.add(keywordFld);
+        keywordPanel.add(stampSearchField);
 
         // ctrl-return でもリターンキーの notify-field-accept が発生するようにする
-        InputMap map = keywordFld.getInputMap();
+        InputMap map = stampSearchField.getInputMap();
         Object value = map.get(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-        map.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), value);
+        map.put(KeyStroke.getKeyStroke("ctrl ENTER"), value);
 
         // Document プラグインのタブを生成する
         tabbedPane = loadDocuments();
@@ -751,6 +733,15 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         // IME off
         IMEControl.setImeOff(getFrame());
+    }
+
+    /**
+     * StampSearchField を返す.
+     *
+     * @return StampSearchField
+     */
+    public CompletableSearchField getStampSearchField() {
+        return stampSearchField;
     }
 
     /**
@@ -1189,9 +1180,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     }
 
     /**
-     * モデルをコピーする.
-     * ToDO 参照ではいけない.
-     * DocInfo の設定はない.
+     * モデルをコピーする. 参照ではいけない. DocInfo の設定はない.
      */
     private void copyModel(DocumentModel oldModel, DocumentModel newModel, boolean applyRp) {
 
@@ -1559,15 +1548,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             return false;
         }
         long baseDocPk = baseDocumentModel.getDocInfo().getDocPk();
-        List<Chart> editorFrames = EditorFrame.getAllEditorFrames();
+        List<EditorFrame> editorFrames = EditorFrame.getAllEditorFrames();
         if (!editorFrames.isEmpty()) {
-            for (Chart chart : editorFrames) {
-                EditorFrame frame = (EditorFrame) chart;
+            for (EditorFrame frame : editorFrames) {
                 long parentDocPk = frame.getParentDocPk();
                 if (baseDocPk == parentDocPk) {
                     // parentPkが同じEditorFrameがある場合はFrameをtoFrontする
-                    chart.getFrame().setExtendedState(java.awt.Frame.NORMAL);
-                    chart.getFrame().toFront();
+                    frame.getFrame().setExtendedState(java.awt.Frame.NORMAL);
+                    frame.getFrame().toFront();
                     return true;
                 }
             }
@@ -1582,18 +1570,17 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      * @return toFront できたら true
      */
     private boolean toFrontNewKarteIfPresent() {
-        List<Chart> editorFrames = EditorFrame.getAllEditorFrames();
+        List<EditorFrame> editorFrames = EditorFrame.getAllEditorFrames();
         if (!editorFrames.isEmpty()) {
             String patientId = this.getKarte().getPatient().getPatientId();
-            for (Chart chart : editorFrames) {
+            for (EditorFrame ef : editorFrames) {
                 // 新規カルテだとDocInfoのstatusは"N"
-                EditorFrame ef = (EditorFrame) chart;
                 String status = ef.getDocInfoStatus();
-                String id = chart.getKarte().getPatient().getPatientId();
+                String id = ef.getKarte().getPatient().getPatientId();
                 if (patientId.equals(id) && IInfoModel.STATUS_NONE.equals(status)) {
                     // 新規カルテのEditorFrameがある場合はFrameをtoFrontする
-                    chart.getFrame().setExtendedState(Frame.NORMAL);
-                    chart.getFrame().toFront();
+                    ef.getFrame().setExtendedState(Frame.NORMAL);
+                    ef.getFrame().toFront();
                     return true;
                 }
             }
@@ -1624,6 +1611,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         public void controlMenu() {
             mediator.getAction(GUIConst.ACTION_NEW_KARTE).setEnabled(false);
             mediator.getAction(GUIConst.ACTION_MODIFY_KARTE).setEnabled(false);
+
         }
     }
 

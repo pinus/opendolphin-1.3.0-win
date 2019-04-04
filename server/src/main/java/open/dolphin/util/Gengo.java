@@ -13,7 +13,7 @@ public enum Gengo {
     TAISHO("T", "㍽", "大正"),
     SHOWA("S", "㍼", "昭和"),
     HEISEI("H", "㍻", "平成"),
-    ANCHO("A", String.valueOf('\u32ff'), "安長");
+    REIWA("R", String.valueOf('\u32ff'), "令和");
 
     String alphabet, halfKanji, kanji;
 
@@ -39,9 +39,9 @@ public enum Gengo {
         month = Integer.valueOf(isoDate.substring(5, 7));
         day = Integer.valueOf(isoDate.substring(8, 10));
 
-        // 2020年より先は新元号
+        // 2020年より先は令和
         if (year >= 2020) {
-            gengo = ANCHO;
+            gengo = REIWA;
             year -= 2018;
         }
         // 2019年だったら，4月30日以前は平成
@@ -50,7 +50,7 @@ public enum Gengo {
                 gengo = HEISEI;
                 year -= 1988;
             } else {
-                gengo = ANCHO;
+                gengo = REIWA;
                 year -= 2018;
             }
         }

@@ -5,8 +5,7 @@ import open.dolphin.helper.MenuActionManager.MenuAction;
 import open.dolphin.helper.MenuSupport;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.util.Objects;
 
 /**
  * Menu Factory.
@@ -15,14 +14,13 @@ import java.awt.event.KeyEvent;
  * @author pns
  */
 public class MenuFactory {
+    private static final String SHORT_CUT_KEY_MASK = ClientContext.isMac() ? "meta" : "ctrl";
 
-    private static final boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
     private MenuSupport main;
     private MenuSupport chart; // ChartMediator
     private JMenuBar menuBar;
     private JPanel toolPanel;
     private ActionMap actionMap;
-
 
     public MenuFactory() {
     }
@@ -32,840 +30,497 @@ public class MenuFactory {
         this.chart = chart;
     }
 
+    /**
+     * 作った JMenuBar を返す.
+     *
+     * @return JMenuBar
+     */
     public JMenuBar getMenuBarProduct() {
         return menuBar;
     }
 
+    /**
+     * JToolBar (fileBar と editoBar) を組み合わせた JPanel を返す.
+     *
+     * @return JPanel
+     */
     public JPanel getToolPanelProduct() {
         return toolPanel;
     }
 
-    public ActionMap getActionMap() {
-        return actionMap;
-    }
+    /**
+     * ActionMap を返す.
+     *
+     * @return ActionMap
+     */
+    public ActionMap getActionMap() { return actionMap; }
 
     @MenuAction
     public void newKarte() {
-        chart.sendToChain("newKarte");
+        chart.sendToChain(GUIConst.ACTION_NEW_KARTE);
     }
 
     @MenuAction
     public void newDocument() {
-        chart.sendToChain("newDocument");
+        chart.sendToChain(GUIConst.ACTION_NEW_DOCUMENT);
     }
 
     @MenuAction
-    public void openKarte() {
-        main.sendToChain("openKarte");
-    }
+    public void openKarte() { main.sendToChain(GUIConst.ACTION_OPEN_KARTE); }
 
     @MenuAction
     public void close() {
-        chart.sendToChain("close");
+        chart.sendToChain(GUIConst.ACTION_CLOSE);
     }
 
     @MenuAction
     public void save() {
-        chart.sendToChain("save");
+        chart.sendToChain(GUIConst.ACTION_SAVE);
     }
 
     @MenuAction
     public void delete() {
-        chart.sendToChain("delete");
+        chart.sendToChain(GUIConst.ACTION_DELETE);
     }
 
     @MenuAction
     public void printerSetup() {
-        main.sendToChain("printerSetup");
+        main.sendToChain(GUIConst.ACTION_PRINTER_SETUP);
     }
 
     @MenuAction
     public void print() {
-        chart.sendToChain("print");
+        chart.sendToChain(GUIConst.ACTION_PRINT);
     }
 
     @MenuAction
     public void processExit() {
-        main.sendToChain("processExit");
+        main.sendToChain(GUIConst.ACTION_PROCESS_EXIT);
     }
 
     @MenuAction
     public void modifyKarte() {
-        chart.sendToChain("modifyKarte");
+        chart.sendToChain(GUIConst.ACTION_MODIFY_KARTE);
     }
 
     @MenuAction
     public void undo() {
-        chart.sendToChain("undo");
+        chart.sendToChain(GUIConst.ACTION_UNDO);
     }
 
     @MenuAction
     public void redo() {
-        chart.sendToChain("redo");
+        chart.sendToChain(GUIConst.ACTION_REDO);
     }
 
     @MenuAction
     public void cut() {
-        chart.sendToChain("cut"); //cut();
+        chart.sendToChain(GUIConst.ACTION_CUT);
     }
 
     @MenuAction
-    public void copy() {
-        chart.sendToChain("copy"); //copy();
-    }
+    public void copy() { chart.sendToChain(GUIConst.ACTION_COPY); }
 
     @MenuAction
-    public void paste() {
-        chart.sendToChain("paste"); //paste();
-    }
+    public void paste() { chart.sendToChain(GUIConst.ACTION_PASTE); }
 
     @MenuAction
     public void selectAll() {
-        chart.sendToChain("selectAll");
+        chart.sendToChain(GUIConst.ACTION_SELECT_ALL);
     }
 
     @MenuAction
     public void sendClaim() {
-        chart.sendToChain("sendClaim");
+        chart.sendToChain(GUIConst.ACTION_SEND_CLAIM);
     }
 
     @MenuAction
     public void ascending() {
-        chart.sendToChain("ascending");
+        chart.sendToChain(GUIConst.ACTION_ASCENDING);
     }
 
     @MenuAction
     public void descending() {
-        chart.sendToChain("descending");
+        chart.sendToChain(GUIConst.ACTION_DESCENDING);
     }
 
     @MenuAction
     public void showModified() {
-        chart.sendToChain("showModified");
+        chart.sendToChain(GUIConst.ACTION_SHOW_MODIFIED);
     }
 
     @MenuAction
     public void setKarteEnviroment() {
-        main.sendToChain("setKarteEnviroment");
+        main.sendToChain(GUIConst.ACTION_SET_KARTE_ENVIROMENT);
     }
 
     @MenuAction
-    public void insertDisease() {
-    }
+    public void insertDisease() { }
 
     @MenuAction
-    public void insertText() {
-    }
+    public void insertText() { }
 
     @MenuAction
-    public void insertSchema() {
-    }
+    public void insertSchema() { }
 
     @MenuAction
-    public void insertStamp() {
-    }
+    public void insertStamp() { }
 
     @MenuAction
-    public void selectInsurance() {
-    }
+    public void selectInsurance() { }
 
     @MenuAction
-    public void size() {
-    }
+    public void size() { }
 
     @MenuAction
     public void fontLarger() {
-        chart.sendToChain("fontLarger");
+        chart.sendToChain(GUIConst.ACTION_FONT_LARGER);
     }
 
     @MenuAction
     public void fontSmaller() {
-        chart.sendToChain("fontSmaller");
+        chart.sendToChain(GUIConst.ACTION_FONT_SMALLER);
     }
 
     @MenuAction
     public void fontStandard() {
-        chart.sendToChain("fontStandard");
+        chart.sendToChain(GUIConst.ACTION_FONT_STANDARD);
     }
 
     @MenuAction
-    public void style() {
-    }
+    public void style() { }
 
     @MenuAction
     public void fontBold() {
-        chart.sendToChain("fontBold");
+        chart.sendToChain(GUIConst.ACTION_FONT_BOLD);
     }
 
     @MenuAction
     public void fontItalic() {
-        chart.sendToChain("fontItalic");
+        chart.sendToChain(GUIConst.ACTION_FONT_ITALIC);
     }
 
     @MenuAction
     public void fontUnderline() {
-        chart.sendToChain("fontUnderline");
+        chart.sendToChain(GUIConst.ACTION_FONT_UNDERLINE);
     }
 
     @MenuAction
-    public void justify() {
-    }
+    public void justify() { }
 
     @MenuAction
     public void leftJustify() {
-        chart.sendToChain("leftJustify");
+        chart.sendToChain(GUIConst.ACTION_LEFT_JUSTIFY);
     }
 
     @MenuAction
     public void centerJustify() {
-        chart.sendToChain("centerJustify");
+        chart.sendToChain(GUIConst.ACTION_CENTER_JUSTIFY);
     }
 
     @MenuAction
     public void rightJustify() {
-        chart.sendToChain("rightJustify");
+        chart.sendToChain(GUIConst.ACTION_RIGHT_JUSTIFY);
     }
 
     @MenuAction
-    public void color() {
-    }
+    public void color() { }
 
     @MenuAction
     public void fontRed() {
-        chart.sendToChain("fontRed");
+        chart.sendToChain(GUIConst.ACTION_FONT_RED);
     }
 
     @MenuAction
     public void fontOrange() {
-        chart.sendToChain("fontOrange");
+        chart.sendToChain(GUIConst.ACTION_FONT_ORANGE);
     }
 
     @MenuAction
     public void fontYellow() {
-        chart.sendToChain("fontYellow");
+        chart.sendToChain(GUIConst.ACTION_FONT_YELLOW);
     }
 
     @MenuAction
     public void fontGreen() {
-        chart.sendToChain("fontGreen");
+        chart.sendToChain(GUIConst.ACTION_FONT_GREEN);
     }
 
     @MenuAction
     public void fontBlue() {
-        chart.sendToChain("fontBlue");
+        chart.sendToChain(GUIConst.ACTION_FONT_BLUE);
     }
 
     @MenuAction
     public void fontPurple() {
-        chart.sendToChain("fontPurple");
+        chart.sendToChain(GUIConst.ACTION_FONT_PURPLE);
     }
 
     @MenuAction
     public void fontGray() {
-        chart.sendToChain("fontGray");
+        chart.sendToChain(GUIConst.ACTION_FONT_GRAY);
     }
 
     @MenuAction
     public void fontBlack() {
-        chart.sendToChain("fontBlack");
+        chart.sendToChain(GUIConst.ACTION_FONT_BLACK);
     }
 
     @MenuAction
     public void resetStyle() {
-        chart.sendToChain("resetStyle");
+        chart.sendToChain(GUIConst.ACTION_RESET_STYLE);
     }
 
     @MenuAction
     public void showStampBox() {
-        main.sendToChain("showStampBox");
+        main.sendToChain(GUIConst.ACTION_SHOW_STAMPBOX);
     }
 
     @MenuAction
     public void showSchemaBox() {
-        main.sendToChain("showSchemaBox");
+        main.sendToChain(GUIConst.ACTION_SHOW_SCHEMABOX);
     }
 
     @MenuAction
     public void showWaitingList() {
-        main.sendToChain("showWaitingList");
+        main.sendToChain(GUIConst.ACTION_SHOW_WAITING_LIST);
     }
 
     @MenuAction
-    public void focusDiagnosisInspector() {
-        chart.sendToChain("focusDiagnosisInspector");
-    }
-
-    @MenuAction
-    public void showPatientSearch() {
-        main.sendToChain("showPatientSearch");
-    }
+    public void showPatientSearch() { main.sendToChain(GUIConst.ACTION_SHOW_PATIENT_SEARCH); }
 
     @MenuAction
     public void changePassword() {
-        main.sendToChain("changePassword");
+        main.sendToChain(GUIConst.ACTION_CHANGE_PASSWORD);
     }
 
     @MenuAction
     public void addUser() {
-        main.sendToChain("addUser");
-    }
-
-    @MenuAction
-    public void update1() {
-        main.sendToChain("update");
-    }
-
-    @MenuAction
-    public void browseDolphinSupport() {
-        main.sendToChain("browseDolphinSupport");
-    }
-
-    @MenuAction
-    public void browseDolphinProject() {
-        main.sendToChain("browseDolphinProject");
-    }
-
-    @MenuAction
-    public void browseMedXml() {
-        main.sendToChain("browseMedXml");
+        main.sendToChain(GUIConst.ACTION_ADD_USER);
     }
 
     @MenuAction
     public void showAbout() {
-        main.sendToChain("showAbout");
+        main.sendToChain(GUIConst.ACTION_SHOW_ABOUT);
     }
 
     @MenuAction
     public void findFirst() {
-        chart.sendToChain("findFirst");
+        chart.sendToChain(GUIConst.ACTION_FIND_FIRST);
     }
 
     @MenuAction
     public void findNext() {
-        chart.sendToChain("findNext");
+        chart.sendToChain(GUIConst.ACTION_FIND_NEXT);
     }
 
     @MenuAction
     public void findPrevious() {
-        chart.sendToChain("findPrevious");
+        chart.sendToChain(GUIConst.ACTION_FIND_PREVIOUS);
+    }
+
+    @MenuAction
+    public void searchStamp() {
+        chart.sendToChain(GUIConst.ACTION_SEARCH_STAMP);
     }
 
     public void build(JMenuBar menuBar) {
 
-        this.actionMap = MenuActionManager.getActionMap(this);
+        actionMap = MenuActionManager.createActionMap(this);
         this.menuBar = menuBar;
 
-        // ToolBar
-        JToolBar fileBar = null;
-        JToolBar editBar = null;
-        if (chart != null) {
-            fileBar = new JToolBar();
-            fileBar.setName("fileBar");
-            fileBar.setFloatable(false);
-            fileBar.setOpaque(false);
-            fileBar.setBorderPainted(false);
-
-            editBar = new JToolBar();
-            editBar.setName("editBar");
-            editBar.setFloatable(false);
-            editBar.setOpaque(false);
-            editBar.setBorderPainted(false);
-
-            toolPanel = new JPanel();
-            BoxLayout layout = new BoxLayout(toolPanel, BoxLayout.X_AXIS);
-            toolPanel.setLayout(layout);
-            toolPanel.add(editBar);
-            toolPanel.add(fileBar);
-        }
-
-        // File
-        JMenu file = new JMenu();
-        file.setName("fileMenu");
-        file.setText("ファイル");
+        //
+        // File メニュー
+        //
+        JMenu file = createMenu("ファイル", GUIConst.ACTION_FILE_MENU);
 
         // 新規カルテ
-        JMenuItem newKarte = new JMenuItem();
-        newKarte.setName("newKarte");
-        //setAction(newKarte, "newKarte", "新規カルテ...", GUIConst.ICON_KARTE_NEW_22, "新しいカルテを作成します");
-        setAction(newKarte, "newKarte", "新規カルテ...", GUIConst.ICON_FILE_16, "新しいカルテを作成します");
-        setAccelerator(newKarte, KeyEvent.VK_N);
-        file.add(newKarte);
-        //setToolBar(editBar, "newKarte", GUIConst.ICON_KARTE_NEW_22);
-        setToolBar(editBar, "newKarte", GUIConst.ICON_FILE_32);
-
+        file.add(createMenuItem("新規カルテ...", GUIConst.ACTION_NEW_KARTE,
+                "N", GUIConst.ICON_FILE_16, "新しいカルテを作成します"));
         // 開く
-        JMenuItem openKarte = new JMenuItem();
-        openKarte.setName("openKarte");
-        //setAction(openKarte, "openKarte", "開く...", GUIConst.ICON_DOCUMENT_OPEN_22, "カルテを開きます");
-        setAction(openKarte, "openKarte", "開く...", GUIConst.ICON_OPEN_16, "カルテを開きます");
-        setAccelerator(openKarte, KeyEvent.VK_O);
-        file.add(openKarte);
+        file.add(createMenuItem("開く...", GUIConst.ACTION_OPEN_KARTE,
+                "O", GUIConst.ICON_OPEN_16, "カルテを開きます"));
 
-        file.add(new JSeparator());
+        file.addSeparator();
 
         // 閉じる
-        JMenuItem close = new JMenuItem();
-        close.setName("close");
-        setAction(close, "close", "閉じる", GUIConst.ICON_EMPTY_16, "カルテを閉じます");
-        setAccelerator(close, KeyEvent.VK_W);
-        file.add(close);
-
+        file.add(createMenuItem("閉じる", GUIConst.ACTION_CLOSE,
+                "W", GUIConst.ICON_EMPTY_16, "カルテを閉じます"));
         // 保存
-        JMenuItem save = new JMenuItem();
-        save.setName("save");
-        //setAction(save, "save", "保存...", GUIConst.ICON_FLOPPY_22, "保存します");
-        setAction(save, "save", "保存...", GUIConst.ICON_SAVE_16, "保存します");
-        setAccelerator(save, KeyEvent.VK_S);
-        file.add(save);
-        //setToolBar(fileBar, "save", GUIConst.ICON_FLOPPY_22);
-        setToolBar(fileBar, "save", GUIConst.ICON_SAVE_32);
+        file.add(createMenuItem("保存...", GUIConst.ACTION_SAVE,
+                "S", GUIConst.ICON_SAVE_16, "カルテを保存します"));
 
         file.add(new JSeparator());
 
         // 削除
-        JMenuItem delete = new JMenuItem();
-        delete.setName("delete");
-        //setAction(delete, "delete", "削除", GUIConst.ICON_EDIT_DELETE_22, "削除します");
-        setAction(delete, "delete", "削除", GUIConst.ICON_DELETE_16, "削除します");
-        file.add(delete);
+        file.add(createMenuItem("削除", GUIConst.ACTION_DELETE,
+                null, GUIConst.ICON_DELETE_16, "削除します"));
 
-        file.add(new JSeparator());
+        file.addSeparator();
 
         // 印刷設定
-        JMenuItem printerSetup = new JMenuItem();
-        printerSetup.setName("printerSetup");
-        setAction(printerSetup, "printerSetup", "ページ設定...", GUIConst.ICON_EMPTY_16, "プリンタの設定をします");
-        file.add(printerSetup);
-
+        file.add(createMenuItem("ページ設定...", GUIConst.ACTION_PRINTER_SETUP,
+                null, GUIConst.ICON_EMPTY_16, "プリンタの設定をします"));
         // 印刷
-        JMenuItem print = new JMenuItem();
-        print.setName("print");
-        //setAction(print, "print", "プリント...", GUIConst.ICON_DOCUMENT_PRINT_22, "プリントします");
-        setAction(print, "print", "プリント...", GUIConst.ICON_PRINT_16, "プリントします");
-        setAccelerator(print, KeyEvent.VK_P);
-        file.add(print);
-        //setToolBar(fileBar, "print", GUIConst.ICON_DOCUMENT_PRINT_22);
-        setToolBar(fileBar, "print", GUIConst.ICON_PRINT_32);
+        file.add(createMenuItem("プリント...", GUIConst.ACTION_PRINT,
+                "P", GUIConst.ICON_PRINT_16, "プリントします"));
 
         // 終了 - Window のみ
-        if (!isMac) {
-            JMenuItem exit = new JMenuItem();
-            exit.setName("processExit");
-            setAction(exit, "processExit", "終了", GUIConst.ICON_EMPTY_16, "プログラムを終了します");
-            file.add(exit);
-            setAccelerator(exit, KeyEvent.VK_Q);
+        if (ClientContext.isWin()) {
+            file.add(createMenuItem("終了", GUIConst.ACTION_PROCESS_EXIT,
+                    "Q", GUIConst.ICON_EMPTY_16, "プログラムを終了します"));
         }
-        /******************************************************/
 
-        // Edit
-        JMenu edit = new JMenu();
-        edit.setName("editMenu");
-        edit.setText("編集");
+        //
+        // Edit メニュー
+        //
+        JMenu edit = createMenu("編集", GUIConst.ACTION_EDIT_MENU);
 
         // 修正
-        JMenuItem modifyKarte = new JMenuItem();
-        modifyKarte.setName("modifyKarte");
-        //setAction(modifyKarte, "modifyKarte", "修正", GUIConst.ICON_KARTE_EDIT_22, "表示されているカルテを編集します");
-        setAction(modifyKarte, "modifyKarte", "修正", GUIConst.ICON_FILE_EDIT_16, "表示されているカルテを編集します");
-        setAccelerator(modifyKarte, KeyEvent.VK_M);
-        edit.add(modifyKarte);
-        //setToolBar(editBar, "modifyKarte", GUIConst.ICON_KARTE_EDIT_22);
-        setToolBar(editBar, "modifyKarte", GUIConst.ICON_FILE_EDIT_32);
+        edit.add(createMenuItem("修正", GUIConst.ACTION_MODIFY_KARTE,
+                "M", GUIConst.ICON_FILE_EDIT_16, "表示されているカルテを編集します"));
 
-        edit.add(new JSeparator());
+        edit.addSeparator();
 
         // Undo
-        JMenuItem undo = new JMenuItem();
-        undo.setName("undo");
-        setAction(undo, "undo", "取り消す", GUIConst.ICON_UNDO_16, "作業を取り消します");
-        //setAction(undo, "undo", "取り消す", GUIConst.ICON_EDIT_UNDO_22, "作業を取り消します");
-        setAccelerator(undo, KeyEvent.VK_Z);
-        edit.add(undo);
-        //setToolBar(editBar, "undo", GUIConst.ICON_EDIT_UNDO_22);
-        setToolBar(editBar, "undo", GUIConst.ICON_UNDO_32);
+        edit.add(createMenuItem("取り消す", GUIConst.ACTION_UNDO,
+                "Z", GUIConst.ICON_UNDO_16, "作業を取り消します"));
 
         // Redo
-        JMenuItem redo = new JMenuItem();
-        redo.setName("redo");
-        //setAction(redo, "redo", "やり直す", GUIConst.ICON_EDIT_REDO_22, "作業をやり直します");
-        setAction(redo, "redo", "やり直す", GUIConst.ICON_REDO_16, "作業をやり直します");
-        setAccelerator(redo, KeyEvent.VK_Z, true);
-        edit.add(redo);
-        //setToolBar(editBar, "redo", GUIConst.ICON_EDIT_REDO_22);
-        setToolBar(editBar, "redo", GUIConst.ICON_REDO_32);
+        edit.add(createMenuItem("やり直す", GUIConst.ACTION_REDO,
+                "shift Z", GUIConst.ICON_REDO_16, "作業をやり直します"));
 
-        edit.add(new JSeparator());
+        edit.addSeparator();
 
         // Cut
-        JMenuItem cut = new JMenuItem();
-        cut.setName("cut");
-        //setAction(cut, "cut", "カット", GUIConst.ICON_EDIT_CUT_22, "選択部分をカットします");
-        setAction(cut, "cut", "カット", GUIConst.ICON_CUT_16, "選択部分をカットします");
-        setAccelerator(cut, KeyEvent.VK_X);
-        edit.add(cut);
-
+        edit.add(createMenuItem("カット", GUIConst.ACTION_CUT,
+                "X", GUIConst.ICON_CUT_16, "選択部分をカットします"));
         // Copy
-        JMenuItem copy = new JMenuItem();
-        copy.setName("copy");
-        //setAction(copy, "copy", "コピー", GUIConst.ICON_EDIT_COPY_22, "選択部分をコピーします");
-        setAction(copy, "copy", "コピー", GUIConst.ICON_COPY_16, "選択部分をコピーします");
-        setAccelerator(copy, KeyEvent.VK_C);
-        edit.add(copy);
-
+        edit.add(createMenuItem("コピー", GUIConst.ACTION_COPY,
+                "C", GUIConst.ICON_COPY_16, "選択部分をコピーします"));
         // Paste
-        JMenuItem paste = new JMenuItem();
-        paste.setName("paste");
-        //setAction(paste, "paste", "ペースト", GUIConst.ICON_EDIT_PASTE_22, "カーソル位置にペーストします");
-        setAction(paste, "paste", "ペースト", GUIConst.ICON_PASTE_16, "カーソル位置にペーストします");
-        setAccelerator(paste, KeyEvent.VK_V);
-        edit.add(paste);
-
+        edit.add(createMenuItem("ペースト", GUIConst.ACTION_PASTE,
+                "V", GUIConst.ICON_PASTE_16, "カーソル位置にペーストします"));
         // SelectAll
-        JMenuItem selectAll = new JMenuItem();
-        selectAll.setName("selectAll");
-        //setAction(selectAll, "selectAll", "全てを選択", GUIConst.ICON_EDIT_SELECT_ALL_22, "全てを選択します");
-        setAction(selectAll, "selectAll", "全てを選択", GUIConst.ICON_EMPTY_16, "全てを選択します");
-        setAccelerator(selectAll, KeyEvent.VK_A);
-        edit.add(selectAll);
+        edit.add(createMenuItem("全てを選択", GUIConst.ACTION_SELECT_ALL,
+                "A", GUIConst.ICON_EMPTY_16, "全てを選択します"));
 
-        edit.add(new JSeparator());
+        edit.addSeparator();
 
         // Find
-        JMenuItem findFirst = new JMenuItem();
-        findFirst.setName("findFirst");
-        //setAction(findFirst, "findFirst", "検索", GUIConst.ICON_EDIT_FIND_22, "表示されているカルテを検索します");
-        setAction(findFirst, "findFirst", "検索", GUIConst.ICON_SEARCH_16, "表示されているカルテを検索します");
-        setAccelerator(findFirst, KeyEvent.VK_F);
-        edit.add(findFirst);
-        //setToolBar(editBar, "findFirst", GUIConst.ICON_EDIT_FIND_22);
-
+        edit.add(createMenuItem("検索", GUIConst.ACTION_FIND_FIRST,
+                "F", GUIConst.ICON_SEARCH_16, "表示されているカルテを検索します"));
         // Find Next
-        JMenuItem findNext = new JMenuItem();
-        findNext.setName("findNext");
-        setAction(findNext, "findNext", "次を検索", GUIConst.ICON_EMPTY_16, "次を検索します");
-        setAccelerator(findNext, KeyEvent.VK_G);
-        edit.add(findNext);
-
+        edit.add(createMenuItem("次を検索", GUIConst.ACTION_FIND_NEXT,
+                "G", GUIConst.ICON_EMPTY_16, "次を検索します"));
         // Find Previous
-        JMenuItem findPrevious = new JMenuItem();
-        findPrevious.setName("findPrevious");
-        setAction(findPrevious, "findPrevious", "前を検索", GUIConst.ICON_EMPTY_16, "前を検索します");
-        setAccelerator(findPrevious, KeyEvent.VK_G, true);
-        edit.add(findPrevious);
+        edit.add(createMenuItem("前を検索", GUIConst.ACTION_FIND_PREVIOUS,
+                "shift G", GUIConst.ICON_EMPTY_16, "前を検索します"));
 
-        /******************************************************/
-
-        // Karte
-        JMenu karte = new JMenu();
-        karte.setName("karteMenu");
-        karte.setText("カルテ");
+        //
+        // Karte メニュー
+        //
+        JMenu karte = createMenu("カルテ", GUIConst.ACTION_KARTE_MENU);
 
         // CLAIM 送信
-        JMenuItem sendClaim = new JMenuItem();
-        sendClaim.setName("sendClaim");
-        setAction(sendClaim, "sendClaim", "CLAIM 送信", null, "CLAIM 送信します");
-        setAccelerator(sendClaim, KeyEvent.VK_L);
-        karte.add(sendClaim);
-
-        // 昇順
-        JRadioButtonMenuItem ascending = new JRadioButtonMenuItem();
-        ascending.setName("ascending");
-        ascending.setAction(actionMap.get("ascending"));
-        ascending.setText("昇順");
-        actionMap.get("ascending").putValue("menuItem", ascending);
+        karte.add(createMenuItem("CLAIM 送信", GUIConst.ACTION_SEND_CLAIM,
+                "L", null, "CLAIM 送信します"));
+        // 昇順/降順
+        JRadioButtonMenuItem ascending = createRadioButtonMenuItem("昇順", GUIConst.ACTION_ASCENDING);
+        JRadioButtonMenuItem descending = createRadioButtonMenuItem("降順", GUIConst.ACTION_DESCENDING);
         karte.add(ascending);
-
-        // 降順
-        JRadioButtonMenuItem descending = new JRadioButtonMenuItem();
-        descending.setName("descending");
-        descending.setAction(actionMap.get("descending"));
-        descending.setText("降順");
-        actionMap.get("descending").putValue("menuItem", descending);
         karte.add(descending);
 
-        // RadiButtonGroup
         ButtonGroup bg = new ButtonGroup();
         bg.add(ascending);
         bg.add(descending);
 
-
         // 修正履歴表示
-        JCheckBoxMenuItem showModified = new JCheckBoxMenuItem();
-        showModified.setName("showModified");
-        showModified.setAction(actionMap.get("showModified"));
-        showModified.setText("修正履歴表示");
-        actionMap.get("showModified").putValue("menuItem", showModified);
-        karte.add(showModified);
+        karte.add(createRadioButtonMenuItem("修正履歴表示", GUIConst.ACTION_SHOW_MODIFIED));
 
-        // 環境設定
-        JMenuItem setKarteEnviroment = new JMenuItem();
-        setKarteEnviroment.setName("setKarteEnviroment");
-        setKarteEnviroment.setAction(actionMap.get("setKarteEnviroment"));
-        setKarteEnviroment.setText("環境設定...");
-        setAccelerator(setKarteEnviroment, KeyEvent.VK_E);
-        karte.add(setKarteEnviroment);
-
-        /******************************************************/
-
-        // Insert
-        JMenu insert = new JMenu();
-        insert.setName("insertMenu");
-        insert.setText("挿入");
-        if (chart != null) {
-            insert.addMenuListener(chart);
+        // 環境設定. Mac の場合は SettingForMac で設定済み.
+        if (ClientContext.isWin()) {
+            karte.add(createMenuItem("環境設定...", GUIConst.ACTION_SET_KARTE_ENVIROMENT));
         }
 
-        JMenu insertDisease = new JMenu();
-        insertDisease.setName("insertDisease");
-        insertDisease.setAction(actionMap.get("insertDisease"));
-        insertDisease.setText("傷病名");
-        insert.add(insertDisease);
-
-        JMenu insertText = new JMenu();
-        insertText.setName("insertText");
-        insertText.setAction(actionMap.get("insertText"));
-        insertText.setText("テキスト");
-        insert.add(insertText);
-
-        JMenu insertSchema = new JMenu();
-        insertSchema.setName("insertSchema");
-        insertSchema.setAction(actionMap.get("insertSchema"));
-        insertSchema.setText("シェーマ");
-        insert.add(insertSchema);
-
-        JMenu insertStamp = new JMenu();
-        insertStamp.setName("insertStamp");
-        insertStamp.setAction(actionMap.get("insertStamp"));
-        insertStamp.setText("スタンプ");
-        insert.add(insertStamp);
-
-        /******************************************************/
-
-        // Text
-        JMenu text = new JMenu();
-        text.setName("textMenu");
-        text.setText("テキスト");
+        //
+        // 挿入メニュー
+        //
+        JMenu insert = createMenu("挿 入", GUIConst.ACTION_INSERT_MENU);
         if (chart != null) {
-            text.addMenuListener(chart);
+            insert.addMenuListener(chart); // ChartMediator
+        }
+        insert.add(createMenuItem("傷病名", GUIConst.ACTION_INSERT_DISEASE));
+        insert.add(createMenuItem("テキスト", GUIConst.ACTION_INSERT_TEXT));
+        insert.add(createMenuItem("スタンプ", GUIConst.ACTION_INSERT_STAMP));
+        insert.add(createMenuItem("シェーマ", GUIConst.ACTION_INSERT_SCHEMA));
+
+        //
+        // Text メニュー
+        //
+        JMenu text = createMenu("テキスト", GUIConst.ACTION_TEXT_MENU);
+        if (chart != null) {
+            text.addMenuListener(chart); // ChartMediator
         }
 
-        //// size ////
-        JMenu size = new JMenu();
-        size.setName("size");
-        size.setAction(actionMap.get("size"));
-        size.setText("サイズ");
+        // Size メニュー
+        JMenu size = createMenu("サイズ", GUIConst.ACTION_SIZE);
+        size.add(createMenuItem("大きく", GUIConst.ACTION_FONT_LARGER));
+        size.add(createMenuItem("小さく", GUIConst.ACTION_FONT_SMALLER));
+        size.add(createMenuItem("標準サイズ", GUIConst.ACTION_FONT_STANDARD));
         text.add(size);
 
-        JMenuItem fontLarger = new JMenuItem();
-        fontLarger.setName("fontLarger");
-        fontLarger.setAction(actionMap.get("fontLarger"));
-        fontLarger.setText("大きく");
-        //setAccelerator(fontLarger, KeyEvent.VK_PLUS, true);
-        size.add(fontLarger);
-
-        JMenuItem fontSmaller = new JMenuItem();
-        fontSmaller.setName("fontSmaller");
-        fontSmaller.setAction(actionMap.get("fontSmaller"));
-        fontSmaller.setText("小さく");
-        //setAccelerator(fontSmaller, KeyEvent.VK_MINUS);
-        size.add(fontSmaller);
-
-        JMenuItem fontStandard = new JMenuItem();
-        fontStandard.setName("fontStandard");
-        fontStandard.setAction(actionMap.get("fontStandard"));
-        fontStandard.setText("標準サイズ");
-        //setAccelerator(fontStandard, KeyEvent.VK_NUMBER_SIGN, true);
-        size.add(fontStandard);
-
-        //// style ////
-        JMenu style = new JMenu();
-        style.setName("style");
-        style.setAction(actionMap.get("style"));
-        style.setText("スタイル");
+        // Style メニュー
+        JMenu style = createMenu("スタイル", GUIConst.ACTION_STYLE);
+        style.add(createMenuItem("ボールド", GUIConst.ACTION_FONT_BOLD, "B"));
+        style.add(createMenuItem("イタリック", GUIConst.ACTION_FONT_ITALIC, "I"));
+        style.add(createMenuItem("アンダーライン", GUIConst.ACTION_FONT_UNDERLINE, "U"));
         text.add(style);
 
-        JMenuItem fontBold = new JMenuItem();
-        fontBold.setName("fontBold");
-        fontBold.setAction(actionMap.get("fontBold"));
-        fontBold.setText("ボールド");
-        setAccelerator(fontBold, KeyEvent.VK_B);
-        style.add(fontBold);
-
-        JMenuItem fontItalic = new JMenuItem();
-        fontItalic.setName("fontItalic");
-        fontItalic.setAction(actionMap.get("fontItalic"));
-        fontItalic.setText("イタリック");
-        setAccelerator(fontItalic, KeyEvent.VK_I);
-        style.add(fontItalic);
-
-        JMenuItem fontUnderline = new JMenuItem();
-        fontUnderline.setName("fontUnderline");
-        fontUnderline.setAction(actionMap.get("fontUnderline"));
-        fontUnderline.setText("アンダーライン");
-        setAccelerator(fontUnderline, KeyEvent.VK_U);
-        style.add(fontUnderline);
-
-        //// justify ////
-        JMenu justify = new JMenu();
-        justify.setName("justify");
-        justify.setAction(actionMap.get("justify"));
-        justify.setText("行揃え");
+        // justify
+        JMenu justify = createMenu("行揃え", GUIConst.ACTION_JUSTIFY);
+        justify.add(createMenuItem("左揃え", GUIConst.ACTION_LEFT_JUSTIFY));
+        justify.add(createMenuItem("中央揃え", GUIConst.ACTION_CENTER_JUSTIFY));
+        justify.add(createMenuItem("右揃え", GUIConst.ACTION_RIGHT_JUSTIFY));
         text.add(justify);
 
-        JMenuItem leftJustify = new JMenuItem();
-        leftJustify.setName("leftJustify");
-        leftJustify.setAction(actionMap.get("leftJustify"));
-        leftJustify.setText("左揃え");
-        //setAccelerator(leftJustify, KeyEvent.VK_OPEN_BRACKET);
-        justify.add(leftJustify);
-
-        JMenuItem centerJustify = new JMenuItem();
-        centerJustify.setName("centerJustify");
-        centerJustify.setAction(actionMap.get("centerJustify"));
-        centerJustify.setText("中央揃え");
-        //setAccelerator(centerJustify, KeyEvent.VK_CIRCUMFLEX);
-        justify.add(centerJustify);
-
-        JMenuItem rightJustify = new JMenuItem();
-        rightJustify.setName("rightJustify");
-        rightJustify.setAction(actionMap.get("rightJustify"));
-        rightJustify.setText("右揃え");
-        //setAccelerator(rightJustify, KeyEvent.VK_CLOSE_BRACKET);
-        justify.add(rightJustify);
-
-        //// Color ////
-        JMenu color = new JMenu();
-        color.setName("color");
-        color.setAction(actionMap.get("color"));
-        color.setText("カラー");
+        // Color
+        JMenu color = createMenu("カラー", GUIConst.ACTION_COLOR);
+        color.add(createMenuItem("赤", GUIConst.ACTION_FONT_RED));
+        color.add(createMenuItem("橙", GUIConst.ACTION_FONT_ORANGE));
+        color.add(createMenuItem("黄", GUIConst.ACTION_FONT_YELLOW));
+        color.add(createMenuItem("緑", GUIConst.ACTION_FONT_GREEN));
+        color.add(createMenuItem("青", GUIConst.ACTION_FONT_BLUE));
+        color.add(createMenuItem("紫", GUIConst.ACTION_FONT_PURPLE));
+        color.add(createMenuItem("灰色", GUIConst.ACTION_FONT_GRAY));
+        color.add(createMenuItem("黒", GUIConst.ACTION_FONT_BLACK));
         text.add(color);
 
-        JMenuItem fontRed = new JMenuItem();
-        fontRed.setName("fontRed");
-        fontRed.setAction(actionMap.get("fontRed"));
-        fontRed.setText("赤");
-        color.add(fontRed);
+        //
+        // Tool メニュー
+        //
+        JMenu tool = createMenu("ツール", GUIConst.ACTION_TOOL_MENU);
+        tool.add(createMenuItem("スタンプ検索", GUIConst.ACTION_SEARCH_STAMP, "shift F"));
+        tool.add(createMenuItem("受付リスト", GUIConst.ACTION_SHOW_WAITING_LIST, "1"));
+        tool.add(createMenuItem("患者検索", GUIConst.ACTION_SHOW_PATIENT_SEARCH, "2"));
+        tool.add(createMenuItem("スタンプ箱", GUIConst.ACTION_SHOW_STAMPBOX, "3"));
+        tool.add(createMenuItem("シェーマ箱", GUIConst.ACTION_SHOW_SCHEMABOX, "4"));
+        tool.addSeparator();
+        tool.add(createMenuItem("プロフィール変更", GUIConst.ACTION_CHANGE_PASSWORD));
+        tool.add(createMenuItem("院内ユーザー登録", GUIConst.ACTION_ADD_USER));
 
-        JMenuItem fontOrange = new JMenuItem();
-        fontOrange.setName("fontOrange");
-        fontOrange.setAction(actionMap.get("fontOrange"));
-        fontOrange.setText("橙");
-        color.add(fontOrange);
-
-        JMenuItem fontYellow = new JMenuItem();
-        fontYellow.setName("fontYellow");
-        fontYellow.setAction(actionMap.get("fontYellow"));
-        fontYellow.setText("黄");
-        color.add(fontYellow);
-
-        JMenuItem fontGreen = new JMenuItem();
-        fontGreen.setName("fontGreen");
-        fontGreen.setAction(actionMap.get("fontGreen"));
-        fontGreen.setText("緑");
-        color.add(fontGreen);
-
-        JMenuItem fontBlue = new JMenuItem();
-        fontBlue.setName("fontBlue");
-        fontBlue.setAction(actionMap.get("fontBlue"));
-        fontBlue.setText("青");
-        color.add(fontBlue);
-
-        JMenuItem fontPurple = new JMenuItem();
-        fontPurple.setName("fontPurple");
-        fontPurple.setAction(actionMap.get("fontPurple"));
-        fontPurple.setText("紫");
-        color.add(fontPurple);
-
-        JMenuItem fontGray = new JMenuItem();
-        fontGray.setName("fontGray");
-        fontGray.setAction(actionMap.get("fontGray"));
-        fontGray.setText("灰色");
-        color.add(fontGray);
-
-        JMenuItem fontBlack = new JMenuItem();
-        fontBlack.setName("fontBlack");
-        fontBlack.setAction(actionMap.get("fontBlack"));
-        fontBlack.setText("黒");
-        color.add(fontBlack);
-
-        /******************************************************/
-
-        // Tool
-        JMenu tool = new JMenu();
-        tool.setName("toolMenu");
-        tool.setText("ツール");
-
-        JMenuItem showStampBox = new JMenuItem();
-        showStampBox.setName("showStampBox");
-        showStampBox.setAction(actionMap.get("showStampBox"));
-        showStampBox.setText("スタンプ箱");
-        setAccelerator(showStampBox, KeyEvent.VK_1);
-        tool.add(showStampBox);
-
-        JMenuItem showSchemaBox = new JMenuItem();
-        showSchemaBox.setName("showSchemaBox");
-        showSchemaBox.setAction(actionMap.get("showSchemaBox"));
-        showSchemaBox.setText("シェーマ箱");
-        setAccelerator(showSchemaBox, KeyEvent.VK_2);
-        tool.add(showSchemaBox);
-
-        JMenuItem focusDiagnosisInspector = new JMenuItem();
-        focusDiagnosisInspector.setName("focusDiagnosisInspector");
-        focusDiagnosisInspector.setAction(actionMap.get("focusDiagnosisInspector"));
-        focusDiagnosisInspector.setText("病名インスペクタ");
-        setAccelerator(focusDiagnosisInspector, KeyEvent.VK_3);
-        tool.add(focusDiagnosisInspector);
-
-        JMenuItem showWaitingList = new JMenuItem();
-        showWaitingList.setName("showWaitingList");
-        showWaitingList.setAction(actionMap.get("showWaitingList"));
-        showWaitingList.setText("受付リスト");
-        setAccelerator(showWaitingList, KeyEvent.VK_1, true);
-        tool.add(showWaitingList);
-
-        JMenuItem showPatientSearch = new JMenuItem();
-        showPatientSearch.setName("showPatientSearch");
-        showPatientSearch.setAction(actionMap.get("showPatientSearch"));
-        showPatientSearch.setText("患者検索");
-        setAccelerator(showPatientSearch, KeyEvent.VK_2, true);
-        tool.add(showPatientSearch);
-
-        tool.add(new JSeparator());
-
-        JMenuItem changePassword = new JMenuItem();
-        changePassword.setName("changePassword");
-        changePassword.setAction(actionMap.get("changePassword"));
-        changePassword.setText("プロフィール変更");
-        tool.add(changePassword);
-
-        JMenuItem addUser = new JMenuItem();
-        addUser.setName("addUser");
-        addUser.setAction(actionMap.get("addUser"));
-        addUser.setText("院内ユーザー登録");
-        tool.add(addUser);
-
+        //
         // Help
-        JMenu help = new JMenu();
-        help.setName("helpMenu");
-        help.setText("ヘルプ");
+        //
+        JMenu help = createMenu("ヘルプ", GUIConst.ACTION_HELP_MENU);
 
-        JMenuItem browseMedXml = new JMenuItem();
-        browseMedXml.setName("browseMedXml");
-        browseMedXml.setAction(actionMap.get("browseMedXml"));
-        browseMedXml.setText("CLAIM 規格");
-        help.add(browseMedXml);
-
-        if (!isMac) {
-            help.add(new JSeparator());
-
-            JMenuItem showAbout = new JMenuItem();
-            showAbout.setName("showAbout");
-            showAbout.setAction(actionMap.get("showAbout"));
-            help.add(showAbout);
+        if (ClientContext.isWin()) {
+            help.add(createMenuItem("OpenDolphin について", GUIConst.ACTION_SHOW_ABOUT));
         }
 
-        /******************************************************/
+        //
         // この時点で menuBar には既に window メニューが入っている (menuCount = 1 となっている)
+        //
         menuBar.add(file, 0);
         menuBar.add(edit, 1);
         menuBar.add(karte, 2);
@@ -873,37 +528,139 @@ public class MenuFactory {
         menuBar.add(tool, 4);
         // window menu = 5
         menuBar.add(help, 6);
-    }
 
-    private void setAccelerator(JMenuItem item, int key) {
-        setAccelerator(item, key, false);
-    }
+        //
+        // ToolBars
+        //
+        if (chart != null) {
+            JToolBar fileBar = new JToolBar();
+            fileBar.setName("fileBar");
+            fileBar.setFloatable(false);
+            fileBar.setOpaque(false);
+            fileBar.setBorderPainted(false);
 
-    private void setAccelerator(JMenuItem item, int key, boolean shiftMask) {
-        if (shiftMask) {
-            item.setAccelerator(KeyStroke.getKeyStroke(key, (java.awt.event.InputEvent.SHIFT_MASK | (Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()))));
-        } else {
-            item.setAccelerator(KeyStroke.getKeyStroke(key, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            JToolBar editBar = new JToolBar();
+            editBar.setName("editBar");
+            editBar.setFloatable(false);
+            editBar.setOpaque(false);
+            editBar.setBorderPainted(false);
+
+            fileBar.add(createButton(GUIConst.ACTION_SAVE, GUIConst.ICON_SAVE_32));
+            fileBar.add(createButton(GUIConst.ACTION_PRINT, GUIConst.ICON_PRINT_32));
+
+            //editBar.add(createButton(GUIConst.ACTION_NEW_KARTE, GUIConst.ICON_FILE_32));
+            //editBar.add(createButton(GUIConst.ACTION_MODIFY_KARTE, GUIConst.ICON_FILE_EDIT_32));
+            editBar.add(createButton(GUIConst.ACTION_UNDO, GUIConst.ICON_UNDO_32));
+            editBar.add(createButton(GUIConst.ACTION_REDO, GUIConst.ICON_REDO_32));
+
+            toolPanel = new JPanel();
+            BoxLayout layout = new BoxLayout(toolPanel, BoxLayout.X_AXIS);
+            toolPanel.setLayout(layout);
+            toolPanel.add(editBar);
+            toolPanel.add(fileBar);
         }
     }
 
-    private void setAction(JMenuItem item, String key, String name, ImageIcon icon, String toolTipText) {
-        Action action = actionMap.get(key);
-        action.putValue(Action.NAME, name);
+    /**
+     * JMenu を作る.
+     *
+     * @param menuName メニュー表示名
+     * @param actionKey action key
+     * @return JMenu
+     */
+    private JMenu createMenu(String menuName, String actionKey) {
+        JMenu menu = new JMenu();
+        menu.setName(actionKey);
+        menu.setText(menuName);
+        Action action = actionMap.get(actionKey);
+        if (Objects.nonNull(action)) {
+            action.putValue(Action.NAME, menuName);
+            menu.setAction(action);
+        }
+        return menu;
+    }
+
+    /**
+     * JMenuItem を作る.
+     *
+     * @param menuName メニュー表示名
+     * @param actionKey action key
+     * @return JMenuItem
+     */
+    private JMenuItem createMenuItem(String menuName, String actionKey) {
+        return createMenuItem(menuName, actionKey, null, null, null);
+    }
+
+    /**
+     * JMenuItem を作る.
+     *
+     * @param menuName メニュー表示名
+     * @param actionKey action key
+     * @param keyStroke ショートカットキー
+     * @return JMenuItem
+     */
+    private JMenuItem createMenuItem(String menuName, String actionKey, String keyStroke) {
+        return createMenuItem(menuName, actionKey, keyStroke, null, null);
+    }
+
+    /**
+     * JMenuItem を作る.
+     *
+     * @param menuName メニュー表示名
+     * @param actionKey action key
+     * @param keyStroke ショートカットキー
+     * @param icon アイコン
+     * @param toolTipText ツールチップ
+     * @return JMenuItem
+     */
+    private JMenuItem createMenuItem(String menuName, String actionKey, String keyStroke, ImageIcon icon, String toolTipText) {
+        JMenuItem item = new JMenuItem();
+        item.setName(actionKey);
+        Action action = actionMap.get(actionKey);
+        action.putValue(Action.NAME, menuName);
         action.putValue(Action.SMALL_ICON, icon);
         action.putValue(Action.SHORT_DESCRIPTION, toolTipText);
+        action.putValue(GUIConst.KEY_MENU_ITEM, item); // action から JMenuItem を取得できるようにする
         item.setAction(action);
+        if (Objects.nonNull(keyStroke)) {
+            item.setAccelerator(KeyStroke.getKeyStroke(SHORT_CUT_KEY_MASK + " " + keyStroke));
+        }
+        return item;
     }
 
-    private void setToolBar(JToolBar toolBar, String text, ImageIcon icon) {
-        if (chart != null) {
-            JButton button = new JButton();
-            button.setBorderPainted(false);
-            button.setAction(actionMap.get(text));
-            button.setText(null);
-            button.setIcon(icon);
-            button.setOpaque(false);
-            toolBar.add(button);
-        }
+    /**
+     * JRadioButtonMenuItem を作る.
+     *
+     * @param menuName メニュー表示名
+     * @param actionKey action key
+     * @return JRadioButtonMenuItem
+     */
+    private JRadioButtonMenuItem createRadioButtonMenuItem(String menuName, String actionKey) {
+        JRadioButtonMenuItem item = new JRadioButtonMenuItem();
+        item.setName(actionKey);
+
+        Action action = actionMap.get(actionKey);
+        action.putValue(Action.NAME, menuName);
+        action.putValue(GUIConst.KEY_MENU_ITEM, item); // action から JRadioButtonMenuItem を取得できるようにする
+        item.setAction(action);
+
+        return item;
+    }
+
+    /**
+     * JButton を作る.
+     *
+     * @param actionKey action key
+     * @param icon Icon
+     * @return JButton
+     */
+    private JButton createButton(String actionKey, ImageIcon icon) {
+        JButton button = new JButton();
+        button.setBorderPainted(false);
+        button.setAction(actionMap.get(actionKey));
+        button.setText(null);
+        button.setIcon(icon);
+        button.setOpaque(false);
+        return button;
     }
 }

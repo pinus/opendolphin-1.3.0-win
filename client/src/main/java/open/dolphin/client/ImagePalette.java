@@ -146,10 +146,10 @@ public class ImagePalette extends JPanel {
                     int col = imageTable.getSelectedColumn();
                     ImageEntry entry = (ImageEntry) imageTable.getModel().getValueAt(row, col);
 
-                    List<Chart> allFrames = EditorFrame.getAllEditorFrames();
+                    List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
                     if (!allFrames.isEmpty()) {
-                        Chart frame = allFrames.get(0);
-                        KartePane pane = ((EditorFrame) frame).getEditor().getSOAPane();
+                        EditorFrame frame = allFrames.get(0);
+                        KartePane pane = frame.getEditor().getSOAPane();
                         // caret を最後に送ってから import する
                         JTextPane textPane = pane.getTextPane();
                         KarteStyledDocument doc = pane.getDocument();

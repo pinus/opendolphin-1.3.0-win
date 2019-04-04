@@ -5,6 +5,7 @@ import open.dolphin.infomodel.ModuleInfoBean;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,7 @@ public class StampTreeMenuBuilder {
 
     private List<StampTreeMenuModel> product;
     private List<StampTree> trees;
-    private String text;
+    private String text; // 検索文字列
     private StampTreeMenuListener menuListener;
 
     public StampTreeMenuBuilder(StampTree stampTree) {
@@ -157,6 +158,8 @@ public class StampTreeMenuBuilder {
         menuEvent.setEntity(tree.getEntity());
 
         item.addActionListener(e -> menuListener.actionPerformed(menuEvent));
+        String[] paths = Arrays.stream(node.getPath()).map(TreeNode::toString).toArray(String[]::new);
+        item.setToolTipText(String.join("/", paths));
     }
 
     /**

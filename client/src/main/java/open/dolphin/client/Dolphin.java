@@ -186,8 +186,6 @@ public class Dolphin implements MainWindow {
 
         // 環境設定ダイアログで変更される場合があるので保存する
         saveEnv = new Properties();
-        saveEnv.put(GUIConst.KEY_PVT_SERVER, GUIConst.SERVICE_NOT_RUNNING);
-        saveEnv.put(GUIConst.KEY_SEND_MML, GUIConst.SERVICE_NOT_RUNNING);
     }
 
     /**
@@ -466,13 +464,9 @@ public class Dolphin implements MainWindow {
      * com.apple.eawt.Application の handler から呼ばれる.
      */
     public void doPreference() {
-        //ログイン画面の段階で，メニューから環境設定を選択すると null のまま入ってくる
-        if (stateMgr == null) {
-            return;
-        }
         ProjectSettingDialog sd = new ProjectSettingDialog();
         sd.addValidListener(this::controlService);
-        sd.setLoginState(stateMgr.isLogin());
+        sd.setLoginState(Objects.nonNull(stateMgr)); // stateMgr nonNull ならログインしている
         sd.setProject(null);
         sd.start();
     }
@@ -531,8 +525,8 @@ public class Dolphin implements MainWindow {
         }
 
         // EditorFrameのチェックを行う
-        List<Chart> allEditorFrames = EditorFrame.getAllEditorFrames();
-        for (Chart chart : allEditorFrames) {
+        List<EditorFrame> allEditorFrames = EditorFrame.getAllEditorFrames();
+        for (EditorFrame chart : allEditorFrames) {
             if (chart.isDirty()) {
                 dirty = true;
                 dirtyChart = chart;
@@ -815,15 +809,23 @@ public class Dolphin implements MainWindow {
 
     /**
      * Waiting list を表示する.
+     * MenuSupport から呼ばれる.
      */
     public void showWaitingList() {
+        // Search field に focus させるためのトリック
+        windowSupport.getFrame().toFront();
+        tabbedPane.setSelectedIndex(1);
         tabbedPane.setSelectedIndex(0);
     }
 
     /**
      * Patient search を表示する.
+     * MenuSupport から呼ばれる.
      */
     public void showPatientSearch() {
+        // Search field に focus させるためのトリック
+        windowSupport.getFrame().toFront();
+        tabbedPane.setSelectedIndex(0);
         tabbedPane.setSelectedIndex(1);
     }
 
@@ -899,27 +901,15 @@ public class Dolphin implements MainWindow {
                     GUIConst.ACTION_SET_KARTE_ENVIROMENT,
                     GUIConst.ACTION_SHOW_STAMPBOX,
                     GUIConst.ACTION_SHOW_SCHEMABOX,
+                    GUIConst.ACTION_SHOW_WAITING_LIST,
+                    GUIConst.ACTION_SHOW_PATIENT_SEARCH,
                     GUIConst.ACTION_CHANGE_PASSWORD,
-                    GUIConst.ACTION_CONFIRM_RUN,
-                    GUIConst.ACTION_SOFTWARE_UPDATE,
-                    GUIConst.ACTION_BROWS_DOLPHIN,
-                    GUIConst.ACTION_BROWS_DOLPHIN_PROJECT,
-                    GUIConst.ACTION_BROWS_MEDXML,
                     GUIConst.ACTION_SHOW_ABOUT,
-                    "showWaitingList",
-                    "showPatientSearch"
             };
             mediator.enableMenus(enables);
 
             Action addUserAction = mediator.getAction(GUIConst.ACTION_ADD_USER);
-            boolean admin = false;
-            Collection<RoleModel> roles = Project.getUserModel().getRoles();
-            for (RoleModel model : roles) {
-                if (model.getRole().equals(GUIConst.ROLE_ADMIN)) {
-                    admin = true;
-                    break;
-                }
-            }
+            boolean admin = Project.getUserModel().getRoles().stream().map(RoleModel::getRole).anyMatch(GUIConst.ROLE_ADMIN::equals);
             addUserAction.setEnabled(admin);
         }
     }

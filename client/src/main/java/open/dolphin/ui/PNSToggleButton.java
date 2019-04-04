@@ -1,58 +1,121 @@
 package open.dolphin.ui;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
 
 /**
- * ダブルクリック or shift-クリックで動作する JToggleButton
+ * Mac風デザインの ToggleButton.
+ * paintIcon を override して使う.
  *
  * @author pns
  */
-public class PNSToggleButton extends JLabel {
-    private ImageIcon icon;
-    private ImageIcon selectedIcon;
-    private ActionListener action;
-    private boolean isSelected;
+public class PNSToggleButton extends JToggleButton implements IPNSButton {
 
-    public PNSToggleButton() {
-        super();
-        isSelected = false;
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.isShiftDown() || e.getClickCount() == 2) doClick();
-            }
-        });
+    protected Window parent = null;
+    protected boolean appForeground = true;
+    protected int swingConstant;
+
+    /**
+     * format に応じて角丸処理をする.
+     *
+     * @param format toggle button の位置
+     */
+    public PNSToggleButton(String format) {
+        swingConstant = format.contains("right")
+                ? SwingConstants.RIGHT
+                : format.contains("left")
+                ? SwingConstants.LEFT
+                : SwingConstants.CENTER;
     }
 
-    public void doClick() {
-        if (isSelected) {
-            isSelected = false;
-            super.setIcon(icon);
-        } else {
-            isSelected = true;
-            super.setIcon(selectedIcon);
+    /**
+     * 組み込まれるときに addNotify が呼ばれるのを利用して parent を登録する.
+     */
+    @Override
+    public void addNotify() {
+        super.addNotify();
+
+        if (parent == null) {
+            parent = SwingUtilities.windowForComponent(this);
+
+            // AppForegroundListener
+//            com.apple.eawt.Application app = com.apple.eawt.Application.getApplication();
+//            app.addAppEventListener(new com.apple.eawt.AppForegroundListener() {
+//                @Override
+//                public void appRaisedToForeground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = true;
+//                    repaint();
+//                }
+//
+//                @Override
+//                public void appMovedToBackground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = false;
+//                    repaint();
+//                }
+//            });
+
         }
-        action.actionPerformed(new ActionEvent(this, 0, "clicked"));
     }
 
-    public void setIcon(ImageIcon i) {
-        this.icon = i;
-        super.setIcon(i);
+    @Override
+    public void paintComponent(Graphics graphics) {
+        Graphics2D g = (Graphics2D) graphics;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int w = getWidth();
+        int h = getHeight();
+
+        // background and border
+        if (parent.isActive() && appForeground) {
+            if (this.isSelected()) {
+                g.setColor(ACTIVE_FILL_SELECTED);
+                fill(g, w, h, swingConstant);
+                g.setColor(ACTIVE_FRAME_SELECTED);
+                frame(g, w, h, swingConstant);
+
+            } else {
+                g.setColor(ACTIVE_FILL);
+                fill(g, w, h, swingConstant);
+                g.setColor(ACTIVE_FRAME);
+                frame(g, w, h, swingConstant);
+            }
+
+        } else {
+            if (this.isSelected()) {
+                g.setColor(INACTIVE_FILL_SELECTED);
+                fill(g, w, h, swingConstant);
+                g.setColor(INACTIVE_FRAME);
+                frame(g, w, h, swingConstant);
+
+            } else {
+                g.setColor(INACTIVE_FILL);
+                fill(g, w, h, swingConstant);
+                g.setColor(INACTIVE_FRAME);
+                frame(g, w, h, swingConstant);
+            }
+        }
+
+        // foreground
+        if (parent.isActive() && appForeground) {
+            if (this.isSelected()) {
+                g.setColor(Color.WHITE);
+            } else {
+                g.setColor(Color.BLACK);
+            }
+        } else {
+            if (this.isSelected()) {
+                g.setColor(INACTIVE_TEXT_SELECTED);
+            } else {
+                g.setColor(INACTIVE_TEXT);
+            }
+        }
+        paintIcon(g);
     }
 
-    public void setSelectedIcon(ImageIcon i) {
-        this.selectedIcon = i;
-    }
-
-    public void addActionListener(ActionListener l) {
-        action = l;
-    }
-
-    public boolean isSelected() {
-        return isSelected;
-    }
+    /**
+     * ここを override して前景を書く.
+     *
+     * @param g Graphics2D
+     */
+    public void paintIcon(Graphics2D g) { }
 }

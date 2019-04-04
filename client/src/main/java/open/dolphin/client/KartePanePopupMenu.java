@@ -9,9 +9,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.ui.sheet.JSheet;
 
 import javax.swing.*;
-import javax.swing.text.StyledEditorKit;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -25,6 +23,8 @@ import static open.dolphin.orca.ClaimConst.SubjectivesCodeMap;
 
 /**
  * KartePanePopupMenu. KartePane から独立.
+ *
+ * @author pns
  */
 public class KartePanePopupMenu extends JPopupMenu {
     private KartePane kartePane;
@@ -57,9 +57,8 @@ public class KartePanePopupMenu extends JPopupMenu {
         if (textPane.isEditable()) {
             ColorChooserComp ccl = new ColorChooserComp();
             ccl.addPropertyChangeListener(ColorChooserComp.SELECTED_COLOR, e -> {
-                Color selected = (Color) e.getNewValue();
-                Action action = new StyledEditorKit.ForegroundAction("selected", selected);
-                action.actionPerformed(new ActionEvent(textPane, ActionEvent.ACTION_PERFORMED, "foreground"));
+                Color color = (Color) e.getNewValue();
+                mediator.colorAction(color);
                 setVisible(false);
             });
             JLabel l = new JLabel("  カラー:");

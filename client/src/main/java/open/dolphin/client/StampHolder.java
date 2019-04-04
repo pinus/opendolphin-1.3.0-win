@@ -232,11 +232,11 @@ public final class StampHolder extends AbstractComponentHolder {
 
         } else {
             // ダブルクリックで EditorFrame に入力
-            java.util.List<Chart> allFrames = EditorFrame.getAllEditorFrames();
+            java.util.List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
             if (!allFrames.isEmpty()) {
-                Chart frame = allFrames.get(0);
+                EditorFrame frame = allFrames.get(0);
                 if (this.isEditable()) {
-                    KartePane pane = ((EditorFrame) frame).getEditor().getPPane();
+                    KartePane pane = frame.getEditor().getPPane();
                     // caret を最後に送ってから import する
                     JTextPane textPane = pane.getTextPane();
                     KarteStyledDocument doc = pane.getDocument();

@@ -14,7 +14,6 @@ import java.awt.*;
  * <li>AddUser - text fields
  * <li>AllergyEditor - factorFld
  * <li>ChangePassword - text fields
- * <li>ChartMediator - focusDiagnosisInspector
  * <li>DiagnosisDocument - enter(), selectAll()
  * <li>DiagnosisDocumentPopupMenu - rightPressed(e)
  * <li>FindDialog - searchTextField
