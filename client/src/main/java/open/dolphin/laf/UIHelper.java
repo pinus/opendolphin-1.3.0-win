@@ -1,12 +1,15 @@
 package open.dolphin.laf;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JTable;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 /**
+ *
  * @author pns
  */
 public class UIHelper {
@@ -14,11 +17,11 @@ public class UIHelper {
 
     public static final Color DEFAULT_ODD_COLOR = Color.WHITE;
     //public static final Color DEFAULT_EVEN_COLOR = new Color(237,243,254);
-    public static final Color DEFAULT_EVEN_COLOR = new Color(245, 245, 245);
-    public static final Color[] ROW_COLORS = {DEFAULT_EVEN_COLOR, DEFAULT_ODD_COLOR};
+    public static final Color DEFAULT_EVEN_COLOR = new Color(245,245,245);
+    public static final Color[] ROW_COLORS = { DEFAULT_EVEN_COLOR, DEFAULT_ODD_COLOR };
 
-    public static final Color DEFAULT_BACKGROUND_SELECTION_FOCUSED = new Color(55, 106, 210);
-    public static final Color DEFAULT_BACKGROUND_SELECTION_OFF_FOCUS = new Color(220, 220, 220);
+    public static final Color DEFAULT_BACKGROUND_SELECTION_FOCUSED = new Color(55,106,210);
+    public static final Color DEFAULT_BACKGROUND_SELECTION_OFF_FOCUS = new Color(220,220,220);
 
     private boolean isDragging = false;
 
@@ -36,15 +39,6 @@ public class UIHelper {
         init(c);
     }
 
-    /**
-     * Windows かどうかを返す.
-     *
-     * @return
-     */
-    public static boolean isWin() {
-        return System.getProperty("os.name").toLowerCase().startsWith("windows");
-    }
-
     private void init(JComponent c) {
         // マウスドラッグ中かどうかを記録する
         MouseAdapter ma = new MouseAdapter() {
@@ -52,7 +46,6 @@ public class UIHelper {
             public void mouseDragged(MouseEvent e) {
                 isDragging = true;
             }
-
             @Override
             public void mouseReleased(MouseEvent e) {
                 isDragging = false;
@@ -63,24 +56,28 @@ public class UIHelper {
     }
 
     /**
-     * 現在マウスドラッグ中かどうかを返す.
-     *
+     * Windows かどうかを返す.
      * @return
      */
-    public boolean isDragging() {
-        return isDragging;
+    public static boolean isWin() {
+        return System.getProperty("os.name").toLowerCase().startsWith("windows");
     }
 
     /**
+     * 現在マウスドラッグ中かどうかを返す.
+     * @return
+     */
+    public boolean isDragging() { return isDragging; }
+
+    /**
      * 選択状態，Focus 状態に応じてバックグランド色を返す.
-     *
      * @param selected
      * @param focused
      * @return
      */
     public Color getBackground(boolean selected, boolean focused) {
         if (selected) {
-            return focused ? getBackgroundSelectionFocusedColor() : getBackgroundSelectionOffFocusColor();
+            return focused? getBackgroundSelectionFocusedColor() : getBackgroundSelectionOffFocusColor();
         } else {
             return getBackgroundNonSelectionColor();
         }
@@ -88,14 +85,13 @@ public class UIHelper {
 
     /**
      * 選択状態，Focus 状態に応じてフォアグランド色を返す.
-     *
      * @param selected
      * @param focused
      * @return
      */
     public Color getForeground(boolean selected, boolean focused) {
         if (selected) {
-            return focused ? getTextSelectionFocusedColor() : getTextSelectionOffFocusColor();
+            return focused? getTextSelectionFocusedColor() : getTextSelectionOffFocusColor();
         } else {
             return getTextNonSelectionColor();
         }
@@ -103,7 +99,6 @@ public class UIHelper {
 
     /**
      * DefaultTreeCellRenderer の色設定値を読み取ってセットする.
-     *
      * @param renderer DefaultTreeCellRenderer
      */
     public void setRendererColors(DefaultTreeCellRenderer renderer) {
@@ -116,7 +111,6 @@ public class UIHelper {
 
     /**
      * JTable の色設定値を読み取ってセットする.
-     *
      * @param table
      */
     public void setRendererColors(JTable table) {
@@ -129,7 +123,6 @@ public class UIHelper {
 
     /**
      * JList の色設定値を読み取ってセットする.
-     *
      * @param list
      */
     public void setRendererColors(JList list) {
@@ -139,7 +132,6 @@ public class UIHelper {
         setTextNonSelectionColor(list.getForeground());
         setTextSelectionOffFousColor(list.getForeground());
     }
-
     /**
      * @return the selectedOffFocusForeground
      */

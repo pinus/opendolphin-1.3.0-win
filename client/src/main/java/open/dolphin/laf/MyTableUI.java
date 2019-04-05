@@ -1,14 +1,19 @@
 package open.dolphin.laf;
 
-import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.basic.BasicTableUI;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.UIManager;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicTableUI;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  * ストライプなテーブルUI.
@@ -43,9 +48,7 @@ public class MyTableUI extends BasicTableUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = t.rowAtPoint(e.getPoint());
-                if (row == -1) {
-                    t.clearSelection();
-                }
+                if (row == -1) { t.clearSelection(); }
             }
         });
 
@@ -61,14 +64,9 @@ public class MyTableUI extends BasicTableUI {
         // focus が変わったら selected row 全体を描き直す
         t.addFocusListener(new FocusListener() {
             @Override
-            public void focusGained(FocusEvent e) {
-                fireRowChanged();
-            }
-
+            public void focusGained(FocusEvent e) { fireRowChanged(); }
             @Override
-            public void focusLost(FocusEvent e) {
-                fireRowChanged();
-            }
+            public void focusLost(FocusEvent e) { fireRowChanged(); }
 
             private void fireRowChanged() {
                 t.repaint();
@@ -90,8 +88,8 @@ public class MyTableUI extends BasicTableUI {
 
             int[] top = getTopY(clip.y);
             // １行前から開始
-            int topY = top[0] - table.getRowHeight();
-            int currentRow = top[1] - 1;
+            int topY = top[0]-table.getRowHeight();
+            int currentRow = top[1]-1;
 
             while (topY < clip.y + clip.height) {
                 int bottomY = topY + table.getRowHeight();
@@ -136,12 +134,12 @@ public class MyTableUI extends BasicTableUI {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+                              boolean isSelected, boolean hasFocus, int row, int column) {
 
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
             if (isSelected) {
-                if (!table.isFocusOwner()) {
+                if (! table.isFocusOwner()) {
                     c.setForeground(table.getForeground());
                     c.setBackground(UIHelper.DEFAULT_BACKGROUND_SELECTION_OFF_FOCUS);
                 }
