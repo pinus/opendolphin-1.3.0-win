@@ -1,9 +1,14 @@
 package open.dolphin.laf;
 
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicListUI;
-import java.awt.*;
 
 /**
  * ストライプな ListUI.
@@ -44,8 +49,8 @@ public class MyListUI extends BasicListUI {
             Rectangle clip = g.getClipBounds();
             int[] top = getTopY(clip.y);
             // １行前から開始
-            int currentRow = top[1] - 1;
-            int topY = top[0] - getCellHeight(currentRow);
+            int currentRow = top[1]-1;
+            int topY = top[0]-getCellHeight(currentRow);
 
             while (topY < clip.y + clip.height) {
                 int bottomY = topY + getCellHeight(currentRow);
@@ -58,7 +63,7 @@ public class MyListUI extends BasicListUI {
         super.paint(g, c);
     }
 
-    /**
+   /**
      * ClipBound.y を越えた初めての Cell の Y 座標とその行数.
      *
      * @param clipY
@@ -101,11 +106,11 @@ public class MyListUI extends BasicListUI {
             return UIHelper.DEFAULT_ROW_HEIGHT;
 
         } else {
-            Rectangle bounds = row < listSize ?
+            Rectangle bounds = row < listSize?
                     list.getCellBounds(row, row) :
-                    list.getCellBounds(listSize - 1, listSize - 1);
+                    list.getCellBounds(listSize -1, listSize -1);
 
-            return bounds == null ? UIHelper.DEFAULT_ROW_HEIGHT : bounds.height;
+            return bounds == null? UIHelper.DEFAULT_ROW_HEIGHT : bounds.height;
         }
     }
 
@@ -117,12 +122,12 @@ public class MyListUI extends BasicListUI {
 
         @Override
         public Component getListCellRendererComponent(
-                JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
             if (isSelected) {
-                if (!c.isFocusOwner()) {
+                if (! c.isFocusOwner()) {
                     c.setForeground(c.getForeground());
                     c.setBackground(UIHelper.DEFAULT_BACKGROUND_SELECTION_OFF_FOCUS);
                 }
