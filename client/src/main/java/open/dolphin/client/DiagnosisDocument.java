@@ -219,7 +219,8 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         am.put("duplicate", new ProxyAction(this::duplicateDiagnosis));
 
         // tableModel 用設定
-        tableModel.setLastVisit(((ChartImpl) getContext()).getLastVisit());
+        lastVisit = ((ChartImpl) getContext()).getLastVisit();
+        tableModel.setLastVisit(lastVisit);
         tableModel.getBoundSupport().addPropertyChangeListener(evt -> {
             String prop = evt.getPropertyName();
             // update があった場合

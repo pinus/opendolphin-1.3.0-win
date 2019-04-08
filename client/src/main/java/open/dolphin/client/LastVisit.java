@@ -2,7 +2,6 @@ package open.dolphin.client;
 
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.project.Project;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +35,7 @@ public class LastVisit {
 
     public LastVisit(Chart context) {
         this.context = context;
-        logger.setLevel(Level.DEBUG);
+        //logger.setLevel(Level.DEBUG);
     }
 
     /**
@@ -80,17 +79,17 @@ public class LastVisit {
      *
      * @return ISO_DATE 型式の outcome date
      */
-    public String getDiagnosisOutcomeDate(String startDate) {
-        LocalDate start = LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE);
-        long monthBetween = ChronoUnit.MONTHS.between(start.withDayOfMonth(1), lastVisit.withDayOfMonth(1));
+    public String getDiagnosisOutcomeDate() {
+        LocalDate startDate = Objects.nonNull(lastVisitInHistory) ? lastVisitInHistory : lastVisit;
+        long monthBetween = ChronoUnit.MONTHS.between(startDate.withDayOfMonth(1), lastVisit.withDayOfMonth(1));
         logger.debug("monthBetween " + monthBetween);
 
         int offset = Project.getPreferences().getInt(Project.OFFSET_OUTCOME_DATE, -1);
         LocalDate endDate = monthBetween <= 1
                 ? lastVisit.plusDays(offset)
-                : start.plusMonths(1).withDayOfMonth(start.plusMonths(1).lengthOfMonth());
+                : startDate.plusMonths(1).withDayOfMonth(startDate.plusMonths(1).lengthOfMonth());
 
-        logger.debug("lastVisit = " + lastVisit + ", start = " + start + ", endDate = " + endDate);
+        logger.debug("lastVisit = " + lastVisit + ", start = " + startDate + ", endDate = " + endDate);
         return endDate.format(DateTimeFormatter.ISO_DATE);
     }
 
