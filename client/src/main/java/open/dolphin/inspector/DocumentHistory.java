@@ -414,6 +414,8 @@ public class DocumentHistory implements IInspector {
             } else {
                 // 最後まで見つからない＝初診カルテ
                 countField.setText("0 件");
+                // LastVisit update
+                context.getLastVisit().update(newHistory);
             }
         }
     }

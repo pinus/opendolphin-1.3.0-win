@@ -2,6 +2,7 @@ package open.dolphin.client;
 
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.project.Project;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +36,7 @@ public class LastVisit {
 
     public LastVisit(Chart context) {
         this.context = context;
-        //logger.setLevel(Level.DEBUG);
+        logger.setLevel(Level.INFO);
     }
 
     /**
@@ -54,23 +55,20 @@ public class LastVisit {
         logger.debug("doc list = " + docList);
 
         if (docList.isEmpty()) {
-            // 新患でまだ保存していない状態 = pvtDate は null ではありえない
+            // 新患でまだ保存していない状態では pvtDate は null ではありえない
             lastVisit = LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
             lastVisitInHistory = null;
 
         } else {
+            // docList がある
             LocalDate test = LocalDate.parse(docList.get(0), DateTimeFormatter.ISO_DATE);
-            if (Objects.isNull(pvtDate)) {
-                // 今日の受診がなくて docList が空ではない
-                lastVisit = lastVisitInHistory = test;
-            } else {
-                // 今日の受診がある
-                lastVisit = LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
-                lastVisitInHistory = !lastVisit.equals(test) ? test
-                        : docList.size() == 1 ? null
-                        : LocalDate.parse(docList.get(1), DateTimeFormatter.ISO_DATE);
-            }
+            lastVisit = Objects.isNull(pvtDate) ? test
+                    : LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
+            lastVisitInHistory = !lastVisit.equals(test) ? test
+                    : docList.size() == 1 ? null
+                    : LocalDate.parse(docList.get(1), DateTimeFormatter.ISO_DATE);
         }
+        logger.debug("lastVisit = " + lastVisit + ", inHistory " + lastVisitInHistory);
     }
 
     /**
@@ -89,7 +87,6 @@ public class LastVisit {
                 ? lastVisit.plusDays(offset)
                 : startDate.plusMonths(1).withDayOfMonth(startDate.plusMonths(1).lengthOfMonth());
 
-        logger.debug("lastVisit = " + lastVisit + ", start = " + startDate + ", endDate = " + endDate);
         return endDate.format(DateTimeFormatter.ISO_DATE);
     }
 
