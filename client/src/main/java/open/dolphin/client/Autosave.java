@@ -186,7 +186,7 @@ public class Autosave implements Runnable {
             }
 
             dirty = false;
-            logger.info("autosave took " + (System.currentTimeMillis() - l) + " ms");
+            logger.debug("autosave took " + (System.currentTimeMillis() - l) + " ms");
         }
     }
 }

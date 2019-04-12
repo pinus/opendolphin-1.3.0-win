@@ -31,7 +31,7 @@ public class KartePaneDumper_2 {
     private String spec;
 
     public KartePaneDumper_2() {
-        logger = ClientContext.getBootLogger();
+        logger = Logger.getLogger(KartePaneDumper_2.class);
     }
 
     /**
@@ -215,19 +215,11 @@ public class KartePaneDumper_2 {
         writer.write(">");
     }
 
-    private String addQuote(String str) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("\"");
-        buf.append(str);
-        buf.append("\"");
-        return buf.toString();
+    private String addQuote(String string) {
+        return "\"" + string + "\"";
     }
 
-    private String addQuote(int str) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("\"");
-        buf.append(str);
-        buf.append("\"");
-        return buf.toString();
+    private String addQuote(int number) {
+        return "\"" + number + "\"";
     }
 }

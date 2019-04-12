@@ -36,6 +36,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 /**
@@ -545,22 +546,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     }
 
     /**
-     * Documentの段落スタイルを設定する.
-     *
-     * @param str スタイル
-     */
-    public void setLogicalStyle(String str) {
-        getDocument().setLogicalStyle(str);
-    }
-
-    /**
-     * Documentの段落論理スタイルをクリアする.
-     */
-    public void clearLogicalStyle() {
-        getDocument().clearLogicalStyle();
-    }
-
-    /**
      * 段落を構成する.
      */
     public void makeParagraph() {
@@ -740,8 +725,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
 
             @Override
             protected List<StampModel> doInBackground() {
-                List<StampModel> list = sdl.getStamp(addList);
-                return list;
+                return sdl.getStamp(addList);
             }
 
             @Override
@@ -794,21 +778,15 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
 
             @Override
             protected List<StampModel> doInBackground() {
-                List<StampModel> list = sdl.getStamp(addList);
-                return list;
+                return sdl.getStamp(addList);
             }
 
             @Override
             public void succeeded(List<StampModel> list) {
                 logger.debug("textStampInfoDropped succeeded");
                 if (list != null) {
-                    for (int i = 0; i < list.size(); i++) {
-                        StampModel stampModel = list.get(i);
-                        IInfoModel model = stampModel.getStamp();
-                        if (model != null) {
-                            insertTextStamp(model.toString() + "\n");
-                        }
-                    }
+                    list.stream().map(StampModel::getStamp).filter(Objects::nonNull)
+                            .map(model -> model.toString() + "\n").forEach(KartePane.this::insertTextStamp);
                 } else {
                     showNoStampModelMessage();
                 }
@@ -1082,26 +1060,10 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     protected boolean canPaste() {
         Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
 
-        if (t == null) {
-            return false;
-        }
-
-        if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            return true;
-        }
-
-        if (getMyRole().equals(IInfoModel.ROLE_P)) {
-            if (t.isDataFlavorSupported(OrderListTransferable.orderListFlavor)) {
-                return true;
-            }
-
-        } else {
-            if (t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)) {
-                return true;
-            }
-        }
-
-        return false;
+        return Objects.nonNull(t) &&
+                (t.isDataFlavorSupported(DataFlavor.stringFlavor)
+                || (getMyRole().equals(IInfoModel.ROLE_P) && t.isDataFlavorSupported(OrderListTransferable.orderListFlavor))
+                || (getMyRole().equals(IInfoModel.ROLE_SOA) && t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)));
     }
 
     /**

@@ -14,7 +14,6 @@ import java.util.StringTokenizer;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 @Entity
-@EntityListeners(PatientVisitModelListener.class)
 @Table(name = "d_patient_visit")
 public class PatientVisitModel extends InfoModel {
     private static final long serialVersionUID = 7049490761810599245L;

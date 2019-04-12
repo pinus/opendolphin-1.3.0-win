@@ -184,7 +184,7 @@ public class DiagnosisInspector implements IInspector {
         ActionMap am = diagList.getActionMap();
 
         Stream.of(Shortcut.values()).forEach(shortcut -> {
-            im.put(KeyStroke.getKeyStroke(shortcut.key(), shortcut.mask()), shortcut.name());
+            im.put(KeyStroke.getKeyStroke(shortcut.keyString), shortcut.name());
             am.put(shortcut.name(), map.get(shortcut.name()));
         });
 
@@ -415,36 +415,31 @@ public class DiagnosisInspector implements IInspector {
      * MenuSupport には依存せず，全て独自実装している.
      */
     private enum Shortcut {
-        undo(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK),
-        redo(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK),
-        addLeft(KeyEvent.VK_S, InputEvent.SHIFT_DOWN_MASK), // sinistro
-        addRight(KeyEvent.VK_D, InputEvent.SHIFT_DOWN_MASK), // destro
-        addBoth(KeyEvent.VK_E, InputEvent.SHIFT_DOWN_MASK), // entrambi
-        finish(KeyEvent.VK_F, 0),
-        discontinue(KeyEvent.VK_D, 0),
-        renew(KeyEvent.VK_R, 0),
-        dropPrepos(KeyEvent.VK_T, 0), // togliere
-        dropPostpos(KeyEvent.VK_T, InputEvent.SHIFT_DOWN_MASK), // togliere
-        delete(KeyEvent.VK_BACK_SPACE, 0),
-        sendClaim(KeyEvent.VK_L, InputEvent.META_DOWN_MASK),
-        duplicate(KeyEvent.VK_D, InputEvent.META_DOWN_MASK),
-        suspected(KeyEvent.VK_U, 0), // utagai
-        mainDiag(KeyEvent.VK_U, InputEvent.SHIFT_DOWN_MASK),
-        infection(KeyEvent.VK_I, 0),
+        undo("meta Z"),
+        redo("shift meta Z"),
+        addLeft("shift S"), // sinistro
+        addRight("shift D"), // destro
+        addBoth("shift E"), // entrambi
+        finish("F"),
+        discontinue("D"),
+        renew("R"),
+        dropPrepos("T"), // togliere
+        dropPostpos("shift T"), // togliere
+        delete("BACK_SPACE"),
+        sendClaim("meta L"),
+        duplicate("meta D"),
+        suspected("U"), // utagai
+        mainDiag("shift U"),
+        infection("I"),
         ;
-        private final int key, mask;
+        private final String keyString;
 
-        Shortcut(int k, int m) {
-            key = k;
-            mask = m;
+        Shortcut(String k) {
+            keyString = k;
         }
 
-        public int key() {
-            return key;
-        }
-
-        public int mask() {
-            return mask;
+        public String keyString() {
+            return keyString;
         }
     }
 

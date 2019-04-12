@@ -1,8 +1,8 @@
 package open.dolphin.orca;
 
+import open.dolphin.dto.PatientVisitSpec;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.InfoModel;
-import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.orca.pushapi.PushApi;
 import open.dolphin.orca.pushapi.SubscriptionEvent;
@@ -26,10 +26,13 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * PvtClient.
@@ -60,7 +63,7 @@ public class PvtClient {
 
     @PostConstruct
     public void subscribe() {
-        pushApi.subscribe(SubscriptionEvent.ACCEPT);
+        pushApi.subscribe(SubscriptionEvent.ALL);
     }
 
     @PreDestroy
@@ -91,12 +94,15 @@ public class PvtClient {
                         case "delete":
                             String ptId = body.getPatient_ID(); // 患者番号 002906
                             String pvtTime = body.getAccept_Date() + 'T' + body.getAccept_Time(); // 2016-12-02T16:03:38
-                            PatientModel patientModel = patientService.getPatient(ptId);
-                            List<PatientVisitModel> pvt = pvtService.getPvtOf(patientModel);
-                            long removePk = pvt.stream().filter(p -> p.getPvtDate().equals(pvtTime))
-                                    .map(PatientVisitModel::getId).findAny().get();
-                            pvtService.removePvt(removePk);
-                            logger.info(("PvtClient: pvt removed [" + data.getBody().getPatient_ID() + "]"));
+
+                            long removePk = getPvtListToday().stream()
+                                    .filter(pvt -> pvt.getPatientId().equals(ptId))
+                                    .filter(pvt -> pvt.getPvtDate().equals(pvtTime))
+                                    .map(PatientVisitModel::getId).findAny().orElse(0L);
+                            if (removePk != 0) {
+                                pvtService.removePvt(removePk);
+                            }
+                            logger.info("pvt removed [" + ptId + "]");
                             break;
 
                         case "add":
@@ -104,12 +110,44 @@ public class PvtClient {
                             pvtBuilder.build(body);
                             PatientVisitModel model = pvtBuilder.getProduct();
                             pvtService.addPvt(model);
-                            logger.info("PvtClient: addPvt [" + model.getPatient().getPatientId() + "]");
+                            logger.info("addPvt [" + model.getPatient().getPatientId() + "]");
                             break;
+                    }
+
+                } else if (event.equals(SubscriptionEvent.INFORMATION.eventName())) {
+                    // 患者登録通知 - pvt にある患者情報が orca で書き換えられた場合の対応
+                    if ("modify".equals(body.getPatient_Mode())) {
+                        DummyHeader.set();
+                        String ptId = body.getPatient_ID(); // 患者番号 002906
+                        List<PatientVisitModel> pvts = getPvtListToday().stream()
+                                .filter(pvt -> pvt.getPatientId().equals(ptId)).collect(Collectors.toList());
+
+                        if (!pvts.isEmpty()) {
+                            pvtBuilder.build(body);
+                            PatientVisitModel model = pvtBuilder.getProduct();
+                            pvts.stream().forEach(pvt -> {
+                                model.setPvtDate(pvt.getPvtDate());
+                                pvtService.addPvt(model);
+                            });
+                            logger.info("modify patient info [" + ptId + "]");
+
+                        }
                     }
                 }
                 break;
         }
+    }
+
+    /**
+     * 今日の pvt リストを返す.
+     *
+     * @return List of today's pvt
+     */
+    private List<PatientVisitModel> getPvtListToday() {
+        PatientVisitSpec spec = new PatientVisitSpec();
+        spec.setDate(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
+        spec.setSkipCount(0);
+        return pvtService.getPvtList(spec);
     }
 
     /**

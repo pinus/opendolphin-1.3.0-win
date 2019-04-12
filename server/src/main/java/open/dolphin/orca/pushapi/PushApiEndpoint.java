@@ -5,7 +5,6 @@ import open.dolphin.orca.pushapi.bean.Response;
 import org.apache.log4j.Logger;
 
 import javax.websocket.*;
-import java.util.HashSet;
 
 /**
  * WebSocket の Endpoint (Tyrus).
@@ -18,12 +17,11 @@ public class PushApiEndpoint {
     /**
      * 受け取った message を伝える listener.
      */
-    private final HashSet<ResponseListener> responseListeners;
+    private ResponseListener responseListener;
 
     private final Logger logger = Logger.getLogger(PushApiEndpoint.class);
 
     public PushApiEndpoint() {
-        responseListeners = new HashSet<>();
     }
 
     @OnOpen
@@ -34,7 +32,7 @@ public class PushApiEndpoint {
     @OnMessage
     public void onMessage(String str) {
         Response response = JsonConverter.fromJson(str, Response.class);
-        responseListeners.forEach(listener -> listener.onResponse(response));
+        responseListener.onResponse(response);
     }
 
     @OnClose
@@ -50,18 +48,9 @@ public class PushApiEndpoint {
     /**
      * ResponseListener を登録する.
      *
-     * @param l ResponseListener
+     * @param listener ResponseListener
      */
-    public void addResponseListener(ResponseListener l) {
-        responseListeners.add(l);
-    }
-
-    /**
-     * ResponseListener を削除する.
-     *
-     * @param l ResponseListener
-     */
-    public void removeResponseListener(ResponseListener l) {
-        responseListeners.remove(l);
+    public void addResponseListener(ResponseListener listener) {
+        responseListener = listener;
     }
 }

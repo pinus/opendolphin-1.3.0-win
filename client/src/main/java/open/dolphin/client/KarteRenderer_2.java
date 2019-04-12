@@ -10,7 +10,10 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
-import javax.swing.text.*;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -79,13 +82,17 @@ public class KarteRenderer_2 {
     private static final String[] MATCHES = new String[]{"&lt;", "&gt;", "&amp;", "&apos;", "&quot;"};
 
     private static final String NAME_STAMP_HOLDER = "name=\"stampHolder\"";
+
+    private int paragraphStart;
+    private MutableAttributeSet paragraphAtts;
+
     private final KartePane soaPane;
     private final KartePane pPane;
     private final Logger logger;
     private DocumentModel model;
     private KartePane thePane;
-    private boolean logicalStyle;
-    private boolean bSoaPane;
+    private boolean isSoaPane;
+
     private List<ModuleModel> soaModules;
     private List<ModuleModel> pModules;
 
@@ -134,12 +141,10 @@ public class KarteRenderer_2 {
         }
 
         if (soaSpec != null && pSpec != null) {
-
             int index = soaSpec.indexOf(NAME_STAMP_HOLDER);
             if (index > 0) {
                 String sTmp = soaSpec;
-                String pTmp = pSpec;
-                soaSpec = pTmp;
+                soaSpec = pSpec;
                 pSpec = sTmp;
             }
         }
@@ -158,7 +163,7 @@ public class KarteRenderer_2 {
         } else {
             debug("Render SOA Pane");
             debug("Module count = " + soaModules.size());
-            bSoaPane = true;
+            isSoaPane = true;
             thePane = soaPane;
             renderPane(soaSpec);
         }
@@ -178,13 +183,17 @@ public class KarteRenderer_2 {
             }
 
         } else {
-            bSoaPane = false;
+            isSoaPane = false;
             thePane = pPane;
             renderPane(pSpec);
 
             // StampHolder直後の改行がない場合は補う
             pPane.getDocument().fixCrAfterStamp();
         }
+
+        // 最後の CR は attribute が変になってるので取り除く
+        soaPane.getDocument().removeLastCr();
+        pPane.getDocument().removeLastCr();
     }
 
     /**
@@ -217,136 +226,108 @@ public class KarteRenderer_2 {
      * @param current 要素
      */
     private void writeChildren(Element current) {
-
         int eType = -1;
         String eName = current.getName();
 
-        if (eName.equals(PARAGRAPH_NAME)) {
-            eType = TT_PARAGRAPH;
-            startParagraph(current.getAttributeValue(LOGICAL_STYLE_NAME),
-                    current.getAttributeValue(ALIGNMENT_NAME));
+        switch (eName) {
+            case SECTION_NAME:
+                eType = TT_SECTION;
+                startSection();
+                break;
 
-        } else if (eName.equals(CONTENT_NAME) && (current.getChild(TEXT_NAME) != null)) {
-            eType = TT_CONTENT;
-            startContent(current.getAttributeValue(FOREGROUND_NAME),
-                    current.getAttributeValue(SIZE_NAME),
-                    current.getAttributeValue(BOLD_NAME),
-                    current.getAttributeValue(ITALIC_NAME),
-                    current.getAttributeValue(UNDERLINE_NAME),
-                    current.getChildText(TEXT_NAME));
+            case PARAGRAPH_NAME:
+                eType = TT_PARAGRAPH;
+                startParagraph(current.getAttributeValue(ALIGNMENT_NAME));
+                break;
 
-        } else if (eName.equals(COMPONENT_NAME)) {
-            eType = TT_COMPONENT;
-            startComponent(current.getAttributeValue(NAME_NAME), // compoenet=number
-                    current.getAttributeValue(COMPONENT_ELEMENT_NAME));
+            case CONTENT_NAME:
+                if (Objects.nonNull(current.getChild(TEXT_NAME))) {
+                    eType = TT_CONTENT;
+                    startContent(
+                            current.getAttributeValue(FOREGROUND_NAME),
+                            current.getAttributeValue(SIZE_NAME),
+                            current.getAttributeValue(BOLD_NAME),
+                            current.getAttributeValue(ITALIC_NAME),
+                            current.getAttributeValue(UNDERLINE_NAME),
+                            current.getChildText(TEXT_NAME));
+                }
+                break;
 
-        } else if (eName.equals(ICON_NAME)) {
-            eType = TT_ICON;
-            startIcon(current);
+            case COMPONENT_NAME:
+                eType = TT_COMPONENT;
+                startComponent(
+                        current.getAttributeValue(NAME_NAME),
+                        current.getAttributeValue(COMPONENT_ELEMENT_NAME));
+                break;
 
-        } else if (eName.equals(PROGRESS_COURSE_NAME)) {
-            eType = TT_PROGRESS_COURSE;
-            startProgressCourse();
+            case ICON_NAME:
+                eType = TT_ICON;
+                startIcon(current);
+                break;
 
-        } else if (eName.equals(SECTION_NAME)) {
-            eType = TT_SECTION;
-            startSection();
+            case PROGRESS_COURSE_NAME:
+                eType = TT_PROGRESS_COURSE;
+                startProgressCourse();
+                break;
 
-        } else {
-            debug("Other element:" + eName);
+            default:
+                debug("Other element:" + eName);
         }
 
         // 子を探索するのはパラグフとトップ要素のみ
-        if (eType == TT_PARAGRAPH || eType == TT_PROGRESS_COURSE
-                || eType == TT_SECTION) {
-
-            List<Element> children = current.getChildren();
-            Iterator<Element> iterator = children.iterator();
-
-            while (iterator.hasNext()) {
-                Element child = iterator.next();
-                writeChildren(child);
-            }
+        if (eType == TT_SECTION
+                || eType == TT_PARAGRAPH
+                || eType == TT_PROGRESS_COURSE)  {
+            current.getChildren().stream().forEach(this::writeChildren);
         }
 
         switch (eType) {
+            case TT_SECTION:
+                endSection();
+                break;
 
             case TT_PARAGRAPH:
                 endParagraph();
                 break;
 
-            case TT_CONTENT:
-                endContent();
-                break;
-
-            case TT_ICON:
-                endIcon();
-                break;
-
-            case TT_COMPONENT:
-                endComponent();
-                break;
-
             case TT_PROGRESS_COURSE:
                 endProgressCourse();
-                break;
-
-            case TT_SECTION:
-                endSection();
                 break;
         }
     }
 
-    private void startSection() {
-    }
+    private void startSection() { }
 
-    private void endSection() {
-    }
+    private void endSection() { }
 
-    private void startProgressCourse() {
-    }
-
-    private void endProgressCourse() {
-    }
-
-    private void startParagraph(String lStyle, String alignStr) {
-
-        thePane.setLogicalStyle("default");
-        logicalStyle = true;
+    private void startParagraph(String alignStr) {
+        DefaultStyledDocument doc = (DefaultStyledDocument) thePane.getTextPane().getDocument();
+        paragraphStart = doc.getLength();
+        paragraphAtts = new SimpleAttributeSet();
 
         if (alignStr != null) {
-            DefaultStyledDocument doc = (DefaultStyledDocument) thePane
-                    .getTextPane().getDocument();
-            Style style0 = doc.getStyle("default");
-            Style style = doc.addStyle("alignment", style0);
             switch (alignStr) {
                 case "0":
-                    StyleConstants.setAlignment(style, StyleConstants.ALIGN_LEFT);
+                    StyleConstants.setAlignment(paragraphAtts, StyleConstants.ALIGN_LEFT);
                     break;
                 case "1":
-                    StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+                    StyleConstants.setAlignment(paragraphAtts, StyleConstants.ALIGN_CENTER);
                     break;
                 case "2":
-                    StyleConstants.setAlignment(style, StyleConstants.ALIGN_RIGHT);
+                    StyleConstants.setAlignment(paragraphAtts, StyleConstants.ALIGN_RIGHT);
                     break;
             }
-            thePane.setLogicalStyle("alignment");
-            logicalStyle = true;
         }
     }
 
     private void endParagraph() {
-
-        //thePane.makeParagraph(); // trim() の廃止で廃止
-        if (logicalStyle) {
-            thePane.clearLogicalStyle();
-            logicalStyle = false;
-        }
+        DefaultStyledDocument doc = (DefaultStyledDocument) thePane.getTextPane().getDocument();
+        int pos = doc.getLength();
+        doc.setParagraphAttributes(paragraphStart, pos - paragraphStart - 1, paragraphAtts, false);
     }
 
     private void startContent(String foreground, String size, String bold,
                               String italic, String underline, String text) {
-
         // 特殊文字を戻す
         for (int i = 0; i < REPLACES.length; i++) {
             text = text.replaceAll(MATCHES[i], REPLACES[i]);
@@ -390,20 +371,16 @@ public class KarteRenderer_2 {
         thePane.insertFreeString(text, atts);
     }
 
-    private void endContent() {
-    }
-
     private void startComponent(String name, String number) {
-
         debug("Entering startComponent");
         debug("Name = " + name);
         debug("Number = " + number);
-        debug("soaPane = " + bSoaPane);
+        debug("soaPane = " + isSoaPane);
 
         try {
             if (name != null && name.equals(STAMP_HOLDER)) {
                 int index = Integer.parseInt(number);
-                ModuleModel stamp = bSoaPane
+                ModuleModel stamp = isSoaPane
                         ? soaModules.get(index)
                         : pModules.get(index);
                 thePane.flowStamp(stamp);
@@ -417,19 +394,17 @@ public class KarteRenderer_2 {
         }
     }
 
-    private void endComponent() {
-    }
+    private void endComponent() { }
 
-    private void startIcon(org.jdom2.Element current) {
+    private void startProgressCourse() { }
 
+    private void endProgressCourse() { }
+
+    private void startIcon(Element current) {
         String name = current.getChildTextTrim("name");
-
         if (name != null) {
             debug(name);
         }
-    }
-
-    private void endIcon() {
     }
 
     private void debug(String msg) {

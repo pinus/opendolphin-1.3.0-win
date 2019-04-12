@@ -10,6 +10,8 @@ import open.dolphin.ui.ObjectReflectTableModel;
 
 import java.awt.*;
 import java.beans.PropertyChangeSupport;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 
@@ -171,7 +173,14 @@ public class DiagnosisDocumentTableModel extends ObjectReflectTableModel<Registe
                             if (Project.getPreferences().getBoolean("autoOutcomeInput", false)) {
                                 String val = rd.getEndDate();
                                 if (val == null || val.equals("")) {
-                                    rd.setEndDate(lastVisit.getDiagnosisOutcomeDate());
+                                    if (dom.getOutcome().equals(DiagnosisOutcome.fullyRecovered.name())) {
+                                        // 終了の場合は lastVisit のロジックに従う
+                                        rd.setEndDate(lastVisit.getDiagnosisOutcomeDate());
+                                    } else if (dom.getOutcome().equals(DiagnosisOutcome.pause.name())) {
+                                        // 中止の場合 lastVisit の前月最終日に強制終了
+                                        LocalDate endMonth = lastVisit.getLastVisit().minusMonths(1);
+                                        rd.setEndDate(endMonth.withDayOfMonth(endMonth.lengthOfMonth()).format(DateTimeFormatter.ISO_DATE));
+                                    }
                                 }
                             }
                             update(row, rd);

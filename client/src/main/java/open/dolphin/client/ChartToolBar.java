@@ -1,5 +1,6 @@
 package open.dolphin.client;
 
+import open.dolphin.event.ProxyDocumentListener;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.ui.CompletableSearchField;
 import open.dolphin.ui.Focuser;
@@ -8,8 +9,13 @@ import open.dolphin.ui.PNSToggleButton;
 import javax.swing.*;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.geom.AffineTransform;
 import java.util.Objects;
 import java.util.prefs.Preferences;
@@ -73,24 +79,7 @@ public class ChartToolBar extends JToolBar {
      * リスナーの接続を行う.
      */
     private void connect() {
-
-        boldButton.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.fontBold();
-            Focuser.requestFocus(mediator.getCurrentComponent());
-        });
-
-        italicButton.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.fontItalic();
-            Focuser.requestFocus(mediator.getCurrentComponent());
-        });
-
-        underlineButton.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.fontUnderline();
-            Focuser.requestFocus(mediator.getCurrentComponent());
-        });
+        KarteEditor karteEditor = editorFrame.getEditor();
 
         colorButton.addActionListener(e -> {
             if (pause) { return; }
@@ -104,27 +93,10 @@ public class ChartToolBar extends JToolBar {
                 repaint();
                 menu.setVisible(false);
                 Focuser.requestFocus(mediator.getCurrentComponent());
+                karteEditor.setDirty(true);
             });
             menu.show(b, 0, b.getHeight());
             b.setSelected(false);
-        });
-
-        leftJustify.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.leftJustify();
-            Focuser.requestFocus(mediator.getCurrentComponent());
-        });
-
-        centerJustify.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.centerJustify();
-            Focuser.requestFocus(mediator.getCurrentComponent());
-        });
-
-        rightJustify.addActionListener(e -> {
-            if (pause) { return; }
-            mediator.rightJustify();
-            Focuser.requestFocus(mediator.getCurrentComponent());
         });
 
         sizeCombo.addItemListener(e -> {
@@ -132,35 +104,70 @@ public class ChartToolBar extends JToolBar {
             int size = (int) e.getItem();
             mediator.setFontSize(size);
             Focuser.requestFocus(mediator.getCurrentComponent());
+            karteEditor.setDirty(true);
         });
 
-        // caret を listen してボタンを制御する
-        CaretListener caretListener = e -> {
+        // CaretListener
+        CaretListener caretListener = e -> feedback((JTextPane) e.getSource());
+        karteEditor.getSOAPane().getTextPane().addCaretListener(caretListener);
+        karteEditor.getPPane().getTextPane().addCaretListener(caretListener);
 
-            JTextPane pane = (JTextPane)e.getSource();
-            int p = pane.getSelectionStart() - 1;
-            AttributeSet a = pane.getStyledDocument().getCharacterElement(p).getAttributes();
-
-            // feedback 中は ActionEvent を抑制する
-            pause = true;
-
-            boldButton.setSelected(StyleConstants.isBold(a));
-            italicButton.setSelected(StyleConstants.isItalic(a));
-            underlineButton.setSelected((StyleConstants.isUnderline(a)));
-            colorButton.setColor(StyleConstants.getForeground(a));
-
-            int align = StyleConstants.getAlignment(a);
-            leftJustify.setSelected(align == StyleConstants.ALIGN_LEFT);
-            centerJustify.setSelected(align == StyleConstants.ALIGN_CENTER);
-            rightJustify.setSelected(align == StyleConstants.ALIGN_RIGHT);
-
-            int size = StyleConstants.getFontSize(a);
-            sizeCombo.setSelectedItem(size);
-
-            SwingUtilities.invokeLater(() -> pause = false);
+        // DocumentListener
+        ProxyDocumentListener documentListener = e -> {
+            JComponent c = mediator.getCurrentComponent();
+            if (c instanceof JTextPane) { feedback((JTextPane) c); }
         };
-        editorFrame.getEditor().getSOAPane().getTextPane().addCaretListener(caretListener);
-        editorFrame.getEditor().getPPane().getTextPane().addCaretListener(caretListener);
+        karteEditor.getSOAPane().getTextPane().getDocument().addDocumentListener(documentListener);
+        karteEditor.getPPane().getTextPane().getDocument().addDocumentListener(documentListener);
+
+        // FocusListener
+        FocusListener focusListener = new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                Object c = e.getSource();
+                if (c instanceof JTextPane) { feedback((JTextPane) c); }
+            }
+            @Override
+            public void focusLost(FocusEvent e) { }
+        };
+        karteEditor.getSOAPane().getTextPane().addFocusListener(focusListener);
+        karteEditor.getPPane().getTextPane().addFocusListener(focusListener);
+    }
+
+    /**
+     * JTextPane が変更されたときにボタンにフィードバックする.
+     */
+    public void feedback(JTextPane pane) {
+        int start = pane.getSelectionStart();
+        int end = pane.getSelectionEnd();
+
+        String prevChar = "";
+        try {
+            prevChar = pane.getText(start - 1, 1);
+        } catch (BadLocationException ex) {}
+
+        // 選択されている場合, 前の文字が区切り文字の場合は先頭を feedback, それ以外は１文字前を feedback
+        int num = (start != end || prevChar.equals("\n")) ? start : start - 1;
+        num = num < 0 ? 0 : num;
+        AttributeSet a = pane.getStyledDocument().getCharacterElement(num).getAttributes();
+
+        // feedback 中は ActionEvent を抑制する
+        pause = true;
+
+        boldButton.setSelected(StyleConstants.isBold(a));
+        italicButton.setSelected(StyleConstants.isItalic(a));
+        underlineButton.setSelected((StyleConstants.isUnderline(a)));
+        colorButton.setColor(StyleConstants.getForeground(a));
+
+        int align = StyleConstants.getAlignment(a);
+        leftJustify.setSelected(align == StyleConstants.ALIGN_LEFT);
+        centerJustify.setSelected(align == StyleConstants.ALIGN_CENTER);
+        rightJustify.setSelected(align == StyleConstants.ALIGN_RIGHT);
+
+        int size = StyleConstants.getFontSize(a);
+        sizeCombo.setSelectedItem(size);
+
+        SwingUtilities.invokeLater(() -> pause = false);
     }
 
     /**
@@ -169,9 +176,9 @@ public class ChartToolBar extends JToolBar {
      * @return Size Panel
      */
     private JPanel createSizePanel() {
-        sizeCombo = new JComboBox<>(mediator.FONT_SIZE);
+        sizeCombo = new JComboBox<>(ChartMediator.FONT_SIZE);
         sizeCombo.setBorder(BorderFactory.createEmptyBorder());
-        sizeCombo.setSelectedItem(mediator.DEFAULT_FONT_SIZE);
+        sizeCombo.setSelectedItem(ChartMediator.DEFAULT_FONT_SIZE);
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         panel.add(sizeCombo);
@@ -184,9 +191,9 @@ public class ChartToolBar extends JToolBar {
      * @return Font Panel
      */
     private JPanel createFontPanel() {
-        boldButton = new FontButton("B", "bold left");
-        italicButton = new FontButton("I", "italic");
-        underlineButton = new FontButton("U", "underline center");
+        boldButton = new FontButton("B", "bold left", mediator::fontBold);
+        italicButton = new FontButton("I", "italic", mediator::fontItalic);
+        underlineButton = new FontButton("U", "underline center", mediator::fontUnderline);
         colorButton = new ColorButton("right");
 
         JPanel panel = new JPanel();
@@ -204,9 +211,9 @@ public class ChartToolBar extends JToolBar {
      * @return Justification Panel
      */
     private JPanel createJustifyPanel() {
-        leftJustify = new JustifyButton("left");
-        centerJustify = new JustifyButton("center");
-        rightJustify = new JustifyButton("right");
+        leftJustify = new JustifyButton("left", mediator::leftJustify);
+        centerJustify = new JustifyButton("center", mediator::centerJustify);
+        rightJustify = new JustifyButton("right", mediator::rightJustify);
         ButtonGroup justifyGroup = new ButtonGroup();
         justifyGroup.add(leftJustify);
         justifyGroup.add(centerJustify);
@@ -261,9 +268,35 @@ public class ChartToolBar extends JToolBar {
     }
 
     /**
+     * ToggelButton の共通設定.
+     */
+    private class ToggleButtonBase extends PNSToggleButton implements ActionListener {
+        private Runnable runnable;
+
+        public ToggleButtonBase(String format, Runnable r) {
+            super(format);
+            runnable = r;
+            setPreferredSize(new Dimension(48, 24));
+            setMaximumSize(new Dimension(48, 24));
+            setMinimumSize(new Dimension(48, 24));
+            setBorderPainted(false);
+            setSelected(false);
+            addActionListener(this);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (pause) { return; }
+            runnable.run();
+            Focuser.requestFocus(mediator.getCurrentComponent());
+            editorFrame.getEditor().setDirty(true);
+        }
+    }
+
+    /**
      * Bold, Italic, Underline ボタン.
      */
-    private class FontButton extends PNSToggleButton {
+    private class FontButton extends ToggleButtonBase  {
         private double SCALE = 1.3d;
         private Font boldFont = new Font("Courier", Font.BOLD, 14)
                 .deriveFont(AffineTransform.getScaleInstance(SCALE, 1));
@@ -275,18 +308,12 @@ public class ChartToolBar extends JToolBar {
         private String letter;
         private boolean bold, italic, underline;
 
-        public FontButton(String letter, String format) {
-            super(format);
+        public FontButton(String letter, String format, Runnable r) {
+            super(format, r);
             this.letter = letter;
             bold = format.contains("bold");
             italic = format.contains("italic");
             underline = format.contains("underline");
-
-            setPreferredSize(new Dimension(48, 24));
-            setMaximumSize(new Dimension(48, 24));
-            setMinimumSize(new Dimension(48, 24));
-            setBorderPainted(false);
-            setSelected(false);
         }
 
         @Override
@@ -324,17 +351,12 @@ public class ChartToolBar extends JToolBar {
     /**
      * 書式ボタン.
      */
-    private class JustifyButton extends PNSToggleButton {
+    private class JustifyButton extends ToggleButtonBase {
         private int LONG = 20;
         private int SHORT = 14;
 
-        public JustifyButton(String format) {
-            super(format);
-            setPreferredSize(new Dimension(48, 24));
-            setMaximumSize(new Dimension(48, 24));
-            setMinimumSize(new Dimension(48, 24));
-            setBorderPainted(false);
-            setSelected(false);
+        public JustifyButton(String format, Runnable r) {
+            super(format, r);
         }
 
         @Override

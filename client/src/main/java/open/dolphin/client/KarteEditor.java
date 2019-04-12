@@ -278,8 +278,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         if (Objects.nonNull(getDocument().getModules())) {
             KarteRenderer_2 renderer = new KarteRenderer_2(soaPane, pPane);
             renderer.render(getDocument());
-            soaPane.setLogicalStyle("default");
-            pPane.setLogicalStyle("default");
         }
 
         // 健康保険を表示する
@@ -431,10 +429,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
 
         // 文書末の余分な改行文字を削除する by masuda-senesi
         KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
-        removeExtraCR(doc);
+        doc.removeExtraCr();
         doc = (KarteStyledDocument) pPane.getTextPane().getDocument();
-        removeExtraCR(doc);
-        removeRepeatedCR(doc);
+        doc.removeExtraCr();
+        doc.removeRepeatedCr();
 
         // DocumentModel を作る
         composeModel(params);
@@ -817,74 +815,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         /*
         ToDO Edit 中の内容が送られるようにしたい
         */
-    }
-
-    /**
-     * 文頭・文末の無駄な改行文字を削除する.
-     * original by masuda-sensei
-     *
-     * @param kd KarteStyledDocument
-     */
-    private void removeExtraCR(KarteStyledDocument kd) {
-        // これが一番速い！ 20個の改行削除に2msec!!
-        try {
-            int len = kd.getLength();
-            int pos;
-            // 改行文字以外が出てくるまで文頭からスキャン
-            for (pos = 0; pos < len - 1; pos++) {
-                if (!"\n".equals(kd.getText(pos, 1))) {
-                    break;
-                }
-            }
-            if (pos > 0) {
-                kd.remove(0, pos);
-            }
-
-            len = kd.getLength();
-            // 改行文字以外が出てくるまで文書末からスキャン
-            for (pos = len - 1; pos >= 0; --pos) {
-                if (!"\n".equals(kd.getText(pos, 1))) {
-                    break;
-                }
-            }
-            ++pos;  // 一文字戻す
-            if (len - pos > 0) {
-                kd.remove(pos, len - pos);
-            }
-        } catch (BadLocationException ex) {
-            ex.printStackTrace(System.err);
-        }
-    }
-
-    /**
-     * 3個以上連続する改行を2個にする.
-     * つまり，２つ以上連続する空行を１つにする.
-     *
-     * @param kd KarteStyledDocument
-     */
-    private void removeRepeatedCR(KarteStyledDocument kd) {
-        int pos = 0;
-        int crPos = 0;
-
-        while (pos < kd.getLength()) {
-            try {
-                if (crPos == 0 && "\n".equals(kd.getText(pos, 1))) {
-                    crPos = pos;
-                }
-                if (crPos != 0 && !"\n".equals(kd.getText(pos, 1))) {
-                    int len = pos - crPos;
-                    if (len > 1) {
-                        kd.remove(crPos + 1, len - 1);
-                        pos -= (len - 1);
-                    }
-                    crPos = 0;
-                }
-                pos++;
-
-            } catch (BadLocationException ex) {
-                ex.printStackTrace(System.err);
-            }
-        }
     }
 
     /**

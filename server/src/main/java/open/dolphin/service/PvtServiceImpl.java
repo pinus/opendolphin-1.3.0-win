@@ -1,5 +1,7 @@
 package open.dolphin.service;
 
+import open.dolphin.JsonConverter;
+import open.dolphin.WebSocket;
 import open.dolphin.dto.PatientVisitSpec;
 import open.dolphin.dto.PvtStateSpec;
 import open.dolphin.infomodel.*;
@@ -33,8 +35,8 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
         String facilityId = getCallersFacilityId();
         pvt.setFacilityId(facilityId);
 
-        PatientModel pvtPatient = pvt.getPatient();
-        pvtPatient.setFacilityId(facilityId);
+        PatientModel patientModel = pvt.getPatient();
+        patientModel.setFacilityId(facilityId);
 
         PatientModel existPatient;
         // 既存の患者かどうか調べる
@@ -42,10 +44,10 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
             // 存在しなければ catch に落ちる
             existPatient = em.createQuery("select p from PatientModel p where p.facilityId = :fid and p.patientId = :pid", PatientModel.class)
                     .setParameter("fid", facilityId)
-                    .setParameter("pid", pvtPatient.getPatientId()).getSingleResult();
+                    .setParameter("pid", patientModel.getPatientId()).getSingleResult();
 
             // 健康保険情報を更新する
-            Collection<HealthInsuranceModel> ins = pvtPatient.getHealthInsurances();
+            Collection<HealthInsuranceModel> ins = patientModel.getHealthInsurances();
 
             if (ins != null && !ins.isEmpty()) {
 
@@ -57,34 +59,34 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
                 old.forEach(em::remove);
 
                 // 新しい健康保険情報を登録する
-                pvtPatient.getHealthInsurances().forEach(m -> {
+                patientModel.getHealthInsurances().forEach(m -> {
                     m.setPatient(existPatient);
                     em.persist(m);
                 });
             }
 
             // 名前を更新する 2007-04-12
-            existPatient.setFamilyName(pvtPatient.getFamilyName());
-            existPatient.setGivenName(pvtPatient.getGivenName());
-            existPatient.setFullName(pvtPatient.getFullName());
-            existPatient.setKanaFamilyName(pvtPatient.getKanaFamilyName());
-            existPatient.setKanaGivenName(pvtPatient.getKanaGivenName());
-            existPatient.setKanaName(pvtPatient.getKanaName());
-            existPatient.setRomanFamilyName(pvtPatient.getRomanFamilyName());
-            existPatient.setRomanGivenName(pvtPatient.getRomanGivenName());
-            existPatient.setRomanName(pvtPatient.getRomanName());
+            existPatient.setFamilyName(patientModel.getFamilyName());
+            existPatient.setGivenName(patientModel.getGivenName());
+            existPatient.setFullName(patientModel.getFullName());
+            existPatient.setKanaFamilyName(patientModel.getKanaFamilyName());
+            existPatient.setKanaGivenName(patientModel.getKanaGivenName());
+            existPatient.setKanaName(patientModel.getKanaName());
+            existPatient.setRomanFamilyName(patientModel.getRomanFamilyName());
+            existPatient.setRomanGivenName(patientModel.getRomanGivenName());
+            existPatient.setRomanName(patientModel.getRomanName());
 
             // 性別
-            existPatient.setGender(pvtPatient.getGender());
-            existPatient.setGenderDesc(pvtPatient.getGenderDesc());
-            existPatient.setGenderCodeSys(pvtPatient.getGenderCodeSys());
+            existPatient.setGender(patientModel.getGender());
+            existPatient.setGenderDesc(patientModel.getGenderDesc());
+            existPatient.setGenderCodeSys(patientModel.getGenderCodeSys());
 
             // Birthday
-            existPatient.setBirthday(pvtPatient.getBirthday());
+            existPatient.setBirthday(patientModel.getBirthday());
 
             // 住所、電話を更新する
-            existPatient.setAddress(pvtPatient.getAddress());
-            existPatient.setTelephone(pvtPatient.getTelephone());
+            existPatient.setAddress(patientModel.getAddress());
+            existPatient.setTelephone(patientModel.getTelephone());
             //exist.setMobilePhone(patient.getMobilePhone());
 
             // 既存データを更新する
@@ -100,11 +102,11 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
         } catch (NoResultException e) {
             // 新規患者であれば登録する
             // 患者属性は cascade=PERSIST で自動的に保存される
-            em.persist(pvtPatient);
+            em.persist(patientModel);
 
             // この患者のカルテを生成する
             KarteBean karte = new KarteBean();
-            karte.setPatient(pvtPatient);
+            karte.setPatient(patientModel);
             karte.setCreated(new Date());
             em.persist(karte);
         }
@@ -115,22 +117,41 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
 
         // 同じ pvtDate の pvt がすでに登録されていないかどうかチェック
         // pvtDate が違えば，同じ patient id でも新たな pvt と判断する
-        List<PatientVisitModel> result = em.createQuery(
+        List<PatientVisitModel> persistentPvt = getPersistentPvt(pvt);
+
+        if (!persistentPvt.isEmpty()) {
+            // 重複がある場合は既存の id をコピーして新しい pvt にすげ替える
+            PatientVisitModel exist = persistentPvt.get(0);
+            pvt.setId(exist.getId());
+        }
+
+        em.merge(pvt); // record がなければ persist 動作になる
+        em.flush();
+
+        // Websocket に通知
+        if (pvt.getId() == 0) {
+            // id が付与されていない場合取り直す. flush() は無効だった.
+            pvt = getPersistentPvt(pvt).get(0);
+            logger.info("generated pvt id = " + pvt.getId());
+        }
+        sendToWebsocket(pvt);
+
+        return 1;
+    }
+
+    /**
+     * pvt に一致する永続化されている pvt を返す.
+     *
+     * @param pvt source pvt
+     * @return list of target pvt
+     */
+    private List<PatientVisitModel> getPersistentPvt(PatientVisitModel pvt) {
+        return em.createQuery(
                 "select p from PatientVisitModel p where p.facilityId = :fid and p.patient.patientId = :pid and p.pvtDate = :date", PatientVisitModel.class)
                 .setParameter("fid", pvt.getFacilityId())
                 .setParameter("pid", pvt.getPatientId())
                 .setParameter("date", pvt.getPvtDate())
                 .getResultList();
-
-        if (!result.isEmpty()) {
-            // 重複がある場合は既存の id をコピーして新しい pvt にすげ替える
-            PatientVisitModel exist = result.get(0);
-            pvt.setId(exist.getId());
-        }
-
-        em.merge(pvt); // record がなければ persist 動作になる
-
-        return 1;
     }
 
     /**
@@ -174,6 +195,7 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
     @Override
     public int updatePvt(PatientVisitModel pvt) {
         em.merge(pvt);
+        sendToWebsocket(pvt);
         return 1;
     }
 
@@ -237,8 +259,11 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
     public int removePvt(Long id) {
         try {
             PatientVisitModel exist = em.find(PatientVisitModel.class, id);
+            exist.setState(KarteState.CANCEL_PVT);
+            sendToWebsocket(exist);
             em.remove(exist);
             return 1;
+
         } catch (IllegalArgumentException e) {
         }
         return 0;
@@ -296,5 +321,13 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
                 .setParameter("fid", fid)
                 .setParameter("date", date)
                 .setParameter("patient", patient).getResultList();
+    }
+
+    /**
+     * Websocket に pvt を通知する.
+     * @param pvt PatientVisitModel
+     */
+    private void sendToWebsocket(PatientVisitModel pvt) {
+        WebSocket.getSessions().forEach(session -> session.getAsyncRemote().sendText(JsonConverter.toJson(pvt)));
     }
 }

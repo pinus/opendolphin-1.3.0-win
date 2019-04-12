@@ -65,7 +65,7 @@ public class LastVisit {
             lastVisit = Objects.isNull(pvtDate) ? test
                     : LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
             lastVisitInHistory = !lastVisit.equals(test) ? test
-                    : docList.size() == 1 ? null
+                    : docList.size() == 1 ? null // 今日の受診だけがあって保存されている状態
                     : LocalDate.parse(docList.get(1), DateTimeFormatter.ISO_DATE);
         }
         logger.debug("lastVisit = " + lastVisit + ", inHistory " + lastVisitInHistory);
@@ -83,9 +83,11 @@ public class LastVisit {
         logger.debug("monthBetween " + monthBetween);
 
         int offset = Project.getPreferences().getInt(Project.OFFSET_OUTCOME_DATE, -1);
-        LocalDate endDate = monthBetween <= 1
+        int n = 1; // month interval
+
+        LocalDate endDate = monthBetween <= n
                 ? lastVisit.plusDays(offset)
-                : startDate.plusMonths(1).withDayOfMonth(startDate.plusMonths(1).lengthOfMonth());
+                : startDate.plusMonths(n).withDayOfMonth(startDate.plusMonths(n).lengthOfMonth());
 
         return endDate.format(DateTimeFormatter.ISO_DATE);
     }
