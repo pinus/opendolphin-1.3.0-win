@@ -1330,7 +1330,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
         // 選択された診断を CLAIM 送信する
         RegisteredDiagnosisModel rd;
-        List<RegisteredDiagnosisModel> diagList = new ArrayList<>();
+        List<RegisteredDiagnosisModel> addedList = new ArrayList<>();
+        List<RegisteredDiagnosisModel> updatedList = new ArrayList<>();
+
         Date confirmed = new Date();
         int[] rows = diagTable.getSelectedRows();
         for (int r : rows) {
@@ -1351,9 +1353,19 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             if (!isValidOutcome(rd)) {
                 return;
             }
-
-            diagList.add(rd);
+            // added と updated に分類する
+            if (!DELETED_RECORD.equals(rd.getStatus())) {
+                if (rd.getEnded() == null) {
+                    addedList.add(rd);
+                } else {
+                    updatedList.add(rd);
+                }
+            }
         }
+
+        List<RegisteredDiagnosisModel> diagList = new ArrayList<>();
+        diagList.addAll(updatedList);
+        diagList.addAll(addedList);
 
         MainFrame parent = getContext().getFrame();
         String message;
