@@ -5,7 +5,6 @@ import open.dolphin.infomodel.DiagnosisCategoryModel;
 import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
 import org.apache.log4j.Logger;
-import org.apache.velocity.VelocityContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,10 +31,6 @@ public class ClientContext {
 
     public static ClassLoader getPluginClassLoader() {
         return stub.getPluginClassLoader();
-    }
-
-    public static VelocityContext getVelocityContext() {
-        return stub.getVelocityContext();
     }
 
     public static Logger getBootLogger() {

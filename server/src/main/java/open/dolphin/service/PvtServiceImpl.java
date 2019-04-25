@@ -131,7 +131,8 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
         // Websocket に通知
         if (pvt.getId() == 0) {
             // id が付与されていない場合取り直す. flush() は無効だった.
-            pvt = getPersistentPvt(pvt).get(0);
+            PatientVisitModel exist = getPersistentPvt(pvt).get(0);
+            pvt.setId(exist.getId());
             logger.info("generated pvt id = " + pvt.getId());
         }
         sendToWebsocket(pvt);

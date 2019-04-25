@@ -236,7 +236,7 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
      * ButtonPanel を入れる Container.
      * BorderLayout にしてある.
      *
-     * @return
+     * @return JPanel that contains ButtonPanel
      */
     public JPanel getAccessoryPanel() {
         return accessoryPanel;
@@ -543,6 +543,9 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
             super.paint(g);
             paintButtonPanel(g);
         }
+
+        @Override
+        public boolean isOptimizedDrawingEnabled() { return false; }
     }
 
     /**

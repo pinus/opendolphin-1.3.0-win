@@ -1,17 +1,14 @@
 package open.dolphin.client;
 
+import open.dolphin.event.ProxyAction;
+import open.dolphin.helper.HtmlHelper;
 import open.dolphin.helper.PreferencesUtils;
 import open.dolphin.helper.StringTool;
-import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.ModuleModel;
+import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.project.Project;
 import open.dolphin.ui.PNSBorderFactory;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.exception.MethodInvocationException;
-import org.apache.velocity.exception.ParseErrorException;
-import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -19,13 +16,10 @@ import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 /**
  * KartePane に Component　として挿入されるスタンプを保持するクラス.
@@ -51,9 +45,12 @@ public final class StampHolder extends AbstractComponentHolder {
     private String searchText = null;
     private String startTag = null;
     private String endTag = null;
+    // Logger
+    private Logger logger = Logger.getLogger(StampHolder.class);
 
     public StampHolder(final KartePane kartePane, final ModuleModel model) {
         super();
+        //logger.setLevel(Level.DEBUG);
 
         this.kartePane = kartePane;
         hints = new StampRenderingHints();
@@ -327,33 +324,24 @@ public final class StampHolder extends AbstractComponentHolder {
      */
     private void setMyText() {
 
-        try {
-            IInfoModel model = getStamp().getModel();
-            VelocityContext context = ClientContext.getVelocityContext();
-            context.put("model", model);
-            context.put("hints", getHints());
-            context.put("stampName", getStamp().getModuleInfo().getStampName());
-            String templateFile = getStamp().getModel().getClass().getName() + ".vm";
-            // このスタンプのテンプレートファイルを得る
-            if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)) {
-                if (Project.getPreferences().getBoolean("laboFold", true)) {
-                    templateFile = "labo.vm";
-                }
+            IInfoModel bundle = getStamp().getModel(); // BundleMed > BundleDolphin > ClaimBundle
+            String stampName = getStamp().getModuleInfo().getStampName();
+            logger.debug("bundle = " + bundle.getClass().getName() + ", stampName = " + stampName);
+
+            String text;
+
+            if (bundle instanceof BundleMed) {
+                text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
+
+            } else if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
+                && Project.getPreferences().getBoolean("laboFold", true)) {
+                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
+
+            } else {
+                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
             }
 
-            // Merge する
-            StringWriter sw = new StringWriter();
-            BufferedReader reader;
-            try (BufferedWriter bw = new BufferedWriter(sw)) {
-                InputStream instream = ClientContext.getTemplateAsStream(templateFile);
-                reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
-                Velocity.evaluate(context, bw, "stmpHolder", reader);
-                bw.flush();
-            }
-            reader.close();
 
-            // 全角数字とスペースを直す
-            String text = sw.toString();
             text = StringTool.toHankakuNumber(text);
             text = StringTool.toHankakuUpperLower(text);
             text = text.replaceAll("　", " ");
@@ -373,9 +361,6 @@ public final class StampHolder extends AbstractComponentHolder {
             // カルテペインへ展開された時広がるのを防ぐ
             this.setMaximumSize(this.getPreferredSize());
 
-        } catch (IOException | ParseErrorException | MethodInvocationException | ResourceNotFoundException ex) {
-            System.out.println("StampHolder.java: " + ex);
-        }
     }
 
     public void setAttr(String searchText, String startTag, String endTag) {
@@ -398,50 +383,41 @@ public final class StampHolder extends AbstractComponentHolder {
     private void addHiddenCommand() {
 
         InputMap im = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "copyAsText");
-        this.getActionMap().put("copyAsText", new AbstractAction() {
-            private static final long serialVersionUID = 1L;
+        im.put(KeyStroke.getKeyStroke("shift meta C"), "copyAsText");
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (getStamp().getModel().getClass().getName().equals("open.dolphin.infomodel.BundleMed")) {
-                    try {
-                        IInfoModel model = getStamp().getModel();
-                        VelocityContext context = ClientContext.getVelocityContext();
-                        context.put("model", model);
+        this.getActionMap().put("copyAsText", new ProxyAction(() -> {
 
-                        String templateFile = "open.dolphin.infomodel.BundleMed-text.vm";
-                        StringWriter sw = new StringWriter();
-                        BufferedReader reader;
-                        try (BufferedWriter bw = new BufferedWriter(sw)) {
-                            InputStream instream = ClientContext.getTemplateAsStream(templateFile);
-                            reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
-                            Velocity.evaluate(context, bw, "stmpHolder", reader);
-                            bw.flush();
+            if (getStamp().getModel() instanceof BundleMed) {
+                BundleMed bundle = (BundleMed) getStamp().getModel();
+
+                StringBuilder sb = new StringBuilder();
+
+                for (ClaimItem item : bundle.getClaimItem()) {
+                    if (!item.getCode().matches("099[0-9]{6}")) {
+                        sb.append(item.getName());
+                        sb.append(" ");
+
+                        if (!item.getCode().matches("0085[0-9]{5}")
+                            && !item.getCode().matches("001000[0-9]{3}")
+                            && !item.getCode().matches("810000001")) {
+                            sb.append(item.getNumber());
+                            sb.append(item.getUnit());
                         }
-                        reader.close();
-
-                        // 全角数字とスペースを直す
-                        String text = sw.toString();
-                        text = StringTool.toHankakuNumber(text);
-                        text = StringTool.toHankakuUpperLower(text);
-                        text = text.replaceAll("　", " ");
-                        text = text.replace("\n", " ");
-
-                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        clipboard.setContents(new StringSelection(text), null);
-
-                    } catch (ParseErrorException | MethodInvocationException | ResourceNotFoundException ex) {
-                        System.out.println("StampHolder.java: " + ex);
-                    } catch (UnsupportedEncodingException ex) {
-                        System.out.println("StampHolder.java: " + ex);
-                    } catch (IOException ex) {
-                        System.out.println("StampHolder.java: " + ex);
                     }
                 }
-            }
-        });
+                sb.append(bundle.getAdminDisplayString());
 
+                // 全角数字とスペースを直す
+                String text = sb.toString();
+                text = StringTool.toHankakuNumber(text);
+                text = StringTool.toHankakuUpperLower(text);
+                text = text.replaceAll("　", " ");
+                text = text.replace("\n", " ");
+
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(new StringSelection(text.toString()), null);
+            }
+        }));
     }
 
     /**

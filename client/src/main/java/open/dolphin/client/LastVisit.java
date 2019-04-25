@@ -7,11 +7,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,6 +30,8 @@ public class LastVisit {
     private LocalDate lastVisit = null;
     // DocumentHistory の最終受診日
     private LocalDate lastVisitInHistory = null;
+    // lastVisit の時間情報
+    private LocalTime lastVisitTime = null;
     // ロガー
     private Logger logger = Logger.getLogger(LastVisit.class);
 
@@ -54,9 +55,14 @@ public class LastVisit {
                 .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
         logger.debug("doc list = " + docList);
 
+        if (Objects.nonNull(pvtDate)) {
+            // 時間情報を保存
+            lastVisitTime = LocalTime.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
+        }
+
         if (docList.isEmpty()) {
-            // 新患でまだ保存していない状態では pvtDate は null ではありえない
-            lastVisit = LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
+            // ここに入ってくるのは (1)新患受付の場合, (2)久しぶりの受診で DocumentHistory で最終受診をスキャンしている途中
+            lastVisit = Objects.isNull(pvtDate) ? null : LocalDate.parse(pvtDate, DateTimeFormatter.ISO_DATE_TIME);
             lastVisitInHistory = null;
 
         } else {
@@ -95,11 +101,22 @@ public class LastVisit {
     /**
      * 最終受診日を返す.
      *
-     * @return last visit in LocalDateTime
+     * @return last visit in LocalDate
      */
     @Nullable
     public LocalDate getLastVisit() {
         return lastVisit;
+    }
+
+
+    /**
+     * 最終受診日の受診時間を返す.
+     *
+     * @return last visit time in LocalTime
+     */
+    @Nullable
+    public LocalTime getLastVisitTime() {
+        return lastVisitTime;
     }
 
     /**
@@ -110,42 +127,5 @@ public class LastVisit {
     @Nullable
     public LocalDate getLastVisitInHistory() {
         return lastVisitInHistory;
-    }
-
-    /**
-     * 最終受診日を，int 配列 int[0]=year, int[1]=month, int[2]=day で返す (month は 0-11)
-     *
-     * @return { year, month, day }
-     */
-    @Nullable
-    public int[] getLastVisitYmd() {
-        return Objects.isNull(lastVisit) ? null :
-                new int[]{lastVisit.getYear(),
-                        lastVisit.getMonthValue() - 1,
-                        lastVisit.getDayOfMonth()};
-    }
-
-    /**
-     * 今日を除いた最終受診日（int 配列形式 int[0]=year, int[1]=month(0～11), int[2]=day）
-     *
-     * @return { year, month, day }
-     */
-    @Nullable
-    public int[] getLastVisitInHistoryYmd() {
-        return Objects.isNull(lastVisitInHistory) ? null :
-                new int[]{lastVisitInHistory.getYear(),
-                        lastVisitInHistory.getMonthValue() - 1,
-                        lastVisitInHistory.getDayOfMonth()};
-    }
-
-    /**
-     * 最終受診日を GlegorianCalendar で返す
-     *
-     * @return GregorianCalendar
-     */
-    @Nullable
-    public GregorianCalendar getLastVisitGc() {
-        return Objects.isNull(lastVisit) ? null :
-                GregorianCalendar.from(lastVisit.atStartOfDay(ZoneId.systemDefault()));
     }
 }

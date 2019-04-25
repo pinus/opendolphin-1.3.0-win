@@ -310,12 +310,20 @@ public class PatientSearchImpl extends AbstractMainComponent {
                 }
             }
         });
+
+        // ENTER でカルテオープン
+        table.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "openKarte");
+        table.getActionMap().put("openKarte", new ProxyAction(this::openKarte));
+
+        // command-F で search field にフォーカスする裏コマンド
+        table.getInputMap().put(KeyStroke.getKeyStroke("meta F"), "showWaitingList");
+        table.getActionMap().put("showWaitingList", new ProxyAction(((Dolphin)getContext())::showPatientSearch));
     }
 
     /**
      * 検索フィールドの背景ラベルを変更する.
      *
-     * @param isNarrowing
+     * @param isNarrowing 絞り込み検索モードかどうか
      */
     private void setTextFieldBackground(boolean isNarrowing) {
         if (isNarrowing) {
@@ -338,7 +346,7 @@ public class PatientSearchImpl extends AbstractMainComponent {
     /**
      * 現在選択されている PatientModel[] を返す
      *
-     * @return
+     * @return array of PatientModel
      */
     public PatientModel[] getSelectedPatinet() {
         return selectedPatient;
@@ -347,7 +355,7 @@ public class PatientSearchImpl extends AbstractMainComponent {
     /**
      * SelectionListener から呼ばれて selectedPatient をセットする.
      *
-     * @param model
+     * @param model array of PatientModel
      */
     public void setSelectedPatinet(PatientModel[] model) {
         selectedPatient = model;

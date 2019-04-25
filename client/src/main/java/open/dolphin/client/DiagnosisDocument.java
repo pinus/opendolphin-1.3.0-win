@@ -800,6 +800,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 int row = (ascend) ? diagTable.getRowCount() - 1 : 0;
                 row = diagTable.convertRowIndexToView(row);
                 diagTable.getSelectionModel().setSelectionInterval(row, row);
+
+                // DiagnosisInspector にフォーカス
+                Focuser.requestFocus(diagnosisInspector.getList());
             }
         };
 
@@ -1429,7 +1432,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         }
 
         @Override
-        protected List<Long> doInBackground() throws Exception {
+        protected List<Long> doInBackground() {
 
             logger.debug("doInBackground");
 

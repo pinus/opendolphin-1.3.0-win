@@ -18,6 +18,7 @@ public abstract class AbstractChartDocument implements ChartDocument {
 
     public static final String ORIGINAL_MARK = "📌";
     public static final String MODIFY_MARK = "🖋️";
+    public static final String PUB_MARK = "🈶️";
 
     private static final String[] CHART_MENUS = {
             GUIConst.ACTION_OPEN_KARTE, GUIConst.ACTION_SAVE, GUIConst.ACTION_DELETE, GUIConst.ACTION_PRINT, GUIConst.ACTION_MODIFY_KARTE,

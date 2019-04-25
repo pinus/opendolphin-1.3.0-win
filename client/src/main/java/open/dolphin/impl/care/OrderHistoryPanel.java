@@ -1,25 +1,19 @@
 package open.dolphin.impl.care;
 
 import open.dolphin.calendar.CalendarEvent;
-import open.dolphin.client.ClientContext;
-import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.ModuleModel;
-import open.dolphin.infomodel.SimpleDate;
+import open.dolphin.client.StampRenderingHints;
+import open.dolphin.helper.HtmlHelper;
+import open.dolphin.helper.StringTool;
+import open.dolphin.infomodel.*;
+import open.dolphin.project.Project;
 import open.dolphin.ui.IndentTableCellRenderer;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSScrollPane;
 import open.dolphin.util.ModelUtils;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.exception.MethodInvocationException;
-import org.apache.velocity.exception.ParseErrorException;
-import org.apache.velocity.exception.ResourceNotFoundException;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,32 +134,29 @@ public final class OrderHistoryPanel extends JPanel {
             return;
         }
 
-        try {
-            IInfoModel model = stamp.getModel();
+        IInfoModel bundle = stamp.getModel(); // BundleMed > BundleDolphin > ClaimBundle
+        String stampName = stamp.getModuleInfo().getStampName();
+        StampRenderingHints hints = new StampRenderingHints();
 
-            VelocityContext context = ClientContext.getVelocityContext();
-            context.put("model", model);
-            context.put("stampName", stamp.getModuleInfo().getStampName());
+        String text;
 
-            // このスタンプのテンプレートファイルを得る
-            String templateFile = stamp.getModel().getClass().getName() + ".vm";
-            // debug(templateFile);
+        if (bundle instanceof BundleMed) {
+            text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
 
-            // Merge する
-            StringWriter sw = new StringWriter();
-            BufferedReader reader;
-            try (BufferedWriter bw = new BufferedWriter(sw)) {
-                InputStream instream = ClientContext.getTemplateAsStream(templateFile);
-                reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
-                Velocity.evaluate(context, bw, "stmpHolder", reader);
-                bw.flush();
-            }
-            reader.close();
-            contents.setText(sw.toString());
+        } else if (stamp.getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
+            && Project.getPreferences().getBoolean("laboFold", true)) {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
 
-        } catch (IOException | ParseErrorException | MethodInvocationException | ResourceNotFoundException e) {
-            System.out.println("OrderHistoryPanel: Execption while setting the stamp text: " + e.toString());
+        } else {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
         }
+
+        text = StringTool.toHankakuNumber(text);
+        text = StringTool.toHankakuUpperLower(text);
+        text = text.replaceAll("　", " ");
+        text = text.replaceAll(HtmlHelper.WIDTH, "");
+
+        contents.setText(text);
     }
 
     /**

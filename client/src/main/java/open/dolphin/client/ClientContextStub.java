@@ -6,9 +6,6 @@ import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.app.VelocityEngine;
 
 import javax.swing.*;
 import java.awt.*;
@@ -69,9 +66,6 @@ public final class ClientContextStub {
         // Plugin Class Loader を生成する
         pluginClassLoader = Thread.currentThread().getContextClassLoader();
 
-        // Velocity を初期化する
-        initVelocity();
-
         // デフォルトの UI フォントを変更する
         setUIFonts();
 
@@ -113,26 +107,10 @@ public final class ClientContextStub {
         bootLogger.info("ssl.trsutStore = " + getString("application.security.ssl.trustStore"));
     }
 
-    private void initVelocity() {
-        // Velocity を初期化する
-        //StringBuilder sb = new StringBuilder();
-        //sb.append(getLocation("log"));
-        //sb.append(File.separator);
-        //sb.append(getString("application.velocity.log.file"));
-        //Velocity.setProperty("runtime.log", sb.toString());
-        Velocity.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogSystem");
-        Velocity.init();
-        bootLogger.info("Velocity を初期化しました");
-    }
-
     public String getDocumentDirectory() { return documentFolder; }
 
     public ClassLoader getPluginClassLoader() {
         return pluginClassLoader;
-    }
-
-    public VelocityContext getVelocityContext() {
-        return new VelocityContext();
     }
 
     public Logger getBootLogger() {

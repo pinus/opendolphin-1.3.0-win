@@ -85,7 +85,7 @@ public class PvtClient {
                 Data data = res.getData();
                 Body body = data.getBody();
                 String event = data.getEvent();
-                logger.info("event = " + event + ", mode = " + body.getPatient_Mode());
+                logger.info(String.format("[%s] event[%s] mode[%s]", body.getPatient_ID(), event, body.getPatient_Mode()));
 
                 // 受付通知: mode = add / modify / delete
                 if (event.equals(SubscriptionEvent.ACCEPT.eventName())) {
@@ -122,16 +122,15 @@ public class PvtClient {
                         List<PatientVisitModel> pvts = getPvtListToday().stream()
                                 .filter(pvt -> pvt.getPatientId().equals(ptId)).collect(Collectors.toList());
 
-                        if (!pvts.isEmpty()) {
+                        pvts.stream().forEach(pvt -> {
                             pvtBuilder.build(body);
                             PatientVisitModel model = pvtBuilder.getProduct();
-                            pvts.stream().forEach(pvt -> {
-                                model.setPvtDate(pvt.getPvtDate());
-                                pvtService.addPvt(model);
-                            });
-                            logger.info("modify patient info [" + ptId + "]");
-
-                        }
+                            model.setPvtDate(pvt.getPvtDate()); // 受付時間を戻す
+                            model.setState(pvt.getState()); // 受付状態を戻す
+                            model.setInsuranceUid(pvt.getInsuranceUid()); // 主保険を戻す
+                            pvtService.addPvt(model);
+                        });
+                        logger.info("modify patient info [" + ptId + "]");
                     }
                 }
                 break;

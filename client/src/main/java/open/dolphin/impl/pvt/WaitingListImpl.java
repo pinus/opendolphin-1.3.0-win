@@ -280,6 +280,14 @@ public class WaitingListImpl extends AbstractMainComponent {
             }
         });
 
+        // ENTER でカルテオープン
+        pvtTable.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "openKarte");
+        pvtTable.getActionMap().put("openKarte", new ProxyAction(this::openKarte));
+
+        // command-F で search field にフォーカスする裏コマンド
+        pvtTable.getInputMap().put(KeyStroke.getKeyStroke("meta F"), "showWaitingList");
+        pvtTable.getActionMap().put("showWaitingList", new ProxyAction(((Dolphin)getContext())::showPatientSearch));
+
         // pvt 受信待ち endpoint
         PvtEndpoint endpoint = new PvtEndpoint();
         DolphinClientContext.getContext().setEndpoint(endpoint);

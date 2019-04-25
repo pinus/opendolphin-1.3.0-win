@@ -66,7 +66,7 @@ public class PvtBuilder {
         acceptlstreq.setDepartment_Code(deptCode);
         acceptlstreq.setPhysician_Code(drCode);
 
-        Acceptlstres acceptlstres = orcaApi.post(acceptlstreq, "01"); // 01=受付中会計待ち
+        Acceptlstres acceptlstres = orcaApi.post(acceptlstreq, "03"); //  class=03(全受付対象)
         AcceptlstInformation accInfo = Arrays.stream(acceptlstres.getAcceptlst_Information())
                 .filter(aInfo -> aInfo.getPatient_Information().getPatient_ID().equals(ptId))
                 .findFirst().get(); // 受付が来ているので null にはならない

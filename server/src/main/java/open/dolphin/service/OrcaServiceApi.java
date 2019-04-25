@@ -502,6 +502,9 @@ public class OrcaServiceApi {
         result.setApiResult(res.getApi_Result());
         result.setApiResultMessage(res.getApi_Result_Message());
 
+        logger.info(String.format("sendDocument [%s] class[%s] karteId[%s] apiResult[%s]",
+                ptId, classNum, karteUid, result.getApiResult()));
+
         MedicalMessageInformation messageInfo = res.getMedical_Message_Information();
         if (Objects.nonNull(messageInfo)) {
             result.setErrorCode(messageInfo.getMedical_Result());
@@ -516,13 +519,12 @@ public class OrcaServiceApi {
                     warning.setWarningMessage(w.getMedical_Warning_Message());
                     warning.setWarningCode(w.getMedical_Warning_Code());
                     warnings.add(warning);
+                    logger.info(String.format("sendDocument warning[%s]", warning.getWarning()));
                 });
                 result.setWarningInfo(warnings.toArray(new ApiWarning[0]));
             }
         }
 
-        logger.info(String.format("sendDocument [%s] class[%s] karteId[%s] apiResult[%s]",
-                ptId, classNum, karteUid, result.getApiResult()));
         return result;
     }
 
@@ -548,7 +550,8 @@ public class OrcaServiceApi {
 
         List<DiseaseInformation> diseaseInfos = new ArrayList<>();
 
-        diagnoses.stream().forEach(rd -> {
+        // updated -> added の順番に並んでいるので, その順番を変更してはならない
+        diagnoses.stream().forEachOrdered(rd -> {
             List<DiseaseSingle> singles = new ArrayList<>();
             Arrays.stream(ModelUtils.toOrcaDiseaseSingle(rd.getDiagnosisCode())).forEach(code -> {
                 DiseaseSingle single = new DiseaseSingle();
@@ -605,7 +608,7 @@ public class OrcaServiceApi {
             apiResult = result.getApiResult();
         }
 
-        logger.info(String.format("sendDiagnosis [%s] User[%s] apiResult [%s]", ptId , orcaUserCode, apiResult));
+        logger.info(String.format("sendDiagnosis [%s] User[%s] apiResult[%s]", ptId , orcaUserCode, apiResult));
         return result;
     }
 
@@ -639,6 +642,7 @@ public class OrcaServiceApi {
                     warning.setWarningMessage(w.getDisease_Warning_Message());
                     warning.setWarningCode(w.getDisease_Warning_Code());
                     warnings.add(warning);
+                    logger.info(String.format("postDiagnosis warning[%s]", warning.getWarning()));
                 });
                 result.setWarningInfo(warnings.toArray(new ApiWarning[0]));
             }

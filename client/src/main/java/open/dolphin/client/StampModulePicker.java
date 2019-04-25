@@ -7,9 +7,13 @@ import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.stampbox.StampTree;
 import open.dolphin.stampbox.StampTreeNode;
+import org.apache.log4j.Logger;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 /**
  * StampTree から ModuleModel を取り出す.
@@ -19,12 +23,15 @@ import java.util.GregorianCalendar;
 public class StampModulePicker {
 
     private final ChartMediator mediator;
-    private final GregorianCalendar today;
-    private final LastVisit lv;
+    private final LocalDate today;
+    private final LastVisit lastVisit;
+    private Logger logger;
+
     public StampModulePicker(ChartImpl context) {
         mediator = context.getChartMediator();
-        today = new GregorianCalendar();
-        lv = context.getLastVisit();
+        today = LocalDate.now();
+        lastVisit = context.getLastVisit();
+        logger = Logger.getLogger(StampModulePicker.class);
     }
 
     /**
@@ -130,55 +137,25 @@ public class StampModulePicker {
     }
 
     public boolean isShoshin() {
-        int[] lastVisit = lv.getLastVisitInHistoryYmd();
-
-        // 受診歴が無ければ初診で返す
-        if (lastVisit == null) {
-            return true;
-        }
-
         // 受診歴がある場合は，３ヶ月たったかどうか判定
-        int dif_year = today.get(Calendar.YEAR) - lastVisit[0];
-        int dif_month = today.get(Calendar.MONTH) - lastVisit[1];
-        int dif_day = today.get(Calendar.DATE) - lastVisit[2];
-
-        // ２年以上離れていたら初診
-        if (dif_year >= 2) {
-            return true;
-        }
-        // １年差の場合は月差を調整
-        if (dif_year == 1) {
-            dif_month += 12;
-        }
-        // 4ヶ月以上離れていたら初診
-        if (dif_month >= 4) {
-            return true;
-        }
-        // 3ヶ月離れている場合は，日付を比較
-        else if (dif_month == 3) {
-            return dif_day >= 0;
-            // それ以外は再診
-        } else {
-            return false;
-        }
+        LocalDate lastVisitInHistory = lastVisit.getLastVisitInHistory();
+        return Objects.isNull(lastVisitInHistory) ||
+                ChronoUnit.MONTHS.between(lastVisitInHistory, today) >= 3;
     }
 
     private boolean isRyotan() {
-        int month = today.get(Calendar.MONTH);
-        // 1~4月，11~12月は療養担当手当あり month = 0~11
-        return month <= 3 || month >= 10;
+        int month = today.getMonthValue(); // 1-12
+        // 1~4月，11~12月は療養担当手当あり
+        return month <= 4 || month >= 11;
     }
 
     private boolean isYakan() {
         // 土曜日で 12時以降なら夜間
-        GregorianCalendar gc = lv.getLastVisitGc();
-        // 今日受診していないのに新規カルテを作った場合は false に決め打ち（実際はあり得ない操作）
-        if (gc == null) {
-            return false;
-        }
-
-        return (gc.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) &&
-                (gc.get(Calendar.AM_PM) == Calendar.PM);
+        LocalDate date = lastVisit.getLastVisit();
+        LocalTime time = lastVisit.getLastVisitTime();
+        return Objects.nonNull(date) && Objects.nonNull(time)
+                && date.getDayOfWeek().equals(DayOfWeek.SATURDAY)
+                && time.isAfter(LocalTime.NOON);
     }
 
     private enum StampItem {
@@ -191,7 +168,7 @@ public class StampModulePicker {
         ;
         private final String title;
 
-        private StampItem(String t) {
+        StampItem(String t) {
             title = t;
         }
 

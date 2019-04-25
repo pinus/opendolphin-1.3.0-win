@@ -126,7 +126,9 @@ public enum Gengo {
         int y = Integer.valueOf(gengo[0].substring(1));
         int m = Integer.valueOf(gengo[1]);
         int d = Integer.valueOf(gengo[2]);
-        return String.format("%s%d年%d月%d日", g, y, m, d);
+        return y == 1
+                ? String.format("%s元年%d月%d日", g, m, d)
+                : String.format("%s%d年%d月%d日", g, y, m, d);
     }
 
     /**
