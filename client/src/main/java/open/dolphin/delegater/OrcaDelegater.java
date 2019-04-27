@@ -176,6 +176,7 @@ public class OrcaDelegater extends BusinessDelegater<OrcaService> {
      */
     public Result sendSubjectives(SubjectivesSpec spec) {
         ApiResult result = getService().sendSubjectives(spec);
+        logger.info(result.getApiResultMessage());
 
         // ここは busy (90) にならないみたい
         String apiResult = result.getApiResult();

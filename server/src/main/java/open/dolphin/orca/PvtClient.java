@@ -3,6 +3,7 @@ package open.dolphin.orca;
 import open.dolphin.dto.PatientVisitSpec;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.InfoModel;
+import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.orca.pushapi.PushApi;
 import open.dolphin.orca.pushapi.SubscriptionEvent;
@@ -124,11 +125,9 @@ public class PvtClient {
 
                         pvts.stream().forEach(pvt -> {
                             pvtBuilder.build(body);
-                            PatientVisitModel model = pvtBuilder.getProduct();
-                            model.setPvtDate(pvt.getPvtDate()); // 受付時間を戻す
-                            model.setState(pvt.getState()); // 受付状態を戻す
-                            model.setInsuranceUid(pvt.getInsuranceUid()); // 主保険を戻す
-                            pvtService.addPvt(model);
+                            PatientModel patientModel = pvtBuilder.getProduct().getPatient();
+                            pvt.setPatient(patientModel);
+                            pvtService.addPvt(pvt);
                         });
                         logger.info("modify patient info [" + ptId + "]");
                     }
