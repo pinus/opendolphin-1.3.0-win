@@ -1,19 +1,29 @@
 package open.dolphin.laf;
 
-import open.dolphin.ui.PNSTreeCellEditor;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTree;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
+import open.dolphin.ui.PNSTreeCellEditor;
 
 /**
  * ストライプな TreeUI.
- *
  * @author pns
  */
 public class MyTreeUI extends BasicTreeUI {
@@ -32,7 +42,7 @@ public class MyTreeUI extends BasicTreeUI {
         UIManager.put("Tree.drawsFocusBorderAroundIcon", Boolean.FALSE);
         UIManager.put("Tree.drawDashedFocusIndicator", Boolean.FALSE);
         UIManager.put("Tree.repaintWholeRow", Boolean.TRUE);
-        UIManager.put("Tree.font", new Font(Font.SANS_SERIF, Font.PLAIN, UIHelper.isWin() ? 12 : 13));
+        UIManager.put("Tree.font", new Font(Font.SANS_SERIF, Font.PLAIN, UIHelper.isWin()? 12:13));
 
         super.installDefaults();
     }
@@ -51,7 +61,6 @@ public class MyTreeUI extends BasicTreeUI {
 
     /**
      * Background を塗る.
-     *
      * @param g
      * @param c
      */
@@ -67,12 +76,12 @@ public class MyTreeUI extends BasicTreeUI {
             Rectangle clip = g.getClipBounds();
             int[] top = getTopY(clip.y);
             // １行前から開始
-            int topY = top[0] - tree.getRowHeight();
-            int currentRow = top[1] - 1;
+            int topY = top[0]-tree.getRowHeight();
+            int currentRow = top[1]-1;
 
             while (topY < clip.y + clip.height) {
                 int bottomY = topY + tree.getRowHeight();
-                int row = tree.getRowForLocation(clip.x + clip.width - 1, topY);
+                int row = tree.getRowForLocation(clip.x + clip.width-1, topY);
 
                 boolean isSelected = tree.isRowSelected(row);
                 boolean isFocused = tree.isFocusOwner();
@@ -91,7 +100,6 @@ public class MyTreeUI extends BasicTreeUI {
 
     /**
      * ClipBound.y を越えた初めての Cell の Y 座標とその行数.
-     *
      * @param clipY
      * @return
      */
@@ -106,16 +114,15 @@ public class MyTreeUI extends BasicTreeUI {
                 ｙ += rowHeight;
                 row++;
             }
-            return new int[]{ｙ, row};
+            return new int[]{ ｙ, row };
 
         } else {
-            return new int[]{0, 0};
+            return new int[]{ 0, 0 };
         }
     }
 
     /**
      * Text の色を renderer に設定する.
-     *
      * @param g
      * @param clip
      * @param insets
@@ -147,14 +154,13 @@ public class MyTreeUI extends BasicTreeUI {
     /**
      * PathBounds を行全体に広げる.
      * 行のどこを click しても選択できるようになる.
-     *
      * @param tree
      * @param path
      * @return
      */
     @Override
     public Rectangle getPathBounds(JTree tree, TreePath path) {
-        if (tree != null && treeState != null) {
+        if(tree != null && treeState != null) {
             return getPathBounds(path, tree.getInsets(), new Rectangle());
         }
         return null;
@@ -162,7 +168,6 @@ public class MyTreeUI extends BasicTreeUI {
 
     /**
      * BasicTreeUI#getPathBounds もこのパターンで public と private が組み合わされている.
-     *
      * @param path
      * @param insets
      * @param bounds
@@ -171,7 +176,7 @@ public class MyTreeUI extends BasicTreeUI {
     private Rectangle getPathBounds(TreePath path, Insets insets, Rectangle bounds) {
         bounds = treeState.getBounds(path, bounds);
 
-        if (bounds != null) {
+        if(bounds != null) {
             bounds.width = tree.getWidth() - bounds.x - insets.left - insets.right;
             bounds.y += insets.top;
         }
@@ -182,17 +187,15 @@ public class MyTreeUI extends BasicTreeUI {
      * Drag 中は CellEdit しない.
      * 1クリック後にドラッグを開始すると，CellEditor のタイマーは止まらないので，
      * 1200 msec 後に CellEditor がスタートしてしまうのの対策.
-     *
      * @param tree
      * @param path
      */
     @Override
     public void startEditingAtPath(JTree tree, TreePath path) {
-        if (!helper.isDragging()) {
-            super.startEditingAtPath(tree, path);
-        }
+        if (!helper.isDragging()) { super.startEditingAtPath(tree, path); }
     }
-    
+
+
     public static void main(String[] arg) {
         UIManager.put("TreeUI", MyTreeUI.class.getName());
         UIManager.put("TextFieldUI", MyTextFieldUI.class.getName());
@@ -202,15 +205,14 @@ public class MyTreeUI extends BasicTreeUI {
 
         JTree tree = new JTree();
         ToolTipManager.sharedInstance().registerComponent(tree);
-        tree.setPreferredSize(new Dimension(300, 400));
+        tree.setPreferredSize(new Dimension(300,400));
         tree.setRootVisible(false);
 
         DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer() {
             private static final long serialVersionUID = 1L;
-
             @Override
             public Component getTreeCellRendererComponent(JTree tree, Object value,
-                                                          boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                    boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
                 JLabel l = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
                 l.setToolTipText(l.getText());
                 return l;

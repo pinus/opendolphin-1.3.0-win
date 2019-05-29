@@ -14,7 +14,7 @@ import open.dolphin.setting.ProjectSettingDialog;
 import open.dolphin.stampbox.StampBoxPlugin;
 import open.dolphin.ui.MainFrame;
 import open.dolphin.ui.PNSBadgeTabbedPane;
-import open.dolphin.ui.SettingForMac;
+import open.dolphin.ui.SettingForWin;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -127,7 +127,7 @@ public class Dolphin implements MainWindow {
      */
     private void initialize() {
 
-        SettingForMac.set(this);
+        SettingForWin.set(this);
 
         // default locale を設定する
         Locale.setDefault(new Locale("ja", "JP"));

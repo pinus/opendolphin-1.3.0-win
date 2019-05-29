@@ -39,20 +39,20 @@ public class PNSToggleButton extends JToggleButton implements IPNSButton {
             parent = SwingUtilities.windowForComponent(this);
 
             // AppForegroundListener
-            com.apple.eawt.Application app = com.apple.eawt.Application.getApplication();
-            app.addAppEventListener(new com.apple.eawt.AppForegroundListener() {
-                @Override
-                public void appRaisedToForeground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
-                    appForeground = true;
-                    repaint();
-                }
-
-                @Override
-                public void appMovedToBackground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
-                    appForeground = false;
-                    repaint();
-                }
-            });
+//            com.apple.eawt.Application app = com.apple.eawt.Application.getApplication();
+//            app.addAppEventListener(new com.apple.eawt.AppForegroundListener() {
+//                @Override
+//                public void appRaisedToForeground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = true;
+//                    repaint();
+//                }
+//
+//                @Override
+//                public void appMovedToBackground(com.apple.eawt.AppEvent.AppForegroundEvent afe) {
+//                    appForeground = false;
+//                    repaint();
+//                }
+//            });
 
         }
     }
