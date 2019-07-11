@@ -2,7 +2,6 @@ package open.dolphin.ui;
 
 import com.alderstone.multitouch.mac.touchpad.Finger;
 import com.alderstone.multitouch.mac.touchpad.FingerState;
-import com.alderstone.multitouch.mac.touchpad.TouchpadObservable;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -23,7 +22,7 @@ public class TouchpadTest implements Observer {
     // Observer（自分）のインスタンス
     private static TouchpadTest me = new TouchpadTest();
     // TouchpadObservable
-    private static TouchpadObservable tpo = TouchpadObservable.getInstance();
+    //private static TouchpadObservable tpo = TouchpadObservable.getInstance();
 
     // Trackpad に触っているかどうか
     private static boolean pressed;
@@ -41,16 +40,16 @@ public class TouchpadTest implements Observer {
     /**
      * Observe 開始.
      */
-    public static void startListening() {
-        tpo.addObserver(me);
-    }
+//    public static void startListening() {
+//        tpo.addObserver(me);
+//    }
 
     /**
      * Observe を止める.
      */
-    public static void stopListening() {
-        tpo.deleteObserver(me);
-    }
+//    public static void stopListening() {
+//        tpo.deleteObserver(me);
+//    }
 
     /**
      * マウスの背中に触っているかどうかを返す.
@@ -119,7 +118,7 @@ public class TouchpadTest implements Observer {
     }
 
     public static void main(String[] argv) {
-        TouchpadTest.startListening();
+        //TouchpadTest.startListening();
         JOptionPane.showMessageDialog(null, "showing raw data");
     }
 }
