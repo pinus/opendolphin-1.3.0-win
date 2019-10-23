@@ -1,6 +1,7 @@
 package open.dolphin.project;
 
 import open.dolphin.client.ClientContext;
+import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.inspector.InspectorCategory;
 
@@ -32,7 +33,7 @@ public class ProjectStub implements java.io.Serializable {
     private final String DEFAULT_PROJECT_NAME = "ASPOpenDolphin";
     // User ID
     private final String DEFAULT_USER_ID = null;
-    private final String DEFAULT_FACILITY_ID = null;
+    private final String DEFAULT_FACILITY_ID = IInfoModel.DEFAULT_FACILITY_OID;
     // Server
     private final String DEFAULT_HOST_ADDRESS = "localhost";
     //private final int RMI_PORT = 1099;
@@ -64,7 +65,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * Preferencesを返す.
      *
-     * @return
+     * @return preferences
      */
     public Preferences getPreferences() {
         return prefs;
@@ -138,7 +139,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * プロジェクト名を返す.
      *
-     * @param projectName
+     * @param projectName project name
      */
     public void setName(String projectName) {
         prefs.put(Project.PROJECT_NAME, projectName);
@@ -201,7 +202,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * 保存したパスワードをデコードして返す
      *
-     * @return
+     * @return decoded password
      */
     public String getUserPassword() {
         return decryptPassword(getUserId(), prefs.get(Project.USER_PASSWORD, ""));
@@ -210,7 +211,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * ログイン時のパスワードを暗号化保存
      *
-     * @param val
+     * @param val password to save
      */
     public void setUserPassword(String val) {
         prefs.put(Project.USER_PASSWORD, encryptPassword(getUserId(), val));
@@ -219,7 +220,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * ログイン時のパスワードを保存するかどうか
      *
-     * @return
+     * @return save password or not
      */
     public boolean isSavePassword() {
         return prefs.getBoolean(Project.SAVE_PASSWORD, false);
@@ -228,7 +229,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * ログイン時のパスワードを保存するかどうかを設定
      *
-     * @param b
+     * @param b save password or not
      */
     public void setSavePassword(boolean b) {
         prefs.putBoolean(Project.SAVE_PASSWORD, b);
@@ -264,7 +265,7 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * JMARICode を設定する.
      *
-     * @param jamriCode
+     * @param jamriCode JMARI code
      */
     public void setJMARICode(String jamriCode) {
         prefs.put("jmariCode", jamriCode);
@@ -276,7 +277,8 @@ public class ProjectStub implements java.io.Serializable {
     public Project.UserType getUserType() {
         // Preference 情報がない場合は　UNKNOWN を返す
         // これは Project.isValid() で必ずテストされる
-        String userType = prefs.get(Project.USER_TYPE, Project.UserType.UNKNOWN.toString());
+        // String userType = prefs.get(Project.USER_TYPE, Project.UserType.UNKNOWN.toString());
+        String userType = prefs.get(Project.USER_TYPE, Project.UserType.FACILITY_USER.toString());
         return Project.UserType.valueOf(userType);
     }
 
@@ -679,9 +681,9 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * パスワードを暗号化した文字列を返す.
      *
-     * @param key
-     * @param pass
-     * @return
+     * @param key key
+     * @param pass password
+     * @return encrypted password
      */
     public String encryptPassword(String key, String pass) {
         try {
@@ -711,9 +713,9 @@ public class ProjectStub implements java.io.Serializable {
     /**
      * 暗号化したパスワードをデコードして返す.
      *
-     * @param key
-     * @param pass
-     * @return
+     * @param key key
+     * @param pass password
+     * @return decorded password
      */
     public String decryptPassword(String key, String pass) {
         if (key == null || key.equals("")) {

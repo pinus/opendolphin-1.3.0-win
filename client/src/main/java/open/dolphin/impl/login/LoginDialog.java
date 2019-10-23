@@ -68,14 +68,6 @@ public class LoginDialog {
      * ログイン画面を開始する.
      */
     public void start() {
-
-        // ダイアログモデルを生成し値を初期化する
-        principal = new DolphinPrincipal();
-        if (Project.isValid()) {
-            principal.setFacilityId(Project.getFacilityId());
-            principal.setUserId(Project.getUserId());
-        }
-
         // GUI を構築しモデルを表示する
         initComponents();
         bindModelToView();
@@ -309,16 +301,23 @@ public class LoginDialog {
         // host
         view.getHostField().setText(Project.getProjectStub().getHostAddress());
 
-        // user id, password
-        if (principal.getUserId() != null && (!principal.getUserId().equals(""))) {
-            view.getUserIdField().setText(principal.getUserId());
-            view.getSavePasswordCbx().setSelected(Project.getProjectStub().isSavePassword());
+        // user id, facility id, password
+        String uid = Project.getUserId();
+        String fid = Project.getFacilityId();
+        String password = Project.getUserPassword();
+        boolean savePassword = Project.getProjectStub().isSavePassword();
 
-            if (view.getSavePasswordCbx().isSelected()) {
-                view.getPasswordField().setText(Project.getUserPassword());
-                view.getPasswordField().selectAll();
-            }
+        view.getUserIdField().setText(uid);
+        view.getSavePasswordCbx().setSelected(savePassword);
+        if (view.getSavePasswordCbx().isSelected()) {
+            view.getPasswordField().setText(password);
+            view.getPasswordField().selectAll();
         }
+
+        // save data in DolphinPrincipal
+        principal = new DolphinPrincipal();
+        principal.setUserId(uid);
+        principal.setFacilityId(fid);
     }
 
     /**
