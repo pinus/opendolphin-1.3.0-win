@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- versions -->
-        <version.com.fasterxml.jackson>2.7.4</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson>2.10.0</version.com.fasterxml.jackson>
         <version.org.jboss.resteasy>3.0.19.Final</version.org.jboss.resteasy>
         <version.org.hibernate>5.0.10.Final</version.org.hibernate>
         <version.org.hibernate.search>5.5.4.Final</version.org.hibernate.search>
@@ -54,7 +54,7 @@
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search</artifactId>
+            <artifactId>hibernate-search-orm</artifactId>
             <version>${version.org.hibernate.search}</version>
             <scope>provided</scope>
         </dependency>
