@@ -7,7 +7,7 @@
         <jta-data-source>java:/jboss/datasouces/DolphinDS</jta-data-source>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
-            <property name="hibernate.id.new_generator_mappings" value="false"/>
+            <property name="hibernate.model.generator_name_as_sequence_name" value="false"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
 
             <!-- hibernate search -->

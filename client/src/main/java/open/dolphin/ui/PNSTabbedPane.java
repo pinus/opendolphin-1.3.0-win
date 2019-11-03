@@ -770,6 +770,11 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
                 totalHeight += tempHeight + (lineCount + 1) * vgap;
                 buttonCountAtLine.add(tempButtonCount);
 
+                // debug code
+                if (((JFrame)parent).getTitle().startsWith("インスペクタ")) {
+                    logger.info(String.format("line:%d,width:%d,%s", lineCount, width, ((JFrame)parent).getTitle()));
+                }
+
                 // １行だったら
                 if (lineCount == 1) {
                     for (int i = 0; i < buttonCount; i++) {

@@ -1,7 +1,7 @@
 package open.dolphin.infomodel;
 
 import open.dolphin.util.ModelUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.persistence.*;
 import java.awt.datatransfer.DataFlavor;
@@ -233,9 +233,6 @@ public class PatientVisitModel extends InfoModel {
         // 診療科名、コード、担当医名、担当医コード、JMARI コード
         // を格納する配列を生成する
         String[] ret = new String[5];
-        for (int i = 0; i < ret.length; i++) {
-            ret[i] = null;
-        }
 
         if (dept != null) {
             int index = 0;

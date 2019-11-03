@@ -20,7 +20,7 @@ import open.dolphin.ui.PNSBadgeTabbedPane;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.Gengo;
 import open.dolphin.util.ModelUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;

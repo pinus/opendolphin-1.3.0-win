@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 
 import javax.ejb.Singleton;
 import javax.ws.rs.ext.ContextResolver;
@@ -22,7 +22,7 @@ import java.io.IOException;
 @Singleton
 public class JsonConverter implements ContextResolver<ObjectMapper> {
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final Hibernate4Module hbm = new Hibernate4Module();
+    private static final Hibernate5Module hbm = new Hibernate5Module();
 
     static {
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -33,8 +33,8 @@ public class JsonConverter implements ContextResolver<ObjectMapper> {
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        hbm.configure(Hibernate4Module.Feature.FORCE_LAZY_LOADING, false);
-        hbm.configure(Hibernate4Module.Feature.USE_TRANSIENT_ANNOTATION, false);
+        hbm.configure(Hibernate5Module.Feature.FORCE_LAZY_LOADING, false);
+        hbm.configure(Hibernate5Module.Feature.USE_TRANSIENT_ANNOTATION, false);
         mapper.registerModule(hbm);
     }
 

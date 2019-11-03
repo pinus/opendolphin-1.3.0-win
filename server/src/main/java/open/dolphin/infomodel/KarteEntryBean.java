@@ -3,7 +3,7 @@ package open.dolphin.infomodel;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import open.dolphin.util.ModelUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.search.annotations.IndexedEmbedded;
 
 import javax.persistence.*;

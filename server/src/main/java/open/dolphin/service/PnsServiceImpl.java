@@ -73,7 +73,10 @@ public class PnsServiceImpl extends DolphinService implements PnsService {
      * hibernate search のインデックスを作る.
      * standalone.xml のトランザクション default-timeout 変更必要
      * ex) 4 hrs = 14400 secs
-     * coordinator-environment default-timeout="14400"
+     * jboss-cli.sh --connect
+     * /subsystem=transactions:write-attribute(name=default-timeout,value=14400)
+     * to remove attribute
+     * /subsystem=transactions:undefine-attribute(name=default-timeout)
      */
     @Override
     public void makeInitialIndex() {

@@ -12,10 +12,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.util.Objects;
 import java.util.prefs.Preferences;
@@ -100,7 +97,7 @@ public class ChartToolBar extends JToolBar {
         });
 
         sizeCombo.addItemListener(e -> {
-            if (pause) { return; }
+            if (pause || e.getStateChange() == ItemEvent.DESELECTED) { return; }
             int size = (int) e.getItem();
             mediator.setFontSize(size);
             Focuser.requestFocus(mediator.getCurrentComponent());

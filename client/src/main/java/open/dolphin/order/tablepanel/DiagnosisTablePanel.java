@@ -13,7 +13,7 @@ import open.dolphin.order.MasterItem;
 import open.dolphin.ui.Focuser;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSCellEditor;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;

@@ -4,7 +4,7 @@ import open.dolphin.infomodel.KarteState;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.util.ModelUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import javax.swing.*;
 import java.awt.event.FocusAdapter;

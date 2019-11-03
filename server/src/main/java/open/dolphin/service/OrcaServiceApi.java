@@ -11,7 +11,7 @@ import open.dolphin.orca.orcadao.OrcaDbConnection;
 import open.dolphin.orca.orcadao.bean.Syskanri;
 import open.dolphin.orca.orcadao.bean.Wksryact;
 import open.dolphin.util.ModelUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.text.SimpleDateFormat;
