@@ -21,6 +21,7 @@
         <version.org.hibernate.search>5.10.7.Final</version.org.hibernate.search>
         <version.org.apache.lucene>5.5.5</version.org.apache.lucene>
         <version.commons-lang3>3.9</version.commons-lang3>
+        <version.org.postgresql>42.2.8</version.org.postgresql>
     </properties>
 
     <dependencies>
@@ -122,7 +123,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.8</version>
+            <version>${version.org.postgresql}</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
