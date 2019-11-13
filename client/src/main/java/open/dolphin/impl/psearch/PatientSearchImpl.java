@@ -234,8 +234,7 @@ public class PatientSearchImpl extends AbstractMainComponent {
         // hibernate index ボタン
         view.getHibernateIndexItem().addActionListener(e -> {
             final String message = "<html><b><u>Hibernate Search のインデックス作成をします</u></b><br><br>"
-                    + "ホストのトランザクションタイムアウト時間を<br>"
-                    + "のばしておく必要があります。<br>"
+                    + "終了するまで操作不能になります。<br>"
                     + "途中でキャンセルはできません。<br>"
                     + "よろしいですか？</html>";
             //int option = JSheet.showConfirmDialog(view, message, "インデックス作成", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);

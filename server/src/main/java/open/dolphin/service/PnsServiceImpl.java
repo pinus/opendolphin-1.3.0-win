@@ -71,12 +71,6 @@ public class PnsServiceImpl extends DolphinService implements PnsService {
 
     /**
      * hibernate search のインデックスを作る.
-     * standalone.xml のトランザクション default-timeout 変更必要
-     * ex) 4 hrs = 14400 secs
-     * jboss-cli.sh --connect
-     * /subsystem=transactions:write-attribute(name=default-timeout,value=14400)
-     * to remove attribute
-     * /subsystem=transactions:undefine-attribute(name=default-timeout)
      */
     @Override
     public void makeInitialIndex() {
@@ -88,9 +82,14 @@ public class PnsServiceImpl extends DolphinService implements PnsService {
         logger.info("processor number = " + core);
 
         massIndexer.purgeAllOnStart(true)
-                .batchSizeToLoadObjects(30)
-                .threadsToLoadObjects(core);
+            .transactionTimeout(14400)
+            .batchSizeToLoadObjects(30)
+            .threadsToLoadObjects(core);
 
-        massIndexer.start();
+        try {
+            massIndexer.startAndWait();
+        } catch (InterruptedException e) {
+            e.printStackTrace(System.err);
+        }
     }
 }
