@@ -48,7 +48,7 @@ public class OrcaHostInfo {
         } catch (IOException e) {
             // ファイルがない場合
             hostData = new HostData();
-            logger.info("Set default OrcaHostInfo.");
+            logger.info("Set default OrcaHostInfo: " + hostData.getHost());
         }
 
         // ORCA が立ち上がるまで待つ
@@ -180,15 +180,15 @@ public class OrcaHostInfo {
         /**
          * ORCA のアドレス. ポート番号は含まない.
          */
-        private String host = "orca";
+        private String host = "trial.orca.med.or.jp";
         /**
          * ORCA 用の userId.
          */
-        private String userId = "ormaster";
+        private String userId = "trial";
         /**
          * ORCA 用の userId の password.
          */
-        private String password = "ormaster";
+        private String password = "";
         /**
          * JMARI コード.
          */
@@ -196,7 +196,7 @@ public class OrcaHostInfo {
         /**
          * JDBC 接続用 user name.
          */
-        private String jdbcUserId = "orca";
+        private String jdbcUserId = "doctor1";
         /**
          * JDBC 接続用パスワード.
          */

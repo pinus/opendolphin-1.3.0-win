@@ -221,10 +221,10 @@ public class KarteServiceImpl extends DolphinService implements KarteService {
     public List<DocumentModel> getDocumentList(List<Long> ids) {
         //long t = System.currentTimeMillis();
         // まとめて query
-        List<ModuleModel> mods = em.createQuery("select m from ModuleModel m where m.document.id in (:ids)", ModuleModel.class)
+        List<ModuleModel> mods = em.createQuery("select m from ModuleModel m where m.document.id in (:ids) order by m.id", ModuleModel.class)
                 .setParameter("ids", ids)
                 .getResultList();
-        List<SchemaModel> imgs = em.createQuery("select m from SchemaModel m where m.document.id in (:ids)", SchemaModel.class)
+        List<SchemaModel> imgs = em.createQuery("select m from SchemaModel m where m.document.id in (:ids) order by m.id", SchemaModel.class)
                 .setParameter("ids", ids)
                 .getResultList();
 

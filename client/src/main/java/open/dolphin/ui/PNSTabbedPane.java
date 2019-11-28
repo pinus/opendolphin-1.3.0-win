@@ -91,77 +91,6 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
         initComponents();
     }
 
-    private static JPanel createMainPanel() {
-        JPanel mainComponentPanel = new JPanel();
-        mainComponentPanel.setLayout(new BorderLayout(0, 0));
-
-        HorizontalPanel commandPanel = new HorizontalPanel();
-        commandPanel.setPanelHeight(36);
-        commandPanel.add(new JButton("テスト１"));
-        commandPanel.addSeparator();
-        commandPanel.add(new JButton("テスト２"));
-        commandPanel.addGlue();
-        commandPanel.add(new JButton("右端"));
-
-        StatusPanel statusPanel = new StatusPanel();
-        statusPanel.add("Label1");
-        statusPanel.addSeparator();
-        statusPanel.add("Label2");
-        statusPanel.addGlue();
-        statusPanel.add("END");
-        statusPanel.setMargin(8);
-
-        JTable table = new JTable(50, 10);
-        table.setGridColor(Color.gray);
-
-        mainComponentPanel.add(commandPanel, BorderLayout.NORTH);
-        mainComponentPanel.add(table, BorderLayout.CENTER);
-        mainComponentPanel.add(statusPanel, BorderLayout.SOUTH);
-
-        return mainComponentPanel;
-    }
-
-    private static PNSTabbedPane createTreeTabPane(String[] tabStr) {
-        // 内側の tabbed pane
-        PNSTabbedPane tab = new PNSTabbedPane();
-        // ボタンパネルの余白設定
-        tab.setButtonPanelPadding(new Dimension(4, 4));
-        // status panel を inner tab に設定
-        StatusPanel statusPanel = new StatusPanel();
-        tab.add(statusPanel, BorderLayout.SOUTH);
-        statusPanel.add(new JLabel("STATUS PANEL TEST"));
-        statusPanel.setMargin(16);
-
-        JTree[] panes = new JTree[tabStr.length];
-
-        for (int i = 0; i < tabStr.length; i++) {
-            DefaultMutableTreeNode root = new DefaultMutableTreeNode(tabStr[i]);
-            DefaultMutableTreeNode swing = new DefaultMutableTreeNode("Swing");
-            DefaultMutableTreeNode java2d = new DefaultMutableTreeNode("Java2D");
-            DefaultMutableTreeNode java3d = new DefaultMutableTreeNode("Java3D");
-            DefaultMutableTreeNode javamail = new DefaultMutableTreeNode("JavaMail");
-
-            DefaultMutableTreeNode swingSub1 = new DefaultMutableTreeNode("JLabel");
-            DefaultMutableTreeNode swingSub2 = new DefaultMutableTreeNode("JButton");
-            DefaultMutableTreeNode swingSub3 = new DefaultMutableTreeNode("JTextField");
-
-            swing.add(swingSub1);
-            swing.add(swingSub2);
-            swing.add(swingSub3);
-
-            root.add(swing);
-            root.add(java2d);
-            root.add(java3d);
-            root.add(javamail);
-
-            panes[i] = new JTree(root);
-            panes[i].setPreferredSize(new Dimension(500, 700));
-            tab.addTab(tabStr[i], panes[i]);
-        }
-
-        return tab;
-    }
-
     /**
      * 組み込まれるときに addNotify が呼ばれるのを利用して parent を登録する.
      */
@@ -175,12 +104,10 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
             // ButtonPanel がうまく repaint されないことがある
             parent.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowActivated(WindowEvent e) {
-                    buttonPanel.repaint();
-                }
-
-                @Override
-                public void windowDeactivated(WindowEvent e) {
+                public void windowOpened(WindowEvent e) {
+                    if (buttonPanel.getComponentCount() != 0) {
+                        buttonPanel.getComponent(0).invalidate();
+                    }
                     buttonPanel.repaint();
                 }
             });
@@ -771,8 +698,10 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
                 buttonCountAtLine.add(tempButtonCount);
 
                 // debug code
-                if (((JFrame)parent).getTitle().startsWith("インスペクタ")) {
-                    logger.info(String.format("line:%d,width:%d,%s", lineCount, width, ((JFrame)parent).getTitle()));
+                if (((JFrame)parent).getTitle().startsWith("インスペクタ") && buttonCount == 5) {
+                    logger.info(String.format("line:%d,width:%d,visible:%b,active:%b,showing:%b,valid:%b-%b, %s",
+                        lineCount, width, parent.isVisible(), parent.isActive(), parent.isShowing(),
+                        buttonPanel.isValid(), buttonPanel.getComponent(0).isValid(), ((JFrame)parent).getTitle()));
                 }
 
                 // １行だったら
@@ -848,6 +777,77 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
         //testPattern1();
         //testPattern2();
         testPattern3();
+    }
+
+    private static JPanel createMainPanel() {
+        JPanel mainComponentPanel = new JPanel();
+        mainComponentPanel.setLayout(new BorderLayout(0, 0));
+
+        HorizontalPanel commandPanel = new HorizontalPanel();
+        commandPanel.setPanelHeight(36);
+        commandPanel.add(new JButton("テスト１"));
+        commandPanel.addSeparator();
+        commandPanel.add(new JButton("テスト２"));
+        commandPanel.addGlue();
+        commandPanel.add(new JButton("右端"));
+
+        StatusPanel statusPanel = new StatusPanel();
+        statusPanel.add("Label1");
+        statusPanel.addSeparator();
+        statusPanel.add("Label2");
+        statusPanel.addGlue();
+        statusPanel.add("END");
+        statusPanel.setMargin(8);
+
+        JTable table = new JTable(50, 10);
+        table.setGridColor(Color.gray);
+
+        mainComponentPanel.add(commandPanel, BorderLayout.NORTH);
+        mainComponentPanel.add(table, BorderLayout.CENTER);
+        mainComponentPanel.add(statusPanel, BorderLayout.SOUTH);
+
+        return mainComponentPanel;
+    }
+
+    private static PNSTabbedPane createTreeTabPane(String[] tabStr) {
+        // 内側の tabbed pane
+        PNSTabbedPane tab = new PNSTabbedPane();
+        // ボタンパネルの余白設定
+        tab.setButtonPanelPadding(new Dimension(4, 4));
+        // status panel を inner tab に設定
+        StatusPanel statusPanel = new StatusPanel();
+        tab.add(statusPanel, BorderLayout.SOUTH);
+        statusPanel.add(new JLabel("STATUS PANEL TEST"));
+        statusPanel.setMargin(16);
+
+        JTree[] panes = new JTree[tabStr.length];
+
+        for (int i = 0; i < tabStr.length; i++) {
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode(tabStr[i]);
+            DefaultMutableTreeNode swing = new DefaultMutableTreeNode("Swing");
+            DefaultMutableTreeNode java2d = new DefaultMutableTreeNode("Java2D");
+            DefaultMutableTreeNode java3d = new DefaultMutableTreeNode("Java3D");
+            DefaultMutableTreeNode javamail = new DefaultMutableTreeNode("JavaMail");
+
+            DefaultMutableTreeNode swingSub1 = new DefaultMutableTreeNode("JLabel");
+            DefaultMutableTreeNode swingSub2 = new DefaultMutableTreeNode("JButton");
+            DefaultMutableTreeNode swingSub3 = new DefaultMutableTreeNode("JTextField");
+
+            swing.add(swingSub1);
+            swing.add(swingSub2);
+            swing.add(swingSub3);
+
+            root.add(swing);
+            root.add(java2d);
+            root.add(java3d);
+            root.add(javamail);
+
+            panes[i] = new JTree(root);
+            panes[i].setPreferredSize(new Dimension(500, 700));
+            tab.addTab(tabStr[i], panes[i]);
+        }
+
+        return tab;
     }
 
     /**
