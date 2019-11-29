@@ -478,7 +478,7 @@ public class Dolphin implements MainWindow {
 
     /**
      * 環境設定を行う.
-     * com.apple.eawt.Application の handler から呼ばれる.
+     * desktop PreferencesHandler  から呼ばれる.
      */
     public void doPreference() {
         ProjectSettingDialog sd = new ProjectSettingDialog();

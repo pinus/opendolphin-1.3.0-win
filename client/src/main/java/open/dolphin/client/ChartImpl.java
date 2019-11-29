@@ -1,6 +1,5 @@
 package open.dolphin.client;
 
-import com.sun.glass.events.KeyEvent;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.GUIDGenerator;
@@ -23,6 +22,7 @@ import org.apache.log4j.Logger;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
