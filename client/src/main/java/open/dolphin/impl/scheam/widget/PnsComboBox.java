@@ -104,14 +104,13 @@ public class PnsComboBox<T> extends ComboBox<T> {
              * getPrefPopupPosition() を Override できれば良いのだが，残念ながら private.
              * そこで，show() を Hook して表示位置を調節ずらす.
              */
-            final PopupControl _popup = getPopup();
-            final ListView<S> listView = getListView();
-            double itemCount = (double) listView.getItems().size();
-            double listViewHeight = listView.getHeight();
-            double cellHeight = listViewHeight / itemCount;
-            int selectedIndex = comboBox.getSelectionModel().getSelectedIndex();
-
-            _popup.setY(_popup.getY() - (selectedIndex + 1) * cellHeight);
+            ListView<S> listView = (ListView<S>) getPopupContent();
+            double height = listView.getHeight();
+            double itemCount = getItems().size();
+            double cellHeight = height / itemCount;
+            int selectedIndex = getSelectionModel().getSelectedIndex();
+            double offset = -(selectedIndex+1) * cellHeight;
+            listView.setTranslateY(offset);
         }
     }
 }
