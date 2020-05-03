@@ -554,12 +554,12 @@ public class PatientSearchImpl extends AbstractMainComponent {
     }
 
     private boolean isNengoDate(String text) {
-        return text != null && text.matches("[MmTtSsHh][0-9]+-[0-9]+-[0-9]+");
+        return text != null && text.matches("[MmTtSsHhRr][0-9]+-[0-9]+-[0-9]+");
     }
 
     private boolean isOrcaDate(String text) {
         // S12-3-4 = 3120304
-        return text != null && text.matches("[1-4][0-6][0-9][0-1][0-9][0-3][0-9]");
+        return text != null && text.matches("[1-6][0-6][0-9][0-1][0-9][0-3][0-9]");
     }
 
     private boolean isKana(String text) {

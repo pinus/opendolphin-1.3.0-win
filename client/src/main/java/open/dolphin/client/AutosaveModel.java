@@ -66,18 +66,7 @@ public class AutosaveModel {
         dumper.dump(soa);
         soaSpec = dumper.getSpec();
         moduleList.addAll(dumper.getModule());
-        dumper.getSchema().forEach(m -> {
-            Image image = m.getIcon().getImage();
-            int hash = image.hashCode();
-
-            if (!imageHash.contains(hash)) {
-                // image を byte array に変換
-                m.setJpegByte(ImageHelper.imageToByteArray(image));
-                imageHash.add(hash);
-                logger.info("image updated");
-            }
-            schemaList.add(m);
-        });
+        schemaList.addAll(dumper.getSchema());
 
         // p
         dumper.dump(p);
@@ -125,7 +114,6 @@ public class AutosaveModel {
         // schema
         schemaList.forEach(m -> {
             m.setIcon(new ImageIcon(m.getJpegByte()));
-            m.setJpegByte(null);
             documentModel.addSchema(m);
         });
     }

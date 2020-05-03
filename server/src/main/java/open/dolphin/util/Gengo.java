@@ -8,7 +8,7 @@ import java.util.Arrays;
  * @author pns
  */
 public enum Gengo {
-    DEFAULT("H", "㍻", "平成"),
+    DEFAULT("R", "㋿", "令和"),
     MEIJI("M", "㍾", "明治"),
     TAISHO("T", "㍽", "大正"),
     SHOWA("S", "㍼", "昭和"),

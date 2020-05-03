@@ -12,6 +12,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * DocumentDelegater.
@@ -44,23 +45,10 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
      * @return 保存した document の primary key
      */
     public long putKarte(DocumentModel karteModel) {
-
-        // icon を ByteArray に変換
-        if (karteModel.getSchema() != null) {
-            karteModel.getSchema().forEach(schema -> {
-                ImageIcon icon = schema.getIcon();
-                icon = ImageHelper.adjustImageSize(icon, MAX_IMAGE_SIZE);
-                byte[] jpegByte = ImageHelper.imageToByteArray(icon.getImage());
-                schema.setJpegByte(jpegByte);
-                schema.setIcon(null);
-            });
-        }
-
         // 確定日，適合開始日，記録日，ステータスを DocInfo から DocumentModel(KarteEntry) に移す
         karteModel.toPersist();
         // 保存する
-        long documentPk = getService().addDocument(karteModel);
-        return documentPk;
+        return getService().addDocument(karteModel); // returns document pk
     }
 
     /**
@@ -71,18 +59,15 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
      * @return DocumentValue
      */
     public List<DocumentModel> getDocuments(List<Long> ids) {
-
         // 検索する
         List<DocumentModel> ret = getService().getDocumentList(ids);
 
         // ByteArray をアイコンへ戻す (getSchema() は必ず non null)
-        ret.stream().map(DocumentModel::getSchema).forEach(sc -> {
-            sc.stream().forEach(schema -> {
-                ImageIcon icon = new ImageIcon(schema.getJpegByte());
-                schema.setIcon(icon);
-                schema.setJpegByte(null);
-            });
-        });
+        ret.stream().map(DocumentModel::getSchema).forEach(sc -> sc.stream().forEach(schema -> {
+            byte[] bytes = schema.getJpegByte();
+            ImageIcon icon = new ImageIcon(bytes);
+            schema.setIcon(icon);
+        }));
         return ret;
     }
 
@@ -204,9 +189,9 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
     }
 
     /**
-     * RegisteredDiagnosisModel を登録する
+     * RegisteredDiagnosisModel を登録する.
      *
-     * @param beans
+     * @param beans List of RegisteredDiagnosisModel
      * @return 登録した Model の primary key のリスト
      */
     public List<Long> putDiagnosis(List<RegisteredDiagnosisModel> beans) {
@@ -214,9 +199,9 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
     }
 
     /**
-     * RegisteredDiagnosisModel を更新する
+     * RegisteredDiagnosisModel を更新する.
      *
-     * @param beans
+     * @param beans List of RegisteredDiagnosisModel
      * @return 更新した数
      */
     public int updateDiagnosis(List<RegisteredDiagnosisModel> beans) {
@@ -224,7 +209,7 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
     }
 
     /**
-     * 病名を削除する
+     * 病名を削除する.
      *
      * @param ids 削除する傷病名の primary key リスト
      * @return 削除数

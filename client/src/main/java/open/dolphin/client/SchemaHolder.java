@@ -14,6 +14,7 @@ import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
+import java.util.Objects;
 
 /**
  * スタンプのデータを保持するコンポーネントで TextPane に挿入される.
@@ -57,7 +58,25 @@ public final class SchemaHolder extends AbstractComponentHolder {
         this.icon = icon;
 
         SwingUtilities.invokeLater(() -> {
-            setIcon(ImageHelper.adjustImageSize(icon, INITIAL_SIZE));
+            Dimension initialSize = INITIAL_SIZE;
+            byte[] jpegByte = schema.getJpegByte();
+
+            if (Objects.isNull(jpegByte)) {
+                schema.setJpegByte(ImageHelper.imageToByteArray(icon.getImage()));
+
+            } else {
+                // jpegByte にサイズ情報が入っていたら scale する
+                String dispSize = ImageHelper.extractMetadata(jpegByte, "DSIZ");
+                logger.info("display size = " + dispSize);
+
+                if (Objects.nonNull(dispSize)) {
+                    String[] split = dispSize.split("x");
+                    if (split.length == 2) {
+                        initialSize = new Dimension(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+                    }
+                }
+            }
+            setIcon(ImageHelper.adjustImageSize(icon, initialSize));
             imgRatio = getIcon().getIconWidth() / (float) icon.getIconWidth();
             logger.debug("initial img ratio = " + imgRatio);
 
@@ -98,13 +117,27 @@ public final class SchemaHolder extends AbstractComponentHolder {
         super.mousePressed(e);
 
         if (e.isAltDown()) {
-            Image img = icon.getImage();
             imgRatio = e.isShiftDown() ? imgRatio - 0.05f : imgRatio + 0.05f;
             int w = (int) (icon.getIconWidth() * imgRatio);
             int h = (int) (icon.getIconHeight() * imgRatio);
-            img = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-            setIcon(new ImageIcon(img));
+            setScaledIcon(icon.getImage(), w, h);
+
+            // jpegBytes に表示サイズを保存 ex) 200x100
+            String dispSize = String.format("%dx%d", w, h);
+            byte[] bytes = ImageHelper.addMetadata(schema.getJpegByte(), "DSIZ", dispSize);
+            schema.setJpegByte(bytes);
         }
+    }
+
+    /**
+     * Set scaled icon image.
+     *
+     * @param image java.awt.image
+     * @param w scaled width
+     * @param h scaled height
+     */
+    public void setScaledIcon(Image image, int w, int h) {
+        setIcon(new ImageIcon(image.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
     }
 
     @Override

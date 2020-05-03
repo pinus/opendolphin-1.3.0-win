@@ -209,6 +209,10 @@ public class DocumentHistory implements IInspector {
         im.put(KeyStroke.getKeyStroke("shift TAB"), "focusPrevious");
         am.put("focusPrevious", new ProxyAction(FocusManager.getCurrentManager()::focusPreviousComponent));
 
+        // LEFT キーで cell focus が移動するのを防ぐ
+        im.put(KeyStroke.getKeyStroke("LEFT"), "doNothing");
+        am.put("doNothing", new ProxyAction(() -> {}));
+
         // 抽出期間コンボボックスの選択を処理する
         extractionCombo.addItemListener(this::periodChanged);
 
@@ -379,7 +383,7 @@ public class DocumentHistory implements IInspector {
         if (newHistory != null && !newHistory.isEmpty()) {
             int historySize = newHistory.size();
             countField.setText(historySize + " 件");
-            int fetchCount = historySize > autoFetchCount ? autoFetchCount : historySize;
+            int fetchCount = Math.min(autoFetchCount, historySize);
 
             ListSelectionModel selectionModel = table.getSelectionModel();
 

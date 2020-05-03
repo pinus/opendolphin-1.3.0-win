@@ -1,15 +1,25 @@
 package open.dolphin.helper;
 
-import javax.imageio.ImageIO;
+import org.w3c.dom.NodeList;
+
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataFormatImpl;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.stream.Stream;
 
 /**
- * ImageHelper
+ * ImageHelper.
  *
  * @author kazm
  * @author pns
@@ -17,11 +27,10 @@ import java.io.IOException;
 public class ImageHelper {
 
     /**
-     * ImageIcon から BufferedImage に変換.
-     * alpha 対応.
+     * ImageIcon から BufferedImage に変換. alpha 対応.
      *
-     * @param src
-     * @return
+     * @param src source ImageIcon
+     * @return BufferedImage
      */
     public static BufferedImage imageToBufferedImage(ImageIcon src) {
         if (src == null) {
@@ -44,9 +53,9 @@ public class ImageHelper {
     /**
      * inImage の幅と高さの長い方が maxDim になるように縮小する.
      *
-     * @param inImage
-     * @param maxDim
-     * @return
+     * @param inImage BufferedImage
+     * @param maxDim Dimension
+     * @return BufferedImage
      */
     public static BufferedImage getFirstScaledInstance(BufferedImage inImage, int maxDim) {
 
@@ -86,13 +95,12 @@ public class ImageHelper {
     }
 
     /**
-     * Convert Image to ByteArray.
+     * Convert Image to PNG ByteArray.
      *
-     * @param image
-     * @return
+     * @param image java.awt.Image
+     * @return PNG ByteArray
      */
     public static byte[] imageToByteArray(Image image) {
-
         byte[] ret = null;
 
         try (ByteArrayOutputStream bo = new ByteArrayOutputStream()) {
@@ -117,12 +125,11 @@ public class ImageHelper {
     /**
      * ImageIcon のサイズを dim サイズ以内になるように調節する.
      *
-     * @param icon
-     * @param dim
-     * @return
+     * @param icon ImageIcon
+     * @param dim Dimension
+     * @return adjusted ImageIcon
      */
     public static ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
-
         if ((icon.getIconHeight() > dim.height) || (icon.getIconWidth() > dim.width)) {
 
             Image img = icon.getImage();
@@ -145,5 +152,170 @@ public class ImageHelper {
         } else {
             return icon;
         }
+    }
+
+    /**
+     * Convert JPEG ByteArray to PNG ByteArray.
+     *
+     * @param jpegBytes JPEG ByteArray
+     * @return PNG ByteArray
+     */
+    public static byte[] toPngByteArray(byte[] jpegBytes) {
+        byte[] ret = null;
+
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(jpegBytes);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            BufferedImage bImage = ImageIO.read(bis);
+            ImageIO.write(bImage, "png", bos);
+            ret = bos.toByteArray();
+
+        } catch (IOException | RuntimeException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    /**
+     * Extract PNG Metadata "UnknownChunk".
+     * Format Name: javax_imageio_png_1.0 (nativeMetadataFormatClassName)
+     *
+     * @param bytes PNG ByteArray
+     * @param type type (4 chars)
+     * @return value for the type
+     */
+    public static String extractMetadata(byte[] bytes, String type) {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes)) {
+            ImageInputStream iis = ImageIO.createImageInputStream(bis);
+            ImageReader reader = ImageIO.getImageReaders(iis).next();
+            reader.setInput(iis, true);
+
+            IIOMetadata metadata = reader.getImageMetadata(0);
+            IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree("javax_imageio_png_1.0");
+
+            // UnknownChunks length = 0 or 1, 1の場合その中に UnknownChunk が複数入る
+            NodeList chunksList = root.getElementsByTagName("UnknownChunks");
+            if (chunksList.getLength() > 0) {
+                IIOMetadataNode chunks = (IIOMetadataNode) root.getElementsByTagName("UnknownChunks").item(0);
+                for (int i = 0; i < chunks.getLength(); i++) {
+                    IIOMetadataNode chunk = (IIOMetadataNode) chunks.item(i);
+                    String chunkType = chunk.getAttributes().getNamedItem("type").getNodeValue();
+                    if (chunkType.equals(type)) {
+                        return new String((byte[]) chunk.getUserObject());
+                    }
+                }
+            }
+
+        } catch (IOException | RuntimeException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Add optional data to UnknownChunks. (Metadata = com.sun.imageio.plugins.png.PNGMetadata)
+     * "javax_imageio_png_1.0" > UnknownChunks > UnknownChunk [type (4 chars), UserObject (byte[])]
+     *
+     * @param bytes PNG ByteArray
+     * @param type type (4 chars)
+     * @param value UserObject for the type
+     * @return PNG ByteArray with added metadata
+     */
+    public static byte[] addMetadata(byte[] bytes, String type, String value) {
+        byte[] ret = null;
+
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+            ImageInputStream iis = ImageIO.createImageInputStream(bis);
+            ImageReader reader = ImageIO.getImageReaders(iis).next();
+            reader.setInput(iis, true);
+
+            // if not PNG bytes, throw exception
+            if (!reader.getFormatName().equals("png")) {
+                throw new IOException("not png bytes");
+            }
+
+            IIOImage image = reader.readAll(0, null);
+
+            // preparing nodes
+            IIOMetadataNode root = new IIOMetadataNode("javax_imageio_png_1.0");
+            IIOMetadataNode chunks = new IIOMetadataNode("UnknownChunks");
+            IIOMetadataNode chunk = new IIOMetadataNode("UnknownChunk");
+
+            chunk.setAttribute("type", type);
+            chunk.setUserObject(value.getBytes());
+
+            chunks.appendChild(chunk);
+            root.appendChild(chunks);
+
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("png").next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            ImageTypeSpecifier typeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(BufferedImage.TYPE_INT_RGB);
+            IIOMetadata metadata = writer.getDefaultImageMetadata(typeSpecifier, param);
+
+            // mergeNativeTree(root)
+            metadata.mergeTree("javax_imageio_png_1.0", root);
+            image.setMetadata(metadata);
+
+            ImageOutputStream ios = ImageIO.createImageOutputStream(bos);
+            writer.setOutput(ios);
+            writer.write(metadata, image, param);
+
+            ret = bos.toByteArray();
+
+        } catch (IOException | RuntimeException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    /**
+     * Show all Nodes.
+     *
+     * @param node node to show
+     */
+    private static void showNode(IIOMetadataNode node) {
+        System.out.println("node name = " + node.getNodeName());
+        System.out.println("node value = " + node.getNodeValue());
+        System.out.println("node type = " + node.getNodeType());
+        System.out.println("node attribute size = " + node.getAttributes().getLength());
+
+        for (int i=0; i<node.getAttributes().getLength(); i++) {
+            System.out.println("attribute node name = " + node.getAttributes().item(i).getNodeName());
+            System.out.println("attribute node value = " + node.getAttributes().item(i).getNodeValue());
+            System.out.println("attribute node type = " + node.getAttributes().item(i).getNodeType());
+        }
+
+        int len = node.getChildNodes().getLength();
+        if (len > 0) {
+            for (int i=0; i<len; i++) {
+                showNode((IIOMetadataNode) node.getChildNodes().item(i));
+            }
+        }
+    }
+
+    public static void main (String[] arg) {
+        String sample1 = "/schemaeditor/Sample-square.JPG";
+
+        InputStream in = ImageHelper.class.getResourceAsStream(sample1);
+
+        byte[] buf = null;
+        try {
+            int n = in.available();
+            buf = new byte[n];
+            for (int i = 0; i < n; i++) buf[i] = (byte) in.read();
+        } catch (IOException ex) {
+        }
+
+        byte[] pngBytes = toPngByteArray(buf);
+
+        String type = "DSIZ";
+        String value = "100x200";
+
+        byte[] buf2 = addMetadata(pngBytes, type, value);
+        String val = extractMetadata(buf2, type);
+
+        System.out.println("type = " + type);
+        System.out.println("value = " + val);
     }
 }

@@ -701,11 +701,11 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
                 buttonCountAtLine.add(tempButtonCount);
 
                 // debug code
-                if (((JFrame)parent).getTitle().startsWith("インスペクタ") && buttonCount == 5) {
-                    logger.info(String.format("line:%d,width:%d,visible:%b,active:%b,showing:%b,valid:%b-%b, %s",
-                        lineCount, width, parent.isVisible(), parent.isActive(), parent.isShowing(),
-                        buttonPanel.isValid(), buttonPanel.getComponent(0).isValid(), ((JFrame)parent).getTitle()));
-                }
+                //if (((JFrame)parent).getTitle().startsWith("インスペクタ") && buttonCount == 5) {
+                //    logger.info(String.format("line:%d,width:%d,visible:%b,active:%b,showing:%b,valid:%b-%b, %s",
+                //        lineCount, width, parent.isVisible(), parent.isActive(), parent.isShowing(),
+                //        buttonPanel.isValid(), buttonPanel.getComponent(0).isValid(), ((JFrame)parent).getTitle()));
+                //}
 
                 // １行だったら
                 if (lineCount == 1) {
