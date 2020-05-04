@@ -18,6 +18,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Stamp 編集用の外枠を提供する Dialog.
@@ -196,11 +197,21 @@ public class StampEditorDialog {
     /**
      * プロパティチェンジリスナを登録する.
      *
-     * @param prop     プロパティ名
      * @param listener プロパティチェンジリスナ
      */
-    public void addPropertyChangeListener(String prop, PropertyChangeListener listener) {
-        boundSupport.addPropertyChangeListener(prop, listener);
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        if (!Arrays.asList(boundSupport.getPropertyChangeListeners(StampEditorDialog.VALUE_PROP)).contains(listener)) {
+            boundSupport.addPropertyChangeListener(StampEditorDialog.VALUE_PROP, listener);
+        }
+    }
+
+    /**
+     * プロパティチェンジリスナを削除する.
+     *
+     * @param listener プロパティチェンジリスナ
+     */
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        boundSupport.removePropertyChangeListener(StampEditorDialog.VALUE_PROP, listener);
     }
 
     /**
@@ -215,6 +226,7 @@ public class StampEditorDialog {
         boundSupport.firePropertyChange(VALUE_PROP, isNew, value);
         glass.unblock();
 
-        Arrays.asList(boundSupport.getPropertyChangeListeners()).forEach(listener -> boundSupport.removePropertyChangeListener(listener));
+        Stream.of(boundSupport.getPropertyChangeListeners()).
+            forEach(boundSupport::removePropertyChangeListener);
     }
 }

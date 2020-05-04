@@ -32,7 +32,6 @@ public final class SchemaHolder extends AbstractComponentHolder {
     private SchemaModel schema;
     private ImageIcon icon;
     private float imgRatio = 1.0f;
-    private SchemaEditor editor = null;
     private boolean selected;
     private Position start;
     private Position end;
@@ -63,18 +62,10 @@ public final class SchemaHolder extends AbstractComponentHolder {
 
             if (Objects.isNull(jpegByte)) {
                 schema.setJpegByte(ImageHelper.imageToByteArray(icon.getImage()));
-
             } else {
                 // jpegByte にサイズ情報が入っていたら scale する
-                String dispSize = ImageHelper.extractMetadata(jpegByte, "DSIZ");
-                logger.info("display size = " + dispSize);
-
-                if (Objects.nonNull(dispSize)) {
-                    String[] split = dispSize.split("x");
-                    if (split.length == 2) {
-                        initialSize = new Dimension(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-                    }
-                }
+                Dimension size = extractImageSize(jpegByte);
+                if (Objects.nonNull(size)) { initialSize = size; }
             }
             setIcon(ImageHelper.adjustImageSize(icon, initialSize));
             imgRatio = getIcon().getIconWidth() / (float) icon.getIconWidth();
@@ -89,14 +80,32 @@ public final class SchemaHolder extends AbstractComponentHolder {
     }
 
     /**
+     * 埋め込まれた画像サイズを Dimension で返す.
+     *
+     * @param bytes PNG ByteArray
+     * @return size
+     */
+    private Dimension extractImageSize(byte[] bytes) {
+        Dimension ret = null;
+
+        String size = ImageHelper.extractMetadata(bytes, "DSIZ");
+        logger.debug("display size = " + size);
+        if (Objects.nonNull(size)) {
+            String[] split = size.split("x");
+            if (split.length == 2) {
+                ret = new Dimension(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+            }
+        }
+        return ret;
+    }
+
+    /**
      * Label の大きさを border の分補正するために override する.
      *
      * @param icon 登録する icon
      */
     @Override
     public void setIcon(Icon icon) {
-        super.setIcon(icon);
-
         // border の分大きくしないと icon が切れてしまう
         if (icon != null) {
             int w = icon.getIconWidth();
@@ -105,6 +114,18 @@ public final class SchemaHolder extends AbstractComponentHolder {
             setPreferredSize(size);
             setMinimumSize(size);
         }
+        super.setIcon(icon);
+    }
+
+    /**
+     * Set scaled icon image.
+     *
+     * @param image java.awt.image
+     * @param w scaled width
+     * @param h scaled height
+     */
+    public void setScaledIcon(Image image, int w, int h) {
+        setIcon(new ImageIcon(image.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
     }
 
     /**
@@ -127,17 +148,6 @@ public final class SchemaHolder extends AbstractComponentHolder {
             byte[] bytes = ImageHelper.addMetadata(schema.getJpegByte(), "DSIZ", dispSize);
             schema.setJpegByte(bytes);
         }
-    }
-
-    /**
-     * Set scaled icon image.
-     *
-     * @param image java.awt.image
-     * @param w scaled width
-     * @param h scaled height
-     */
-    public void setScaledIcon(Image image, int w, int h) {
-        setIcon(new ImageIcon(image.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
     }
 
     @Override
@@ -210,9 +220,7 @@ public final class SchemaHolder extends AbstractComponentHolder {
 
             // JavaFX thread
             Platform.runLater(() -> {
-                if (editor == null) {
-                    editor = new SchemaEditorImpl();
-                }
+                SchemaEditor editor = new SchemaEditorImpl();
                 editor.setSchema(schema);
                 editor.setEditable(kartePane.getTextPane().isEditable());
                 editor.addPropertyChangeListener(SchemaHolder.this);
@@ -232,12 +240,23 @@ public final class SchemaHolder extends AbstractComponentHolder {
         this.setEditable(true);
 
         SchemaModel newSchema = (SchemaModel) e.getNewValue();
-        if (newSchema == null) {
-            return;
+        if (newSchema == null) { return; }
+
+        byte[] newBytes = ImageHelper.imageToByteArray(newSchema.getIcon().getImage());
+        byte[] oldBytes = schema.getJpegByte();
+        Dimension size = INITIAL_SIZE;
+
+        // 設定されているサイズ情報があれば取り出す
+        String val = ImageHelper.extractMetadata(oldBytes, "DSIZ");
+        if (Objects.nonNull(val)) {
+            newBytes = ImageHelper.addMetadata(newBytes, "DSIZ", val);
+            size = extractImageSize(newBytes);
         }
 
-        schema = newSchema;
-        setIcon(ImageHelper.adjustImageSize(schema.getIcon(), INITIAL_SIZE));
+        schema.setJpegByte(newBytes);
+        icon = newSchema.getIcon();
+        setIcon(ImageHelper.adjustImageSize(icon, size));
+
         // dirty セット
         kartePane.setDirty(true);
     }

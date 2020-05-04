@@ -195,6 +195,10 @@ public class PvtServiceImpl extends DolphinService implements PvtService {
      */
     @Override
     public int updatePvt(PatientVisitModel pvt) {
+        // トータルの病名数をセット
+        pvt.setByomeiCount(getByomeiCount(pvt.getPatient().getId()));
+        // 今日の病名数をセット
+        pvt.setByomeiCountToday(getByomeiCountToday(pvt.getPatient().getId()));
         em.merge(pvt);
         sendToWebsocket(pvt);
         return 1;

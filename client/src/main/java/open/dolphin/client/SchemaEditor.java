@@ -8,6 +8,7 @@ import java.beans.PropertyChangeListener;
  * @author kazm
  */
 public interface SchemaEditor {
+    public String IMAGE_PROP = "imageProp";
 
     public void setEditable(boolean b);
 

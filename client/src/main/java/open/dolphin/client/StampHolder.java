@@ -57,7 +57,7 @@ public final class StampHolder extends AbstractComponentHolder {
         // スタンプの初期幅は ChartImpl の幅から決定する
         Rectangle bounds = PreferencesUtils.getRectangle(Project.getPreferences(), ChartImpl.PN_FRAME, new Rectangle(0, 0, 0, 0));
         int w = (bounds.width + 1) / 2 - 168; // 実験から連立方程式で求めた
-        hints.setWidth((w < 320) ? 320 : w);
+        hints.setWidth(Math.max(320, w));
 
         init(model);
     }
@@ -79,13 +79,7 @@ public final class StampHolder extends AbstractComponentHolder {
     public void enter(ActionMap map) {
 
         map.get(GUIConst.ACTION_COPY).setEnabled(true);
-
-        if (kartePane.getTextPane().isEditable()) {
-            map.get(GUIConst.ACTION_CUT).setEnabled(true);
-        } else {
-            map.get(GUIConst.ACTION_CUT).setEnabled(false);
-        }
-
+        map.get(GUIConst.ACTION_CUT).setEnabled(kartePane.getTextPane().isEditable());
         map.get(GUIConst.ACTION_PASTE).setEnabled(false);
 
         setSelected(true);
@@ -219,7 +213,7 @@ public final class StampHolder extends AbstractComponentHolder {
         if (kartePane.getTextPane().isEditable() && this.isEditable()) {
             String entity = stamp.getModuleInfo().getEntity();
             StampEditorDialog stampEditor = new StampEditorDialog(entity, stamp);
-            stampEditor.addPropertyChangeListener(StampEditorDialog.VALUE_PROP, this);
+            stampEditor.addPropertyChangeListener(this);
             stampEditor.start();
             // 二重起動の禁止 - エディタから戻ったら propertyChange で解除する
             //kartePane.getTextPane().setEditable(false); // こうすると，なぜか focus が次の component にうつってしまう

@@ -88,6 +88,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     private ComponentHolder<?>[] draggedStamp;
     private int draggedCount;
     private int droppedCount;
+
     public KartePane() {
         undoManager = new TextComponentUndoManager();
         undoListener = undoManager::listener;
@@ -537,7 +538,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             int len = doc.getLength();
             int freeTop = 0; // doc.getFreeTop();
             int freeLen = len - freeTop;
-            freeLen = freeLen < TITLE_LENGTH ? freeLen : TITLE_LENGTH;
+            freeLen = Math.min(freeLen, TITLE_LENGTH);
             return getTextPane().getText(freeTop, freeLen).trim();
         } catch (BadLocationException e) {
             e.printStackTrace(System.err);
@@ -696,7 +697,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         stamp.setModuleInfo(stampInfo);
 
         StampEditorDialog stampEditor = new StampEditorDialog(entity, stamp);
-        stampEditor.addPropertyChangeListener(StampEditorDialog.VALUE_PROP, this);
+        stampEditor.addPropertyChangeListener(this);
         stampEditor.start();
         logger.debug("stampEditor started");
     }
@@ -1031,7 +1032,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     public void propertyChange(PropertyChangeEvent e) {
 
         switch (e.getPropertyName()) {
-            case "imageProp":
+            case SchemaEditor.IMAGE_PROP:
                 SchemaModel schema = (SchemaModel) e.getNewValue();
                 if (schema != null) {
                     // 編集されたシェーマをこのペインに挿入する

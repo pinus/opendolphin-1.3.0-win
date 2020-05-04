@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -30,6 +31,8 @@ import open.dolphin.infomodel.SchemaModel;
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * SchemaEditorImpl.
@@ -131,6 +134,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
 
             firePropertyChange(image);
             canvasStage.hide();
+            close();
         });
         // 破棄して終了する
         cancelButton = new Button("破棄");
@@ -138,6 +142,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
         cancelButton.setOnAction(e -> {
             firePropertyChange(null);
             canvasStage.hide();
+            close();
         });
 
         // レイアウト
@@ -170,7 +175,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
         // Editable 処理
         editableProperty.set(true); // 初期値
         editableProperty.addListener(new ChangeListener<Boolean>() {
-            private final EventHandler<InputEvent> consumer = evt -> evt.consume();
+            private final EventHandler<InputEvent> consumer = Event::consume;
 
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -200,7 +205,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * Properties を返す.
      *
-     * @return
+     * @return properties
      */
     public static SchemaEditorProperties getProperties() {
         return properties;
@@ -209,7 +214,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * CanvasStage を返す.
      *
-     * @return
+     * @return canvasStage
      */
     public PnsStage getCanvasStage() {
         return canvasStage;
@@ -218,7 +223,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * DrawLayers を載せる Pane.
      *
-     * @return
+     * @return canvasPane
      */
     public StackPane getCanvasPane() {
         return canvasPane;
@@ -228,7 +233,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
      * CanvasStage の ContentPane を返す.
      * BaseLayer, CanvasPane, DraftLayer を載せる.
      *
-     * @return
+     * @return ContentPane
      */
     public StackPane getContentPane() {
         return canvasStage.getContentPane();
@@ -237,7 +242,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * Mouse Event を受け取って途中経過を描く DraftLayer を返す.
      *
-     * @return
+     * @return draftLayer
      */
     public SchemaLayer getDraftLayer() {
         return draftLayer;
@@ -246,7 +251,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * Base 画像を表示する BaseLayer を返す.
      *
-     * @return
+     * @return baseLayer
      */
     public SchemaLayer getBaseLayer() {
         return baseLayer;
@@ -255,7 +260,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * StateManager を返す.
      *
-     * @return
+     * @return stateManager
      */
     public StateManager getStateManager() {
         return stateManager;
@@ -264,7 +269,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
     /**
      * UndoManager を返す.
      *
-     * @return
+     * @return undoManager
      */
     public UndoManager getUndoManager() {
         return undoManager;
@@ -294,16 +299,18 @@ public final class SchemaEditorImpl implements SchemaEditor {
     }
 
     /**
-     * このリスナは fire するとKartePane の propertyChanged を呼び出す.
+     * このリスナは fire するとKartePane or SchemaHolder の propertyChanged を呼び出す.
      *
-     * @param l
+     * @param listener PropertyChangeListener
      */
     @Override
-    public void addPropertyChangeListener(PropertyChangeListener l) {
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
         if (boundSupport == null) {
             boundSupport = new PropertyChangeSupport(this);
         }
-        boundSupport.addPropertyChangeListener(l);
+        if (!Arrays.asList(boundSupport.getPropertyChangeListeners()).contains(listener)) {
+            boundSupport.addPropertyChangeListener(listener);
+        }
     }
 
     @Override
@@ -320,7 +327,7 @@ public final class SchemaEditorImpl implements SchemaEditor {
      * 　「カルテに展開」ボタン：　createImage で作った BufferedImage を持ってくる
      * 　「破棄」ボタン　　　　：　null を持ってくる
      *
-     * @param image
+     * @param image Image
      */
     public void firePropertyChange(Image image) {
         // カルテに展開
@@ -329,11 +336,11 @@ public final class SchemaEditorImpl implements SchemaEditor {
             model.setIcon(icon);
             model.getExtRef().setTitle(DEFAULT_TITLE);
             model.getExtRef().setMedicalRole(DEFAULT_ROLE);
-            boundSupport.firePropertyChange("imageProp", null, model);
+            boundSupport.firePropertyChange(IMAGE_PROP, null, model);
 
             // キャンセル
         } else {
-            boundSupport.firePropertyChange("imageProp", model, null);
+            boundSupport.firePropertyChange(IMAGE_PROP, model, null);
         }
     }
 
@@ -345,5 +352,10 @@ public final class SchemaEditorImpl implements SchemaEditor {
     @Override
     public void setSchema(SchemaModel model) {
         this.model = model;
+    }
+
+    private void close() {
+        Stream.of(boundSupport.getPropertyChangeListeners()).
+            forEach(boundSupport::removePropertyChangeListener);
     }
 }
