@@ -10,7 +10,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.project.Project;
-import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.ModelUtils;
 import org.jdom2.Element;
 
@@ -94,7 +93,7 @@ public class StampBoxExtraMenu extends MouseAdapter {
     /**
      * publish メニューの enable/disable.
      *
-     * @param b
+     * @param b enable
      */
     public void setPublishEnabled(boolean b) {
         actionMap.get("publishStamp").setEnabled(b);
@@ -103,7 +102,7 @@ public class StampBoxExtraMenu extends MouseAdapter {
     /**
      * import メニューの enable/disable.
      *
-     * @param b
+     * @param b enable
      */
     public void setImportEnabled(boolean b) {
         actionMap.get("importStamp").setEnabled(b);
@@ -129,71 +128,44 @@ public class StampBoxExtraMenu extends MouseAdapter {
         // stampBytesを含めたデータを書き出す
         ExtendedStampTreeXmlBuilder builder = new ExtendedStampTreeXmlBuilder();
         final StampTreeXmlDirector director = new StampTreeXmlDirector(builder);
-
-        // エクスポートデータ作成より前にファイル選択させる
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         AbstractStampBox stampBox = context.getCurrentBox();
 
-        JSheet.showSaveSheet(fileChooser, context.getFrame(), e -> {
-            if (e.getOption() == JFileChooser.APPROVE_OPTION) {
-                final File file = fileChooser.getSelectedFile();
-                if (!file.exists() || overwriteConfirmed(file)) {
+        FileDialog fd = new FileDialog(context.getFrame(), "ファイルにスタンプを保存する", FileDialog.SAVE);
+        fd.setVisible(true);
+        File[] files = fd.getFiles();
+        if (files.length != 1) { return; }
+        final File file = files[0];
 
-                    SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
+        SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                blockGlass.block();
+                List<StampTree> publishList = new ArrayList<>(IInfoModel.STAMP_ENTITIES.length);
+                List<StampTree> trees = stampBox.getAllTrees();
+                publishList.addAll(trees);
+                return director.build(publishList);
+            }
 
-                        @Override
-                        protected String doInBackground() {
-                            blockGlass.block();
-                            List<StampTree> publishList = new ArrayList<>(IInfoModel.STAMP_ENTITIES.length);
-                            List<StampTree> trees = stampBox.getAllTrees();
-                            publishList.addAll(trees);
-                            return director.build(publishList);
-                        }
+            @Override
+            protected void done() {
+                blockGlass.setText("");
+                blockGlass.unblock();
 
-                        @Override
-                        protected void done() {
+                try (FileOutputStream f = new FileOutputStream(file);
+                     OutputStreamWriter w = new OutputStreamWriter(f, StandardCharsets.UTF_8)) {
 
-                            try (FileOutputStream f = new FileOutputStream(file);
-                                 OutputStreamWriter w = new OutputStreamWriter(f, StandardCharsets.UTF_8)) {
+                    w.write(get());
 
-                                w.write(get());
-
-                            } catch (IOException | InterruptedException | ExecutionException ex) {
-                                processException(ex);
-                            }
-
-                            blockGlass.setText("");
-                            blockGlass.unblock();
-                        }
-
-                        private void processException(Exception ex) {
-                            System.out.println("StampBoxPluginExtraMenu.java: " + ex);
-                        }
-                    };
-                    worker.execute();
+                } catch (IOException | InterruptedException | ExecutionException ex) {
+                    processException(ex);
                 }
             }
-        });
-    }
 
-    /**
-     * ファイル上書き確認ダイアログを表示する.
-     *
-     * @param file 上書き対象ファイル
-     * @return 上書きOKが指示されたらtrue
-     */
-    private boolean overwriteConfirmed(File file) {
-        String title = "上書き確認";
-        String message = "既存のファイル " + file.toString() + "\n"
-                + "を上書きしようとしています。続けますか？";
-
-        int confirm = JSheet.showConfirmDialog(
-                context.getFrame(), message, title,
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE);
-
-        return (confirm == JOptionPane.OK_OPTION);
+            private void processException(Exception ex) {
+                System.out.println("StampBoxPluginExtraMenu.java: " + ex);
+            }
+        };
+        worker.execute();
     }
 
     /**
@@ -202,92 +174,89 @@ public class StampBoxExtraMenu extends MouseAdapter {
      */
     @MenuAction
     public void importUserStampBox() {
-
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         AbstractStampBox stampBox = context.getCurrentBox();
 
-        JSheet.showOpenSheet(fileChooser, context.getFrame(), e -> {
-            if (e.getOption() == JFileChooser.APPROVE_OPTION) {
-                final File file = fileChooser.getSelectedFile();
+        FileDialog fd = new FileDialog(context.getFrame(), "ファイルからスタンプを読み込む", FileDialog.LOAD);
+        fd.setVisible(true);
+        File[] files = fd.getFiles();
+        if (files.length != 1) { return; }
+        File file = files[0];
 
-                SwingWorker worker = new SwingWorker() {
+        SwingWorker<Object, Void> worker = new SwingWorker<Object, Void>() {
+            @Override
+            protected Object doInBackground() {
+                blockGlass.block();
 
-                    @Override
-                    protected Object doInBackground() {
-                        blockGlass.block();
-                        try {
-                            // xml ファイルから StampTree 作成
-                            FileInputStream in = new FileInputStream(file);
-                            List<StampTree> userTrees;
-                            // stampBytesを含めたデータを読み込む
-                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-                                // stampBytesを含めたデータを読み込む
-                                ExtendedStampTreeBuilder builder = new ExtendedStampTreeBuilder();
-                                ExtendedStampTreeDirector director = new ExtendedStampTreeDirector(builder);
-                                userTrees = director.build(reader);
+                try {
+                    // xml ファイルから StampTree 作成
+                    FileInputStream in = new FileInputStream(file);
+                    List<StampTree> userTrees;
+                    // stampBytesを含めたデータを読み込む
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                        // stampBytesを含めたデータを読み込む
+                        ExtendedStampTreeBuilder builder = new ExtendedStampTreeBuilder();
+                        ExtendedStampTreeDirector director = new ExtendedStampTreeDirector(builder);
+                        userTrees = director.build(reader);
+                    }
+
+                    // StampTree に組み込む transfer handler を作っておく
+                    StampTreeTransferHandler transferHandler = new StampTreeTransferHandler();
+
+                    userTrees.stream().filter(stampTree -> !stampTree.getEntity().equals(IInfoModel.ENTITY_ORCA))
+                        .forEach(stampTree -> {
+                            // 読み込んだ stampTree に transfer handler などを組み込む
+                            stampTree.setUserTree(true);
+                            stampTree.setTransferHandler(transferHandler);
+                            stampTree.setStampBox(context);
+
+                            // ポップアップメニュー組込
+                            final StampTreePopupMenu popup = new StampTreePopupMenu(stampTree);
+                            stampTree.addMouseListener(new MouseAdapter() {
+                                @Override
+                                public void mousePressed(MouseEvent e) {
+                                    showPopup(e);
+                                }
+
+                                @Override
+                                public void mouseReleased(MouseEvent e) {
+                                    showPopup(e);
+                                }
+
+                                private void showPopup(MouseEvent e) {
+                                    if (e.isPopupTrigger()) {
+                                        popup.show(stampTree, e.getX(), e.getY());
+                                    }
+                                }
+                            });
+
+                            // StampTreePanel 作成
+                            StampTreePanel treePanel = new StampTreePanel(stampTree);
+
+                            // 作った StampTreePanel を該当する tab に replace
+                            String treeName = stampTree.getTreeName();
+                            int index = stampBox.indexOfTab(treeName);
+                            if (index == -1) {
+                                // 同じ名前のタブがなければ最後に加える
+                                stampBox.add(treeName, treePanel);
+                            } else {
+                                // 同じタブがあれば，replace
+                                stampBox.setComponentAt(index, treePanel);
                             }
+                        });
 
-                            // StampTree に組み込む transfer handler を作っておく
-                            StampTreeTransferHandler transferHandler = new StampTreeTransferHandler();
-
-                            userTrees.stream().filter(stampTree -> !stampTree.getEntity().equals(IInfoModel.ENTITY_ORCA))
-                                    .forEach(stampTree -> {
-                                        // 読み込んだ stampTree に transfer handler などを組み込む
-                                        stampTree.setUserTree(true);
-                                        stampTree.setTransferHandler(transferHandler);
-                                        stampTree.setStampBox(context);
-
-                                        // ポップアップメニュー組込
-                                        final StampTreePopupMenu popup = new StampTreePopupMenu(stampTree);
-                                        stampTree.addMouseListener(new MouseAdapter() {
-                                            @Override
-                                            public void mousePressed(MouseEvent e) {
-                                                showPopup(e);
-                                            }
-
-                                            @Override
-                                            public void mouseReleased(MouseEvent e) {
-                                                showPopup(e);
-                                            }
-
-                                            private void showPopup(MouseEvent e) {
-                                                if (e.isPopupTrigger()) {
-                                                    popup.show(stampTree, e.getX(), e.getY());
-                                                }
-                                            }
-                                        });
-
-                                        // StampTreePanel 作成
-                                        StampTreePanel treePanel = new StampTreePanel(stampTree);
-
-                                        // 作った StampTreePanel を該当する tab に replace
-                                        String treeName = stampTree.getTreeName();
-                                        int index = stampBox.indexOfTab(treeName);
-                                        if (index == -1) {
-                                            // 同じ名前のタブがなければ最後に加える
-                                            stampBox.add(treeName, treePanel);
-                                        } else {
-                                            // 同じタブがあれば，replace
-                                            stampBox.setComponentAt(index, treePanel);
-                                        }
-                                    });
-
-                        } catch (IOException ex) {
-                            System.out.println("StampBoxPluginExtraMenu.java: " + ex);
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        blockGlass.setText("");
-                        blockGlass.unblock();
-                    }
-                };
-                worker.execute();
+                } catch (IOException ex) {
+                    System.out.println("StampBoxPluginExtraMenu.java: " + ex);
+                }
+                return null;
             }
-        });
+
+            @Override
+            protected void done() {
+                blockGlass.setText("");
+                blockGlass.unblock();
+            }
+        };
+        worker.execute();
     }
 
     /**
