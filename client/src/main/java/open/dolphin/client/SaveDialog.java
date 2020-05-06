@@ -124,10 +124,6 @@ public class SaveDialog {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.META_DOWN_MASK), "tmpSave");
         am.put("tmpSave", new ProxyAction(tmpButton::doClick));
 
-        // ESC でキャンセル -> escape は JOptionPane で抜かれる
-        //im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-        //am.put("cancel", new ProxyAction(cancelButton::doClick));
-
         // Cmd-ESC で破棄
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, InputEvent.META_DOWN_MASK), "dispose");
         am.put("dispose", new ProxyAction(disposeButton::doClick));
@@ -296,7 +292,7 @@ public class SaveDialog {
         dialog.dispose();
     }
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException {
+    public static void main(String[] args) {
 
         JFrame f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

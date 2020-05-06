@@ -462,7 +462,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         String patientName = getPatientVisit().getPatient().getFullName() + "様";
         String note = patientName + "を開いています...";
 
-        Task task = new Task<KarteBean>(null, message, note, maxEstimation) {
+        Task<KarteBean> task = new Task<KarteBean>(null, message, note, maxEstimation) {
 
             @Override
             protected KarteBean doInBackground() {
@@ -527,6 +527,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // チャートの JFrame オブジェクトを得る
         final MainFrame frame = windowSupport.getFrame();
         frame.setName("chartFrame");
+        frame.getRootPane().putClientProperty(WindowSupport.MENUBAR_HEIGHT_OFFSET_PROP, 30);
 
         // FocusTraversalPolicy
         frame.setFocusTraversalPolicy(new FocusTraversalPolicy() {
@@ -539,7 +540,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             @Override
             public Component getComponentAfter(Container aContainer, Component aComponent) {
                 if (InspectorCategory.メモ.name().equals(aComponent.getName())) {
-                    JList list = inspector.getDiagnosisInspector().getList();
+                    JList<RegisteredDiagnosisModel> list = inspector.getDiagnosisInspector().getList();
                     if (list.getModel().getSize() == 0) {
                         // リストが空なら document history へ
                         Focuser.requestFocus(inspector.getDocumentHistory().getDocumentHistoryTable());
@@ -568,7 +569,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                     Focuser.requestFocus(memoArea);
 
                 } else if (InspectorCategory.文書履歴.name().equals(aComponent.getName())) {
-                    JList list = inspector.getDiagnosisInspector().getList();
+                    JList<RegisteredDiagnosisModel> list = inspector.getDiagnosisInspector().getList();
                     if (list.getModel().getSize() == 0) {
                         // リストが空なら document history へ
                         Focuser.requestFocus(inspector.getDocumentHistory().getDocumentHistoryTable());
@@ -1557,8 +1558,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     public void stop() {
 
         if (providers != null) {
-            for (Iterator<String> iter = providers.keySet().iterator(); iter.hasNext(); ) {
-                ChartDocument doc = providers.get(iter.next());
+            for (String s : providers.keySet()) {
+                ChartDocument doc = providers.get(s);
                 if (doc != null) {
                     doc.stop();
                 }

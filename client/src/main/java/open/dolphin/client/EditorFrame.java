@@ -107,7 +107,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     /**
      * このフレームの DocumentModel を返す.
      *
-     * @return
+     * @return DocumentModel
      */
     private DocumentModel getDocumentModel() {
         DocumentModel docModel = null;
@@ -429,6 +429,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
 
         MainFrame frame = windowSupport.getFrame();
         frame.setName("editorFrame");
+        frame.getRootPane().putClientProperty(WindowSupport.MENUBAR_HEIGHT_OFFSET_PROP, 30);
 
         // FocusTraversalPolicy
         // Stamp を cut したときに，余計なフォーカス移動が起こらないようにする

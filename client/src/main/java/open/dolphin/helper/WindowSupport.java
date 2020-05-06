@@ -30,6 +30,9 @@ public class WindowSupport implements MenuListener {
     final public static int INITIAL_DY = 48;
     final private static List<WindowSupport> allWindows = new ArrayList<>();
     private static final String WINDOW_MWNU_NAME = "ウインドウ";
+    // メニューバーの増えた分の高さをセットするプロパティ名
+    final public static String MENUBAR_HEIGHT_OFFSET_PROP = "menubar.height.offset";
+
     // Window support が提供するスタッフ
     // フレーム
     final private MainFrame frame;
