@@ -206,8 +206,8 @@ public class WaitingListImpl extends AbstractMainComponent {
         // 年齢コラム 32.10 の型式をソートできるようにする
         sorter.setComparator(AGE_COLUMN, Comparator.comparing(x -> {
             String[] age = ((String) x).split("\\.");
-            int y = Integer.valueOf(age[0]); // 歳
-            int m = Integer.valueOf(age[1]); // ヶ月
+            int y = Integer.parseInt(age[0]); // 歳
+            int m = Integer.parseInt(age[1]); // ヶ月
             return 100 * y + m;
         }));
 
@@ -372,8 +372,7 @@ public class WaitingListImpl extends AbstractMainComponent {
         boolean found = false; // 待ち患者がいるかどうか
         int continuousCount = 0;
 
-        for (int i = 0; i < pvtCount; i++) {
-            PatientVisitModel pvt = pvtList.get(i);
+        for (PatientVisitModel pvt : pvtList) {
             int state = pvt.getState();
             if (state == KarteState.CLOSE_NONE || state == KarteState.OPEN_NONE) {
                 // 診察未終了レコードをカウント, 最初に見つかった未終了レコードの時間から待ち時間を計算
@@ -424,8 +423,8 @@ public class WaitingListImpl extends AbstractMainComponent {
             getContext().getGlassPane().setText("");
             getContext().unblock();
             if (selectedIndex != null && selectedIndex.length != 0) {
-                for (int i = 0; i < selectedIndex.length; i++) {
-                    pvtTable.getSelectionModel().addSelectionInterval(selectedIndex[i], selectedIndex[i]);
+                for (int index : selectedIndex) {
+                    pvtTable.getSelectionModel().addSelectionInterval(index, index);
                 }
             }
         }
@@ -584,7 +583,8 @@ public class WaitingListImpl extends AbstractMainComponent {
         // 強制編集ボタンにショートカット登録
         ActionMap am = dialog.getRootPane().getActionMap();
         InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0), "force-edit");
+        im.put(KeyStroke.getKeyStroke("VK_E"), "force-edit");
+        im.put(KeyStroke.getKeyStroke("SPACE"), "force-edit");
         am.put("force-edit", new ProxyAction(forceEditBtn::doClick));
 
         dialog.setVisible(true);
