@@ -205,8 +205,8 @@ public class ImageHelper {
                 }
             }
 
-        } catch (IOException | RuntimeException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
         return null;
     }

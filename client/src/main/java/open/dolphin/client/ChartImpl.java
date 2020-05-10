@@ -71,8 +71,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private BlockGlass blockGlass;
     // 最新の受診歴
     private LastVisit lastVisit;
-    // 病名検索フィールド
-    private CompletableSearchField stampSearchField;
+    // 検索パネル
+    private ChartSearchPanel searchPanel;
 
     /**
      * Create new ChartImpl.
@@ -641,38 +641,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         appMenu.build(myMenuBar);
         mediator.registerActions(appMenu.getActionMap());
 
-        // 病名検索フィールド
-        stampSearchField = new CompletableSearchField(15);
-        stampSearchField.setPreferredSize(new Dimension(300, 26)); // width は JTextField の columns が優先される
-        stampSearchField.setLabel("病名検索");
-        stampSearchField.setPreferences(Preferences.userNodeForPackage(ChartToolBar.class).node(ChartImpl.class.getName()));
-        stampSearchField.addActionListener(e -> {
-            String text = stampSearchField.getText();
-            String pattern = ".*" + stampSearchField.getText() + ".*";
-
-            if (text != null && !text.equals("")) {
-                JPopupMenu popup = mediator.createDiagnosisPopup(pattern, ev -> {
-                    JComponent c = getDiagnosisDocument().getDiagnosisTable();
-                    TransferHandler handler = c.getTransferHandler();
-                    handler.importData(c, ev.getTransferable());
-                    // transfer 後にキーワードフィールドをクリアする
-                    stampSearchField.setText("");
-                });
-
-                if (popup.getComponentCount() != 0) {
-                    popup.show(stampSearchField,0, stampSearchField.getHeight());
-                }
-            }
-        });
+        // 検索フィールド
+        searchPanel = new ChartSearchPanel(this);
+        searchPanel.show(ChartSearchPanel.Card.KARTE);
 
         JPanel keywordPanel = new JPanel();
         keywordPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        keywordPanel.add(stampSearchField);
-
-        // ctrl-return でもリターンキーの notify-field-accept が発生するようにする
-        InputMap map = stampSearchField.getInputMap();
-        Object value = map.get(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-        map.put(KeyStroke.getKeyStroke("ctrl ENTER"), value);
+        keywordPanel.add(searchPanel);
 
         // Document プラグインのタブを生成する
         tabbedPane = loadDocuments();
@@ -776,12 +751,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     }
 
     /**
-     * StampSearchField を返す.
+     * ChartSearchPanel を返す.
      *
-     * @return StampSearchField
+     * @return ChartSearchPanel
      */
-    public CompletableSearchField getStampSearchField() {
-        return stampSearchField;
+    public ChartSearchPanel getChartSearchPanel() {
+        return searchPanel;
     }
 
     /**

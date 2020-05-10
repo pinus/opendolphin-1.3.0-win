@@ -12,12 +12,25 @@ import open.dolphin.impl.scheam.SchemaLayer;
 import open.dolphin.impl.scheam.ShapeHolder;
 import open.dolphin.impl.scheam.shapeholder.TextHolder;
 
+import java.awt.*;
+import java.awt.event.InputEvent;
+
 /**
  * Text 入力用の StateEditor.
  *
  * @author pns
  */
 public class TextEditor extends StateEditorBase {
+    // TextField を1回とじてからもう1回作らないと ATOK が有効にならないのの work around
+    private static Robot robot;
+    static {
+        try {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static final double TEXTFIELD_WIDTH = 100;
 
@@ -30,6 +43,8 @@ public class TextEditor extends StateEditorBase {
     private final SchemaLayer draftLayer;
     private final SchemaLayer baseLayer;
     private final TextField textField;
+    // work around 用の dummy text field
+    private final TextField dummy;
     private double startx, starty;
 
     public TextEditor(SchemaEditorImpl context) {
@@ -42,12 +57,17 @@ public class TextEditor extends StateEditorBase {
         StackPane.setAlignment(textField, Pos.TOP_LEFT);
         textField.setMaxWidth(TEXTFIELD_WIDTH);
 
+        dummy = new TextField();
+        StackPane.setAlignment(dummy, Pos.TOP_LEFT);
+        dummy.setMaxWidth(TEXTFIELD_WIDTH);
+
         textField.setOnKeyPressed(this::keyPressed);
     }
 
     @Override
     public void mouseDown(MouseEvent e) {
         if (!contentPane.getChildren().contains(textField)) {
+            contentPane.getChildren().add(dummy);
             contentPane.getChildren().add(textField);
         }
 
@@ -56,9 +76,15 @@ public class TextEditor extends StateEditorBase {
         // textField の位置は margine で設定
         Point2D p = draftLayer.localToParent(e.getX(), e.getY());
         StackPane.setMargin(textField, new Insets(p.getY(), 0, 0, p.getX()));
+        StackPane.setMargin(dummy, new Insets(p.getY(), 0, 0, p.getX()));
 
-        textField.requestFocus();
-
+        // まず dummy にフォーカスしてから textField をクリックしてフォーカスをとる
+        // こうすると最初から ATOK が有効になる
+        //textField.requestFocus();
+        dummy.requestFocus();
+        robot.mouseMove((int) e.getScreenX() + 1, (int) e.getScreenY() + 1);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
     @Override
@@ -73,6 +99,7 @@ public class TextEditor extends StateEditorBase {
     public void end() {
         if (textField != null) {
             contentPane.getChildren().remove(textField);
+            contentPane.getChildren().remove(dummy);
             textField.setText(null);
         }
     }

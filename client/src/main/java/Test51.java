@@ -35,6 +35,10 @@ public class Test51 {
 
     }
 
+    private void p(Object o) {
+        System.out.println(o);
+    }
+
     public static void main(String[] argv) {
         new Test51().start();
     }
