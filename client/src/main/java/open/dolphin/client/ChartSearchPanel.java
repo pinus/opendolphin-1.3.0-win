@@ -82,7 +82,7 @@ public class ChartSearchPanel extends JPanel {
 
         // ctrl-return でもリターンキーの notify-field-accept が発生するようにする
         InputMap map = stampSearchField.getInputMap();
-        Object value = map.get(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+        Object value = map.get(KeyStroke.getKeyStroke("ENTER"));
         map.put(KeyStroke.getKeyStroke("ctrl ENTER"), value);
     }
 

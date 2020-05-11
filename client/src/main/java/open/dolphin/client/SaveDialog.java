@@ -3,6 +3,7 @@ package open.dolphin.client;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.event.ProxyDocumentListener;
 import open.dolphin.ui.sheet.JSheet;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -117,15 +118,15 @@ public class SaveDialog {
         InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         // SPACE で CLAIM 送信のチェックボックスの ON/OFF をする
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "toggle-claim");
+        im.put(KeyStroke.getKeyStroke("SPACE"), "toggle-claim");
         am.put("toggle-claim", new ProxyAction(sendClaim::doClick));
 
         // Cmd-T で一時保存
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.META_DOWN_MASK), "tmpSave");
+        im.put(KeyStroke.getKeyStroke("meta T"), "tmpSave");
         am.put("tmpSave", new ProxyAction(tmpButton::doClick));
 
         // Cmd-ESC で破棄
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, InputEvent.META_DOWN_MASK), "dispose");
+        im.put(KeyStroke.getKeyStroke("meta ESCAPE"), "dispose");
         am.put("dispose", new ProxyAction(disposeButton::doClick));
     }
 
@@ -200,7 +201,7 @@ public class SaveDialog {
 
         // 文書タイトルを取得する
         String val = (String) titleCombo.getSelectedItem();
-        if (!val.equals("")) {
+        if (!StringUtils.isEmpty(val)) {
             value.setTitle(val);
         } else {
             value.setTitle("経過記録");
@@ -240,8 +241,10 @@ public class SaveDialog {
 
         // 文書タイトルを取得する
         String val = (String) titleCombo.getSelectedItem();
-        if (!val.equals("")) {
+        if (!StringUtils.isEmpty(val)) {
             value.setTitle(val);
+        } else {
+            value.setTitle("経過記録");
         }
 
         // Department

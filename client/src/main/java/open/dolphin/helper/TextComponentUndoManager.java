@@ -63,9 +63,9 @@ public class TextComponentUndoManager extends UndoManager {
         ActionMap am = c.getActionMap();
         InputMap im = c.getInputMap();
         am.put("undo", undoAction);
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.META_DOWN_MASK), "undo");
+        im.put(KeyStroke.getKeyStroke("meta Z"), "undo");
         am.put("redo", redoAction);
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.META_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "redo");
+        im.put(KeyStroke.getKeyStroke("shift meta Z"), "redo");
     }
 
     public void setUndoAction(Action action) {

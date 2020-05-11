@@ -583,7 +583,7 @@ public class WaitingListImpl extends AbstractMainComponent {
         // 強制編集ボタンにショートカット登録
         ActionMap am = dialog.getRootPane().getActionMap();
         InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        im.put(KeyStroke.getKeyStroke("VK_E"), "force-edit");
+        im.put(KeyStroke.getKeyStroke("E"), "force-edit");
         im.put(KeyStroke.getKeyStroke("SPACE"), "force-edit");
         am.put("force-edit", new ProxyAction(forceEditBtn::doClick));
 

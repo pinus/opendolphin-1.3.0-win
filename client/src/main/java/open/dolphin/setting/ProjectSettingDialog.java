@@ -249,7 +249,7 @@ public final class ProjectSettingDialog {
 
         // ESC でウインドウクローズ
         InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        KeyStroke key = KeyStroke.getKeyStroke("ESCAPE");
         im.put(key, "close-window");
         dialog.getRootPane().getActionMap().put("close-window", new AbstractAction() {
             private static final long serialVersionUID = 1L;

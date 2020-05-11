@@ -253,15 +253,15 @@ public class RegionView extends javax.swing.JDialog {
         InputMap im = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap am = getRootPane().getActionMap();
         // return で入力
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "input");
+        im.put(KeyStroke.getKeyStroke("ENTER"), "input");
         am.put("input", new ProxyAction(input::doClick));
 
         // ESC でキャンセル
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
         am.put("cancel", new ProxyAction(cancel::doClick));
 
         // backspace でクリア
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "clear");
+        im.put(KeyStroke.getKeyStroke("BACK_SPACE"), "clear");
         am.put("clear", new ProxyAction(clear::doClick));
 
         // default button
@@ -436,11 +436,6 @@ public class RegionView extends javax.swing.JDialog {
         head.setBorder(javax.swing.BorderFactory.createEtchedBorder(java.awt.Color.white, java.awt.Color.lightGray));
         head.setBorderPainted(true);
         head.setOpaque(true);
-        head.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                headActionPerformed(evt);
-            }
-        });
         backgroundPanel.add(head);
         head.setBounds(280, 30, 39, 22);
 
@@ -588,11 +583,6 @@ public class RegionView extends javax.swing.JDialog {
         chest.setBorder(javax.swing.BorderFactory.createEtchedBorder(java.awt.Color.white, java.awt.Color.lightGray));
         chest.setBorderPainted(true);
         chest.setOpaque(true);
-        chest.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                chestActionPerformed(evt);
-            }
-        });
         backgroundPanel.add(chest);
         chest.setBounds(90, 150, 52, 22);
 
@@ -758,7 +748,7 @@ public class RegionView extends javax.swing.JDialog {
     /**
      * ボタンの状態に応じて ClaimItem を作って返す
      *
-     * @return
+     * @return List of ClaimItem
      */
     public List<ClaimItem> getValue() {
         List<ClaimItem> list = new ArrayList<>();
@@ -786,7 +776,7 @@ public class RegionView extends javax.swing.JDialog {
     /**
      * ClaimItem にボタンに対応するコードが入っていれば，ボタンをセットする
      *
-     * @param items
+     * @param items ClaimItem[]
      */
     public void setValue(ClaimItem[] items) {
         clearAllButtons();
@@ -891,22 +881,19 @@ public class RegionView extends javax.swing.JDialog {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         // ClientContext を生成する
         ClientContextStub stub = new ClientContextStub();
         ClientContext.setClientContextStub(stub);
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        java.awt.EventQueue.invokeLater(() -> {
+            RegionView dialog = new RegionView(new JFrame(), true);
+            dialog.addWindowListener(new java.awt.event.WindowAdapter() {
 
-            public void run() {
-                RegionView dialog = new RegionView(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    System.exit(0);
+                }
+            });
+            dialog.setVisible(true);
         });
     }
 

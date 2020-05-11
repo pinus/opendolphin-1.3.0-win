@@ -226,7 +226,7 @@ public class WindowSupport implements MenuListener {
             putValue(Action.NAME, "インスペクタを整列");
             //putValue(Action.SMALL_ICON, GUIConst.ICON_WINDOWS_22);
             putValue(Action.SMALL_ICON, GUIConst.ICON_WINDOW_STACK_16);
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_UNDERSCORE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("meta UNDERSCORE"));
         }
 
         @Override
