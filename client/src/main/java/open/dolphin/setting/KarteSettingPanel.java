@@ -12,6 +12,7 @@ import open.dolphin.project.Project;
 import open.dolphin.project.ProjectStub;
 import open.dolphin.ui.ComboBoxFactory;
 import open.dolphin.ui.IMEControl;
+import open.dolphin.ui.PNSTabbedPane;
 
 import javax.swing.*;
 import java.awt.*;
@@ -567,7 +568,7 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         bg.add(save);
         bg.add(saveTmp);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+        PNSTabbedPane tabbedPane = new PNSTabbedPane();
         tabbedPane.addTab("インスペクタ", inspectorPanel);
         tabbedPane.addTab("文 書", docPanel);
         tabbedPane.addTab("スタンプ", stampPanel);
@@ -645,7 +646,7 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         String baseDir = pdfStore.getText().trim();
-        if (baseDir != null && (!baseDir.equals(""))) {
+        if (!baseDir.equals("")) {
             File f = new File(baseDir);
             chooser.setSelectedFile(f);
         }
@@ -672,11 +673,9 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         pdfDir.addActionListener(e -> choosePDFDirectory());
 
         // 選択インスペクタの重複をチェックするためのリスナを付ける
-        for (int i = 0; i < inspectorCombo.length; i++) {
-            inspectorCombo[i].addItemListener(e -> {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    checkState();
-                }
+        for (JComboBox<InspectorCategory> box : inspectorCombo) {
+            box.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) { checkState(); }
             });
         }
 
@@ -937,14 +936,9 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         model.setConfirmAtSave(!noConfirmAtSave.isSelected());
 
         // 新規カルテの作成モード
-        int cMode = 0;
-        if (emptyNew.isSelected()) {
-            cMode = 0;
-        } else if (applyRp.isSelected()) {
-            cMode = 1;
-        } else if (copyNew.isSelected()) {
-            cMode = 2;
-        }
+        int cMode = 0; // emptyNew
+        if (applyRp.isSelected()) { cMode = 1; }
+        else if (copyNew.isSelected()) { cMode = 2; }
         model.setCreateKarteMode(cMode); // 0=emptyNew, 1=applyRp, 2=copyNew
 
         // 新規カルテの配置方法

@@ -481,11 +481,7 @@ public class Dolphin implements MainWindow {
      * desktop PreferencesHandler  から呼ばれる.
      */
     public void doPreference() {
-        ProjectSettingDialog sd = new ProjectSettingDialog();
-        sd.addValidListener(this::controlService);
-        sd.setLoginState(Objects.nonNull(stateMgr)); // stateMgr nonNull ならログインしている
-        sd.setProject(null);
-        sd.start();
+        setKarteEnviroment();
     }
 
     /**

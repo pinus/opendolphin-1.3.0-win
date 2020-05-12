@@ -9,6 +9,7 @@ import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -37,7 +38,6 @@ import java.util.prefs.Preferences;
  * @author pns
  */
 public class StampBoxPlugin extends AbstractMainTool {
-
     private static final String NAME = "スタンプ箱";
 
     // frameのデフォルトの大きさ及びタイトル
@@ -90,26 +90,37 @@ public class StampBoxPlugin extends AbstractMainTool {
 
     public StampBoxPlugin() {
         setName(NAME);
-        logger = ClientContext.getBootLogger();
+        logger = Logger.getLogger(StampBoxPlugin.class);
         isMac = ClientContext.isMac();
     }
 
     /**
-     * スタンプ項目の移動がロックされているかどうか
+     * スタンプ項目の移動がロックされているかどうか.
      *
-     * @return
+     * @return true if locked
      */
     public boolean isLocked() {
         return isLocked;
     }
 
     /**
-     * スタンプ項目の移動をロックする
+     * スタンプ項目の移動ロックを設定する.
      *
-     * @param isLocked
+     * @param lock true to lock
      */
-    private void setLocked(boolean isLocked) {
-        this.isLocked = isLocked;
+    private void setLocked(boolean lock) {
+        this.isLocked = lock;
+        if (lock) {
+            frame.setTitle(getCurrentBox().getInfo());
+        } else {
+            // lock が外れていたら注意マークを出す
+            int spaces = 0;
+            if (isMac && stampBoxWidth != 0) {
+                // stamp maker が起動していたらタイトルを右の方に出す
+                spaces = (int) ((frame.getWidth() - stampBoxWidth) * 0.27f);
+            }
+            frame.setTitle(StringUtils.repeat(' ', spaces) + "⚠️" + getCurrentBox().getInfo());
+        }
     }
 
     /**
@@ -179,12 +190,11 @@ public class StampBoxPlugin extends AbstractMainTool {
      * StampTree をデータベースまたはリソースから読み込む.
      * アプリケーションの起動時に一括してコールされる.
      *
-     * @return
+     * @return Callable
      */
     @Override
     public Callable<Boolean> getStartingTask() {
-
-        Callable<Boolean> task = () -> {
+        return () -> {
             try {
                 // UserPkを取得する
                 long userPk = Project.getUserModel().getId();
@@ -239,9 +249,7 @@ public class StampBoxPlugin extends AbstractMainTool {
                         treeList.add(0, bean);
                     }
                 }
-
                 stampTreeModels = treeList;
-
                 return true;
 
             } catch (IOException e) {
@@ -249,8 +257,6 @@ public class StampBoxPlugin extends AbstractMainTool {
             }
             return false;
         };
-
-        return task;
     }
 
     /**
@@ -258,7 +264,6 @@ public class StampBoxPlugin extends AbstractMainTool {
      */
     @Override
     public void start() {
-
         if (stampTreeModels == null) {
             logger.fatal("StampTreeModel is null");
             throw new RuntimeException("Fatal error: StampTreeModel is null at start.");
@@ -308,37 +313,13 @@ public class StampBoxPlugin extends AbstractMainTool {
         glass = new BlockGlass();
         frame.setGlassPane(glass);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (editing) {
-                    toolBtn.doClick();
-                    if (!isLocked) {
-                        lockBtn.doClick();
-                    }
-
-                } else {
-                    Toolkit.getDefaultToolkit().beep();
-                }
-            }
-        });
         ComponentBoundsManager cm = new ComponentBoundsManager(frame, new Point(x, y), new Dimension(width, height), this);
         cm.revertToPreferenceBounds();
 
         //
         // 全体のボックスを生成する
         //
-        parentBox = new PNSTabbedPane() {
-            private static final long serialVersionUID = 1L;
-
-            // Insets なしのボーダーをつけるためにボーダーを書き直す
-            // StampTree での改変も必要
-            @Override
-            public void paint(Graphics g) {
-                super.paint(g);
-                paintBorder(g);
-            }
-        };
+        parentBox = new PNSTabbedPane();
         parentBox.setTabPlacement(JTabbedPane.BOTTOM);
         parentBox.setButtonPanelPadding(new Dimension(0, 4));
 
@@ -346,9 +327,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         // 読み込んだStampTreeをTabbedPaneに格納し，さらにそれをparentBoxに追加する
         //
         for (StampTreeBean model : stampTreeModels) {
-
             if (model != null) {
-
                 logger.debug("id = " + model.getId());
                 logger.debug("name = " + model.getName());
                 logger.debug("publishType = " + model.getPublishType());
@@ -415,10 +394,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         //
         // スタンプメーカを起動するためのボタンを生成する
         //
-        //toolBtn = new JToggleButton(GUIConst.ICON_PENCIL_16);
         toolBtn = new JToggleButton(GUIConst.ICON_EDIT_ALT1_16);
-        //toolBtn.setSelectedIcon(GUIConst.ICON_PENCIL_PRESSED_16);
-        //toolBtn.setPressedIcon(GUIConst.ICON_PENCIL_PRESSED_16);
         toolBtn.setSelectedIcon(GUIConst.ICON_EDIT_ALT2_16);
         toolBtn.setPressedIcon(GUIConst.ICON_EDIT_ALT2_16);
         toolBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder());
@@ -430,49 +406,25 @@ public class StampBoxPlugin extends AbstractMainTool {
             if (!editing) {
                 startStampMake();
                 editing = true;
-                if (isLocked) {
-                    lockBtn.doClick();
-                }
+                if (isLocked) { lockBtn.doClick(); }
 
             } else {
                 stopStampMake();
                 editing = false;
-                if (!isLocked) {
-                    lockBtn.doClick();
-                }
+                if (!isLocked) { lockBtn.doClick(); }
             }
         });
 
         // ロックボタンを生成する
         lockBtn = new PNSSafeToggleButton();
         lockBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-        //lockBtn.setIcon(GUIConst.ICON_LOCK_16);
         lockBtn.setIcon(GUIConst.ICON_PADLOCK_CLOSED_16);
-        //lockBtn.setSelectedIcon(GUIConst.ICON_LOCK_OPEN_16);
         lockBtn.setSelectedIcon(GUIConst.ICON_PADLOCK_OPEN_16);
         lockBtn.setToolTipText("ダブルクリックでツリー内での入れ替えのロック／解除をします");
         lockBtn.setFocusable(false);
         lockBtn.setPreferredSize(new java.awt.Dimension(16, 16));
-        lockBtn.addActionListener(e -> {
-            // 選択されていたらロック解除
-            if (lockBtn.isSelected()) {
-                setLocked(false);
-                // Insets のないボーダー
-                // このままだと paintComponent でボーダーが上書きされてしまうので，
-                // parentBox を作るときに，paint 内でボーダーを書き直すように設定する
-                parentBox.setBorder(new LineBorder(new Color(255, 0, 0, 100), 2, true) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Insets getBorderInsets(Component c) {
-                        return new Insets(0, 0, 0, 0);
-                    }
-                });
-            } else {
-                setLocked(true);
-                parentBox.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-            }
-        });
+        // lockBtn は選択されていたらロック解除
+        lockBtn.addActionListener(e -> setLocked(!lockBtn.isSelected()));
 
         // 特別メニュー(gear)ボタンを生成する
         extraBtn = new JButton();
@@ -545,11 +497,9 @@ public class StampBoxPlugin extends AbstractMainTool {
      * 選択されているIndexでボタンを制御する.
      */
     private void boxChanged() {
-
         int index = parentBox.getSelectedIndex();
         setCurrentBox((AbstractStampBox) parentBox.getComponentAt(index));
-        String info = getCurrentBox().getInfo();
-        this.getFrame().setTitle(info);
+        frame.setTitle(getCurrentBox().getInfo());
 
         if (getCurrentBox() == userBox) {
             extraMenu.setPublishEnabled(true);
@@ -571,16 +521,16 @@ public class StampBoxPlugin extends AbstractMainTool {
     private void enabledImportBox(boolean enabled) {
         int cnt = parentBox.getTabCount();
         for (int i = 0; i < cnt; i++) {
-            if ((PNSTabbedPane) parentBox.getComponentAt(i) != userBox) {
+            if (parentBox.getComponentAt(i) != userBox) {
                 parentBox.setEnabledAt(i, enabled);
             }
         }
     }
 
     /**
-     * 選択しなおして，treeSelectionListener を fire する（左矢印を出すため）
+     * 選択しなおして，treeSelectionListener を fire する.（左矢印を出すため）
      *
-     * @param tree
+     * @param tree StampTree
      */
     private void fireTreeSelectionListener(StampTree tree) {
         javax.swing.tree.TreePath tp = tree.getSelectionPath();
@@ -594,10 +544,8 @@ public class StampBoxPlugin extends AbstractMainTool {
      * スタンプメーカを起動する.
      */
     public void startStampMake() {
+        if (editing) { return; }
 
-        if (editing) {
-            return;
-        }
         // 現在の位置と大きさを保存する
         stampBoxLoc = frame.getLocation();
         stampBoxWidth = frame.getWidth();
@@ -638,7 +586,6 @@ public class StampBoxPlugin extends AbstractMainTool {
         parentBox.setMinimumSize(parentBox.getSize());
         parentBox.setPreferredSize(parentBox.getSize());
         stampMaker.setPreferredSize(new Dimension(724, 690));
-        frame.setVisible(false);
 
         // 前回終了時の位置とサイズを取得する
         Preferences prefs = Preferences.userNodeForPackage(this.getClass());
@@ -648,7 +595,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         int width = prefs.getInt(name + ".stampmMaker.width", 0);
         int height = prefs.getInt(name + ".stampmMaker.height", 0);
 
-        if (width == 0 || height == 0) {
+        if (width == 0 || height == 0 || Math.abs(stampBoxWidth - width) < 100) {
             // センタリングする
             frame.pack();
             Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -656,10 +603,13 @@ public class StampBoxPlugin extends AbstractMainTool {
             int y = (screen.height - frame.getHeight()) / 2;
             frame.setLocation(x, y);
         } else {
+            // parentBox と位置を合わせる
+            locX = stampBoxLoc.x - (width - stampBoxWidth);
+            locY = stampBoxLoc.y;
+            height = stampBoxHeight;
             frame.setBounds(locX, locY, width, height);
         }
 
-        frame.setVisible(true);
         editing = true;
         toolBtn.setToolTipText("スタンプメーカを終了します");
         extraMenu.setPublishEnabled(false);
@@ -670,10 +620,7 @@ public class StampBoxPlugin extends AbstractMainTool {
      * スタンプメーカを終了する.
      */
     public void stopStampMake() {
-
-        if (!editing) {
-            return;
-        }
+        if (!editing) { return; }
 
         // 現在の大きさと位置をPreferenceに保存ずる
         Preferences prefs = Preferences.userNodeForPackage(this.getClass());
@@ -692,15 +639,13 @@ public class StampBoxPlugin extends AbstractMainTool {
         mainPanel.add(parentBox, BorderLayout.CENTER);
 
         // サイズ固定解除（不要のようだ）
-        parentBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-        parentBox.setMinimumSize(new Dimension(0, 0));
+        //parentBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        //parentBox.setMinimumSize(new Dimension(0, 0));
 
         stampMaker = null;
         editorValueListener = null;
         userBox.setHasNoEditorEnabled(true);
-        //content.revalidate();
-        frame.setLocation(stampBoxLoc);
-        frame.setSize(new Dimension(stampBoxWidth, stampBoxHeight));
+        frame.setBounds(stampBoxLoc.x, stampBoxLoc.y, stampBoxWidth, stampBoxHeight);
         editing = false;
         toolBtn.setToolTipText("スタンプメーカを起動します");
         extraMenu.setPublishEnabled(true);
@@ -794,7 +739,6 @@ public class StampBoxPlugin extends AbstractMainTool {
 
     @Override
     public Callable<Boolean> getStoppingTask() {
-
         Preferences prefs = Preferences.userNodeForPackage(this.getClass());
         String name = (StampBoxPlugin.this).getClass().getName();
 
@@ -815,9 +759,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         // User Tree のみを保存する
         //
         List<StampTree> list = userBox.getAllTrees();
-        if (list == null || list.isEmpty()) {
-            return null;
-        }
+        if (list == null || list.isEmpty()) { return null; }
 
         //
         // ORCA セットは除く
@@ -839,15 +781,12 @@ public class StampBoxPlugin extends AbstractMainTool {
         final PersonalTreeModel treeM = (PersonalTreeModel) userBox.getStampTreeModel();
         treeM.setTreeXml(treeXml);
 
-        // StampTree を保存する Callable Object を生成する
-        Callable<Boolean> longTask = () -> {
+        // StampTree を保存する Callable Object を返す
+        return () -> {
             StampDelegater stampDel = new StampDelegater();
             stampDel.putTree(treeM);
-            boolean result = stampDel.isNoError();
-            return result;
+            return stampDel.isNoError();
         };
-
-        return longTask;
     }
 
     /**
@@ -888,7 +827,6 @@ public class StampBoxPlugin extends AbstractMainTool {
      * @return StampTreeのリスト
      */
     public List<StampTree> getAllAllPTrees() {
-
         int cnt = parentBox.getTabCount();
         List<StampTree> ret = new ArrayList<>();
 
@@ -906,7 +844,6 @@ public class StampBoxPlugin extends AbstractMainTool {
      * @return StampTreeのリスト
      */
     public List<StampTree> getAllPTrees() {
-
         AbstractStampBox stb = getCurrentBox();
         return stb.getAllPTrees();
     }
@@ -923,14 +860,11 @@ public class StampBoxPlugin extends AbstractMainTool {
     }
 
     /**
-     * TabChangeListener
      * User用StampBoxのTab切り替えリスナクラス.
      */
     private class TabChangeListener implements ChangeListener {
-
         @Override
         public void stateChanged(ChangeEvent e) {
-
             if (!editing) {
                 // スタンプメーカ起動中でない時
                 // テキストスタンプタブが選択されたらスタンプメーカボタンを disabledにする
@@ -965,11 +899,9 @@ public class StampBoxPlugin extends AbstractMainTool {
     }
 
     /**
-     * EditorValueListener.
      * エディタで作成したスタンプをStampTreeに加える.
      */
     private class EditorValueListener implements PropertyChangeListener {
-
         @Override
         public void propertyChange(PropertyChangeEvent e) {
             Object obj = e.getNewValue();

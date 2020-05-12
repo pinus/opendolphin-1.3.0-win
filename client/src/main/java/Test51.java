@@ -16,23 +16,29 @@ import java.awt.geom.AffineTransform;
 public class Test51 {
 
     private void start() {
-        JFrame f = new JFrame();
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JTextField tf = new JTextField();
-        f.getContentPane().add(tf, BorderLayout.NORTH);
-        f.setBounds(600, 0, 600, 400);
-        f.setVisible(true);
+        JOptionPane optionPane = new JOptionPane();
+        JDialog dialog = optionPane.createDialog("dialog");
 
-        JWindow w = new JWindow(f);
-        JTextField tf2 = new JTextField() ;
-        tf2.enableInputMethods(true);
-        w.setAlwaysOnTop(true);
-        w.getContentPane().add(tf2, BorderLayout.CENTER);
-        w.setBounds(620, 80, 560, 30);
+        showComp(dialog.getContentPane());
+
+        JWindow w = new JWindow();
+        w.setBackground(new Color(0,0,0,0));
+        w.getRootPane().setOpaque(false);
+        w.add(dialog.getContentPane(), BorderLayout.CENTER);
+        w.pack();
+        w.setLocation(1000,500);
         w.setVisible(true);
+    }
 
-
-
+    private void showComp(Component component) {
+        p(component);
+        if (component instanceof JComponent) {
+            for (Component c : ((JComponent)component).getComponents()) {
+                p("parent: " + component);
+                ((JComponent)component).setOpaque(false);
+                showComp(c);
+            }
+        }
     }
 
     private void p(Object o) {

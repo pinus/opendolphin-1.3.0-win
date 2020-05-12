@@ -3,6 +3,7 @@ package open.dolphin.ui;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 
+import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -52,7 +53,9 @@ public class PNSTitledBorder extends AbstractBorder {
 
         fontHeight = DEFAULT_FONT_HEIGHT;
 
-        contentBorder = new PNSImageBevelBorder(GUIConst.ICON_BORDER_GROUPBOX_18, new Insets(7, 7, 7, 7), borderInsets);
+        //contentBorder = new PNSImageBevelBorder(GUIConst.ICON_BORDER_GROUPBOX_18, new Insets(7, 7, 7, 7), borderInsets);
+        // Flat design
+        contentBorder = BorderFactory.createLineBorder(Color.LIGHT_GRAY);
     }
 
     @Override
