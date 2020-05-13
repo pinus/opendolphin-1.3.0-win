@@ -16,8 +16,7 @@
   <jre>
     <path>c:\Applications\jre1.8.0_251</path>
     <minVersion>1.8.0</minVersion>
-    <maxVersion></maxVersion>
-    <jdkPreference>preferJre</jdkPreference>
+    <maxVersion></maxVersion><jdkPreference>preferJre</jdkPreference>
     <opt>-Dfile.encoding=UTF8</opt>
   </jre>
 </launch4jConfig>
