@@ -1,6 +1,6 @@
 package open.dolphin;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.inject.Inject;
 import javax.websocket.*;

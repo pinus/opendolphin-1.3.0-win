@@ -14,7 +14,8 @@ import open.dolphin.project.Project;
 import open.dolphin.ui.IndentTableCellRenderer;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -45,7 +46,7 @@ public class PhysicalInspector implements IInspector {
      */
     public PhysicalInspector(PatientInspector parent) {
         context = parent.getContext();
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(PhysicalInspector.class);
         initComponents();
     }
 
@@ -244,7 +245,7 @@ public class PhysicalInspector implements IInspector {
             return;
         }
 
-        DBTask task = new DBTask<List<Long>>(context) {
+        DBTask<List<Long>> task = new DBTask<List<Long>>(context) {
 
             @Override
             protected List<Long> doInBackground() {
@@ -299,7 +300,7 @@ public class PhysicalInspector implements IInspector {
             list.add(model.getWeightId());
         }
 
-        DBTask task = new DBTask<Void>(context) {
+        DBTask<Void> task = new DBTask<Void>(context) {
 
             @Override
             protected Void doInBackground() {

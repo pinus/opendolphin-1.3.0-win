@@ -13,7 +13,8 @@ import open.dolphin.project.Project;
 import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.DateUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -84,7 +85,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     // 初期状態の病名リストを保存しておく（undoの際，保存している状態に戻ったかどうか判定して controlUpdate を制御する）
     private final List<DiagnosisLiteModel> initialDiagnosis = new ArrayList<>();
     // Logger
-    private final Logger logger = Logger.getLogger(DiagnosisDocument.class);
+    private final Logger logger = LoggerFactory.getLogger(DiagnosisDocument.class);
     private JButton addButton;                  // 新規病名エディタボタン
     private JButton updateButton;               // 既存傷病名の転帰等の更新ボタン
     private JButton deleteButton;               // 既存傷病名の削除ボタン

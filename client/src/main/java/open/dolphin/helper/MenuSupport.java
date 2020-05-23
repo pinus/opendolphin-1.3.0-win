@@ -1,6 +1,7 @@
 package open.dolphin.helper;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
 public class MenuSupport implements MenuListener {
 
     private final Object[] chains = new Object[4];
-    private final Logger logger = Logger.getLogger(MenuSupport.class);
+    private final Logger logger = LoggerFactory.getLogger(MenuSupport.class);
     private ActionMap actions;
 
     public MenuSupport(Object owner) {

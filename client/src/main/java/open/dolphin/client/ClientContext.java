@@ -4,7 +4,6 @@ import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.DiagnosisCategoryModel;
 import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
-import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,34 +30,6 @@ public class ClientContext {
 
     public static ClassLoader getPluginClassLoader() {
         return stub.getPluginClassLoader();
-    }
-
-    public static Logger getBootLogger() {
-        return stub.getBootLogger();
-    }
-
-    public static Logger getPart11Logger() {
-        return stub.getPart11Logger();
-    }
-
-    public static Logger getClaimLogger() {
-        return stub.getClaimLogger();
-    }
-
-    public static Logger getMmlLogger() {
-        return stub.getMmlLogger();
-    }
-
-    public static Logger getPvtLogger() {
-        return stub.getPvtLogger();
-    }
-
-    public static Logger getDelegaterLogger() {
-        return stub.getDelegaterLogger();
-    }
-
-    public static Logger getLaboTestLogger() {
-        return stub.getLaboTestLogger();
     }
 
     public static boolean isMac() { return stub.isMac(); }
@@ -187,9 +158,7 @@ public class ClientContext {
         return stub.getDimension(name);
     }
 
-    public static Class[] getClassArray(String name) {
-        return stub.getClassArray(name);
-    }
+    public static Class[] getClassArray(String name) { return stub.getClassArray(name); }
 
     public static HashMap<String, Color> getEventColorTable() {
         return stub.getEventColorTable();

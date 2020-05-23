@@ -2,9 +2,9 @@ package open.dolphin.client;
 
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.project.Project;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -33,11 +33,11 @@ public class LastVisit {
     // lastVisit の時間情報
     private LocalTime lastVisitTime = null;
     // ロガー
-    private Logger logger = Logger.getLogger(LastVisit.class);
+    private Logger logger = LoggerFactory.getLogger(LastVisit.class);
 
     public LastVisit(Chart context) {
         this.context = context;
-        logger.setLevel(Level.INFO);
+        //((ch.qos.logback.classic.Logger)logger).setLevel(ch.qos.logback.classic.Level.INFO);
     }
 
     /**

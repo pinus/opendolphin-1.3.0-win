@@ -2,7 +2,6 @@ package open.dolphin.client;
 
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +26,6 @@ public abstract class AbstractChartDocument implements ChartDocument {
             GUIConst.ACTION_CUT, GUIConst.ACTION_COPY, GUIConst.ACTION_PASTE, GUIConst.ACTION_UNDO, GUIConst.ACTION_REDO,
             GUIConst.ACTION_FIND_FIRST, GUIConst.ACTION_FIND_NEXT, GUIConst.ACTION_FIND_PREVIOUS, GUIConst.ACTION_SEND_CLAIM
     };
-    private final Logger logger = Logger.getLogger(AbstractChartDocument.class);
     /**
      * この ChartDocument を保持する Chart.
      */

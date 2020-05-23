@@ -2,7 +2,7 @@ package open.dolphin.orca.pushapi;
 
 import open.dolphin.JsonConverter;
 import open.dolphin.orca.pushapi.bean.Response;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.websocket.*;
 

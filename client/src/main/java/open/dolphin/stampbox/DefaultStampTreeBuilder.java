@@ -2,7 +2,7 @@ package open.dolphin.stampbox;
 
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -49,7 +49,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     /**
      * Logger
      */
-    private Logger logger;  // = ClientContext.getLogger("boot");
+    private Logger logger;
 
     public DefaultStampTreeBuilder() {
     }
@@ -124,7 +124,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
      * StampInfo を UserObject にするノードを生成する.
      *
      * @param name     ノード名
-     * @param role
+     * @param role     role
      * @param entity   エンティティ
      * @param editable 編集可能かどうかのフラグ
      * @param memo     メモ
@@ -139,19 +139,8 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
                                String id) {
 
         if (logger != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(name);
-            sb.append(",");
-            sb.append(role);
-            sb.append(",");
-            sb.append(entity);
-            sb.append(",");
-            sb.append(editable);
-            sb.append(",");
-            sb.append(memo);
-            sb.append(",");
-            sb.append(id);
-            logger.debug(sb.toString());
+            String sb = name + "," + role + "," + entity + "," + editable + "," + memo + "," + id;
+            logger.debug(sb);
         }
 
         // StampInfo を生成する
@@ -160,7 +149,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         info.setStampRole(role);
         info.setEntity(entity);
         if (editable != null) {
-            info.setEditable(Boolean.valueOf(editable));
+            info.setEditable(Boolean.parseBoolean(editable));
         }
         if (memo != null) {
             info.setStampMemo(toXmlText(memo));

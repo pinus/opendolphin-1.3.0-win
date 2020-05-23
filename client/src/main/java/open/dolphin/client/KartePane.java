@@ -13,7 +13,8 @@ import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -58,7 +59,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     private final TextComponentUndoManager undoManager;
     private final UndoableEditListener undoListener;
     // ロガー
-    private final Logger logger = Logger.getLogger(KartePane.class);
+    private final Logger logger = LoggerFactory.getLogger(KartePane.class);
     private State curState;
     // JTextPane
     private JTextPane textPane;

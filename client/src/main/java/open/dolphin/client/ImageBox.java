@@ -7,7 +7,8 @@ import open.dolphin.helper.WindowSupport;
 import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.MainFrame;
 import open.dolphin.ui.PNSTabbedPane;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,7 +52,7 @@ public class ImageBox extends AbstractMainTool {
 
     @Override
     public void start() {
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(ImageBox.class);
         isMac = ClientContext.isMac();
 
         initComponent();
@@ -96,10 +97,10 @@ public class ImageBox extends AbstractMainTool {
         String message = "シェーマ画像";
         Component c = null;
 
-        Task task = new Task<Void>(c, message, PROGRESS_NOTE, MAX_ESTIMATION) {
+        Task<Void> task = new Task<Void>(c, message, PROGRESS_NOTE, MAX_ESTIMATION) {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 createImagePalettes();
                 return null;
             }
@@ -123,10 +124,10 @@ public class ImageBox extends AbstractMainTool {
         Component c = this.getFrame();
         String note = "画像リストを更新しています";
 
-        Task task = new Task<Void>(c, message, note, MAX_ESTIMATION) {
+        Task<Void> task = new Task<Void>(c, message, note, MAX_ESTIMATION) {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 imageTable.refresh();
                 return null;
             }
@@ -231,8 +232,7 @@ public class ImageBox extends AbstractMainTool {
 
     private File[] listDirectories(File dir) {
         DirectoryFilter filter = new DirectoryFilter();
-        File[] directories = dir.listFiles(filter);
-        return directories;
+        return dir.listFiles(filter);
     }
 
     public void processWindowClosing() {

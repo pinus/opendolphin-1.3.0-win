@@ -9,7 +9,8 @@ import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.DateUtils;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -56,7 +57,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
     // dirty フラグ
     private boolean dirty;
     // Logger
-    private final Logger logger = ClientContext.getBootLogger();
+    private final Logger logger = LoggerFactory.getLogger(KarteEditor.class);
 
     public KarteEditor() {
         init();
@@ -819,7 +820,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
      * EditorFrame で編集中の場合はここが呼ばれる.
      */
     public void sendClaim() {
-        logger.fatal("sendClaim() in KarteEditor called.");
+        logger.error("sendClaim() in KarteEditor called.");
         /*
         ToDO Edit 中の内容が送られるようにしたい
         */

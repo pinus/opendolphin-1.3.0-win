@@ -4,10 +4,10 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.search.MassIndexer;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
+import org.jboss.logging.Logger;
 
 import javax.ejb.Stateless;
 import java.util.Calendar;

@@ -6,7 +6,7 @@ import open.dolphin.dto.PatientVisitSpec;
 import open.dolphin.dto.PvtStateSpec;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.ejb.Stateless;
 import javax.persistence.NoResultException;

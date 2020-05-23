@@ -10,15 +10,13 @@ import open.dolphin.project.Project;
 import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -90,7 +88,7 @@ public class StampBoxPlugin extends AbstractMainTool {
 
     public StampBoxPlugin() {
         setName(NAME);
-        logger = Logger.getLogger(StampBoxPlugin.class);
+        logger = LoggerFactory.getLogger(StampBoxPlugin.class);
         isMac = ClientContext.isMac();
     }
 
@@ -203,7 +201,7 @@ public class StampBoxPlugin extends AbstractMainTool {
                 StampDelegater stampDel = new StampDelegater();
                 List<StampTreeBean> treeList = stampDel.getTrees(userPk);
                 if (!stampDel.isNoError()) {
-                    logger.fatal("Could't read the stamp tree");
+                    logger.error("Could't read the stamp tree");
                     return false;
                 }
                 logger.info("Read the user's tree successfully");
@@ -253,7 +251,7 @@ public class StampBoxPlugin extends AbstractMainTool {
                 return true;
 
             } catch (IOException e) {
-                logger.fatal(e.getMessage());
+                logger.error(e.getMessage());
             }
             return false;
         };
@@ -265,7 +263,7 @@ public class StampBoxPlugin extends AbstractMainTool {
     @Override
     public void start() {
         if (stampTreeModels == null) {
-            logger.fatal("StampTreeModel is null");
+            logger.error("StampTreeModel is null");
             throw new RuntimeException("Fatal error: StampTreeModel is null at start.");
         }
 

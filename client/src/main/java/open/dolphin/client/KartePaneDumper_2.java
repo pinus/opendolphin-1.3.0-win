@@ -2,7 +2,8 @@ package open.dolphin.client;
 
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.SchemaModel;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.text.*;
 import java.awt.*;
@@ -31,7 +32,7 @@ public class KartePaneDumper_2 {
     private String spec;
 
     public KartePaneDumper_2() {
-        logger = Logger.getLogger(KartePaneDumper_2.class);
+        logger = LoggerFactory.getLogger(KartePaneDumper_2.class);
     }
 
     /**
@@ -47,7 +48,7 @@ public class KartePaneDumper_2 {
     /**
      * ダンプした Document に含まれている ModuleModel を返す.
      *
-     * @return
+     * @return List of ModuleModel
      */
     public List<ModuleModel> getModule() {
         return Collections.unmodifiableList(moduleList);
@@ -56,7 +57,7 @@ public class KartePaneDumper_2 {
     /**
      * ダンプした Documentに含まれている SchemaModel を返す.
      *
-     * @return
+     * @return List of SchemaModel
      */
     public List<SchemaModel> getSchema() {
         return Collections.unmodifiableList(schemaList);
@@ -92,8 +93,8 @@ public class KartePaneDumper_2 {
      *
      * @param element 要素
      * @param writer  出力ライター
-     * @throws IOException
-     * @throws BadLocationException
+     * @throws IOException IOException
+     * @throws BadLocationException BadLocationException
      */
     private void writeElemnt(Element element, Writer writer) throws IOException, BadLocationException {
 
@@ -139,13 +140,8 @@ public class KartePaneDumper_2 {
                     if (nextName.toString().equals("foreground")) {
                         Color c = (Color) atts.getAttribute(StyleConstants.Foreground);
                         logger.debug("color = " + c.toString());
-                        StringBuilder buf = new StringBuilder();
-                        buf.append(c.getRed());
-                        buf.append(",");
-                        buf.append(c.getGreen());
-                        buf.append(",");
-                        buf.append(c.getBlue());
-                        retBuffer.append(addQuote(buf.toString()));
+                        String buf = c.getRed() + "," + c.getGreen() + "," + c.getBlue();
+                        retBuffer.append(addQuote(buf));
 
                     } else {
                         // 属性セットから名前をキーにして属性オブジェクトを取得する

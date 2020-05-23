@@ -2,7 +2,7 @@ package open.dolphin.orca;
 
 import open.dolphin.JsonConverter;
 import open.dolphin.orca.orcaapi.OrcaApiUrl;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.ejb.Singleton;
 import javax.ejb.Startup;

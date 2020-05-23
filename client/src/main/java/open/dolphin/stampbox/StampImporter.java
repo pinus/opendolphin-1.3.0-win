@@ -13,7 +13,8 @@ import open.dolphin.infomodel.SubscribedTreeModel;
 import open.dolphin.project.Project;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSScrollPane;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -59,7 +60,7 @@ public class StampImporter {
     public StampImporter(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
         importedTreeList = stampBox.getImportedTreeList();
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(StampImporter.class);
     }
 
     /**
@@ -75,7 +76,7 @@ public class StampImporter {
         String message = "スタンプ取り込み";
         Component c = null;
 
-        Task task = new Task<List<PublishedTreeModel>>(c, message, mmsg, maxEstimation) {
+        Task<List<PublishedTreeModel>> task = new Task<List<PublishedTreeModel>>(c, message, mmsg, maxEstimation) {
 
             @Override
             protected List<PublishedTreeModel> doInBackground() {
@@ -261,7 +262,7 @@ public class StampImporter {
         String message = "スタンプ取り込み";
         Component c = frame;
 
-        Task task = new Task<Boolean>(c, message, mmsg, maxEstimation) {
+        Task<Boolean> task = new Task<Boolean>(c, message, mmsg, maxEstimation) {
 
             @Override
             protected Boolean doInBackground() {
@@ -316,7 +317,7 @@ public class StampImporter {
         String message = "スタンプ取り込み";
         Component c = frame;
 
-        Task task = new Task<Boolean>(c, message, mmsg, maxEstimation) {
+        Task<Boolean> task = new Task<Boolean>(c, message, mmsg, maxEstimation) {
 
             @Override
             protected Boolean doInBackground() {

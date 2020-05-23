@@ -5,7 +5,8 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
 import open.dolphin.stampbox.*;
 import open.dolphin.ui.Focuser;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -51,7 +52,7 @@ public final class ChartMediator extends MenuSupport {
     public ChartMediator(Chart owner) {
         super(owner);
 
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(ChartMediator.class);
         chart = owner;
 
         KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
@@ -375,7 +376,7 @@ public final class ChartMediator extends MenuSupport {
             // 直近でフォーカスを得ているコンポーネント(JTextPan）へ挿入する
             //
             JComponent comp = getCurrentComponent();
-            if (comp == null && kartePane != null) {
+            if (comp == null) {
                 comp = kartePane.getTextPane();
             }
             if (comp != null) {
@@ -421,7 +422,7 @@ public final class ChartMediator extends MenuSupport {
 
             } else {
                 JComponent comp = getCurrentComponent();
-                if (comp == null && kartePane != null) {
+                if (comp == null) {
                     comp = kartePane.getTextPane();
                 }
                 if (comp != null) {
@@ -461,7 +462,7 @@ public final class ChartMediator extends MenuSupport {
             myMenu = new JMenu(stampTree.getTreeName());
             myMenu.setEnabled(false);
 
-        } else if (kartePane != null) {
+        } else {
             // StampTree，JTextPane，Handler からメニューを構築する
             StampTreeMenuBuilder builder = new StampTreeMenuBuilder(stampTree);
             builder.addStampTreeMenuListener(new DefaultStampTreeMenuListener(kartePane.getTextPane()));

@@ -50,7 +50,7 @@ class LaboTestFileTransferHandler extends TransferHandler {
                 List<File> files = (List<File>) t.getTransferData(fileFlavor);
                 List<File> xmlFiles = new ArrayList<>(files.size());
 
-                files.stream().filter(file -> !file.isDirectory() && file.getName().endsWith(".xml")).forEach(file -> xmlFiles.add(file));
+                files.stream().filter(file -> !file.isDirectory() && file.getName().endsWith(".xml")).forEach(xmlFiles::add);
                 if (!xmlFiles.isEmpty()) {
                     addFiles(xmlFiles);
                 }
@@ -118,7 +118,6 @@ class LaboTestFileTransferHandler extends TransferHandler {
                     SwingUtilities.invokeLater(() -> context.getProgressBar().setIndeterminate(true));
 
                     LaboModuleBuilder builder = new LaboModuleBuilder();
-                    builder.setLogger(ClientContext.getLaboTestLogger());
                     builder.setEncoding(ClientContext.getString("laboTestImport.mmlFile.encoding")); // UTF-8
                     builder.setLaboDelegater(new LaboDelegater());
 

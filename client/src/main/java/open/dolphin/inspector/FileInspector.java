@@ -7,7 +7,8 @@ import open.dolphin.event.BadgeListener;
 import open.dolphin.helper.ScriptExecutor;
 import open.dolphin.helper.StringTool;
 import open.dolphin.ui.PNSScrollPane;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +45,7 @@ public class FileInspector implements IInspector {
      */
     public FileInspector(PatientInspector parent) {
         context = parent.getContext();
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(FileInspector.class);
         initComponents();
     }
 

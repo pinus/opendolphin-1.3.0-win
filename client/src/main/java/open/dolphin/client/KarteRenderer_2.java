@@ -4,11 +4,12 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ProgressCourse;
-import org.apache.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.MutableAttributeSet;
@@ -99,7 +100,7 @@ public class KarteRenderer_2 {
     public KarteRenderer_2(KartePane soaPane, KartePane pPane) {
         this.soaPane = soaPane;
         this.pPane = pPane;
-        logger = Logger.getLogger(KarteRenderer_2.class);
+        logger = LoggerFactory.getLogger(KarteRenderer_2.class);
     }
 
     /**
@@ -354,17 +355,17 @@ public class KarteRenderer_2 {
 
         // bold 属性を設定する
         if (bold != null) {
-            StyleConstants.setBold(atts, Boolean.valueOf(bold));
+            StyleConstants.setBold(atts, Boolean.parseBoolean(bold));
         }
 
         // italic 属性を設定する
         if (italic != null) {
-            StyleConstants.setItalic(atts, Boolean.valueOf(italic));
+            StyleConstants.setItalic(atts, Boolean.parseBoolean(italic));
         }
 
         // underline 属性を設定する
         if (underline != null) {
-            StyleConstants.setUnderline(atts, Boolean.valueOf(underline));
+            StyleConstants.setUnderline(atts, Boolean.parseBoolean(underline));
         }
 
         // テキストを挿入する

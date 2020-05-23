@@ -17,7 +17,8 @@ import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.ModelUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -42,8 +43,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private static final List<ChartImpl> allCharts = new ArrayList<>(3);
     // PvtChangeListener
     private static PvtListener pvtListener;
-    // getDiagnosisDocument() に loadDocuments() が終わったことを知らせる lock オブジェクト
-    public final boolean[] loadDocumentsDone = {false};
+    // getDiagnosisDocument() が loadDocuments() の終了を待つための SecondaryLoop
+    private SecondaryLoop secondaryLoop;
     // Logger
     private final Logger logger;
     private final Preferences prefs;
@@ -78,7 +79,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      * Create new ChartImpl.
      */
     public ChartImpl() {
-        logger = Logger.getLogger(ChartImpl.class);
+        logger = LoggerFactory.getLogger(ChartImpl.class);
         prefs = Project.getPreferences();
     }
 
@@ -803,29 +804,32 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         tab.addChangeListener(this::tabChanged);
 
         // getDiagnosisDocument() に loadDocuments が終わったことを通知する
-        synchronized (loadDocumentsDone) {
-            loadDocumentsDone[0] = true;
-            loadDocumentsDone.notify();
+        if (Objects.nonNull(secondaryLoop)) {
+            logger.debug("exit secondary loop");
+            secondaryLoop.exit();
+            secondaryLoop = null;
         }
+
         return tab;
     }
 
     /**
      * ChartImpl から DiagnosisDocument を取る.
-     * loadDocuments() が完了するまで synchronized で堰き止める.
      * DiangosisInspector, DiagnosisInspectorTransferHandler, UserStampBox から呼ばれる.
      * DiagnosisInspector は loadDocuments() が完了する前に呼びに来る.
      *
      * @return DiagnosisDocument
      */
     public DiagnosisDocument getDiagnosisDocument() {
-        // loadDocuments されて，providers がセットされるまで待つ
-        synchronized (loadDocumentsDone) {
-            if (!loadDocumentsDone[0]) {
-                try {
-                    loadDocumentsDone.wait();
-                } catch (InterruptedException e) {
-                }
+        // DiagnosisDocument が load されるまで SecondaryLoop で堰き止める
+        if (Objects.isNull(providers)) {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            EventQueue eq = tk.getSystemEventQueue();
+            secondaryLoop = eq.createSecondaryLoop();
+            logger.debug("enter secondary loop");
+            if (!secondaryLoop.enter()) {
+                secondaryLoop = null;
+                throw new RuntimeException("Could not enter secondary loop.");
             }
         }
 

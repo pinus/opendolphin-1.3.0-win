@@ -2,8 +2,6 @@ package open.dolphin.ui;
 
 import com.alderstone.multitouch.mac.touchpad.Finger;
 import com.alderstone.multitouch.mac.touchpad.FingerState;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.util.Observable;
@@ -30,11 +28,7 @@ public class TouchpadTest implements Observer {
     private static float xVelocity;
     private static float yVelocity;
 
-    private static Logger logger;
-
     private TouchpadTest() {
-        logger = Logger.getLogger(TouchpadTest.class);
-        logger.setLevel(Level.DEBUG);
     }
 
     /**

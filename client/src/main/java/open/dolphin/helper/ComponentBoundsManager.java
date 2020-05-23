@@ -1,7 +1,8 @@
 package open.dolphin.helper;
 
 import open.dolphin.client.ClientContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.event.ComponentListener;
@@ -41,7 +42,7 @@ public class ComponentBoundsManager implements ComponentListener {
         component.setSize(defaultSize);
 
         connect(component);
-        logger = Logger.getRootLogger();
+        logger = LoggerFactory.getLogger(ComponentBoundsManager.class);
     }
 
     private void connect(Component c) {

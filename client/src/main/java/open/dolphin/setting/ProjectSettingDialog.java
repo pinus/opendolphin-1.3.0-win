@@ -3,7 +3,8 @@ package open.dolphin.setting;
 import open.dolphin.client.ClientContext;
 import open.dolphin.event.ValidListener;
 import open.dolphin.project.Project;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,7 +43,7 @@ public final class ProjectSettingDialog {
     private ValidListener validListener;
 
     public ProjectSettingDialog() {
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(ProjectSettingDialog.class);
     }
 
     public ProjectSettingDialog(Window f) {

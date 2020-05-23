@@ -1,6 +1,7 @@
 package open.dolphin.delegater;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 
@@ -24,7 +25,7 @@ public class BusinessDelegater<T> {
         } catch (ClassNotFoundException e) {
             processError(e);
         }
-        logger = Logger.getLogger(target);
+        logger = LoggerFactory.getLogger(target);
     }
 
     public T getService() {

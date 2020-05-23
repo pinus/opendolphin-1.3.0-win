@@ -1,17 +1,17 @@
 package open.dolphin.impl.labrcv;
 
-import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.helper.GUIDGenerator;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -65,10 +65,7 @@ public class LaboModuleBuilder {
     private Logger logger;
 
     public LaboModuleBuilder() {
-    }
-
-    public void setLogger(Logger l) {
-        this.logger = l;
+        logger = LoggerFactory.getLogger(LaboModuleBuilder.class);
     }
 
     public String getEncoding() {
@@ -100,13 +97,7 @@ public class LaboModuleBuilder {
      */
     public List<LaboModuleValue> build(File file) {
 
-        if (logger == null) {
-            setLogger(ClientContext.getLaboTestLogger());
-        }
-
-        if (file == null) {
-            return null;
-        }
+        if (file == null) { return null; }
 
         try {
             String name = file.getName();
@@ -127,16 +118,11 @@ public class LaboModuleBuilder {
      * MML検査結果ファイルをパースする.
      *
      * @param files MML検査結果ファイルの配列
-     * @return
+     * @return list of LaboImportSummary
      */
     public List<LaboImportSummary> build(List<File> files) {
 
-        if (logger == null) {
-            setLogger(ClientContext.getLaboTestLogger());
-        }
-
-        List<File> parseFiles = files;
-        if (parseFiles == null || parseFiles.isEmpty()) {
+        if (files == null || files.isEmpty()) {
             logger.warn("パースするファイルがありません");
             return null;
         }
@@ -156,7 +142,7 @@ public class LaboModuleBuilder {
         List<LaboImportSummary> ret = new ArrayList<>(files.size());
 
         // ファイルをイテレートする
-        for (File file : parseFiles) {
+        for (File file : files) {
 
             try {
                 // ファイル名を出力する
@@ -220,8 +206,8 @@ public class LaboModuleBuilder {
     /**
      * 入力ストリームの検査結果をパースする.
      *
-     * @param reader
-     * @throws java.io.IOException
+     * @param reader BufferedReader
+     * @throws java.io.IOException IOException
      */
     public void parse(BufferedReader reader) throws IOException, JDOMException {
 

@@ -1,12 +1,12 @@
 package open.dolphin.impl.psearch;
 
-import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.PatientDelegater;
 import open.dolphin.dto.PatientSearchSpec;
 import open.dolphin.helper.Task;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.ui.ObjectReflectTableModel;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -24,17 +24,16 @@ class FindTask extends Task<Collection> {
     private final PatientSearchPanel view;
     private final ObjectReflectTableModel<PatientModel> tableModel;
     private final PatientSearchSpec spec;
-    private final Logger logger = ClientContext.getBootLogger();
+    private final Logger logger = LoggerFactory.getLogger(FindTask.class);
     private List<PatientModel> result;
 
     /**
      * メモ検索 or 全文検索のコンストラクタ
      *
-     * @param view
-     * @param message
-     * @param note
-     * @param searchText
-     * @param option
+     * @param view PatientSearchPanel
+     * @param message message
+     * @param note note
+     * @param spec patient search spec
      */
     @SuppressWarnings("unchecked")
     public FindTask(PatientSearchPanel view, Object message, String note, PatientSearchSpec spec) {
@@ -45,7 +44,7 @@ class FindTask extends Task<Collection> {
     }
 
     @Override
-    protected Collection doInBackground() throws Exception {
+    protected Collection doInBackground() {
         logger.debug("FindTask doInBackground");
 
         // auto narrowing search

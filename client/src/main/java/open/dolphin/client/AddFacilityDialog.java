@@ -6,10 +6,11 @@ import open.dolphin.helper.Task;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
 import open.dolphin.service.SystemService;
-import org.apache.log4j.Logger;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.*;
@@ -51,7 +52,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     public AddFacilityDialog() {
         super((Frame) null, null, true);
         setIconImage(GUIConst.ICON_DOLPHIN.getImage());
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(AddFacilityDialog.class);
         boundSupport = new PropertyChangeSupport(this);
     }
 
@@ -317,8 +318,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     private class AgreementListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent e) {
-            boolean agree = (boolean) e.getNewValue();
-            agreementOk = agree;
+            agreementOk = (boolean) e.getNewValue();
             controlButton();
         }
     }
@@ -336,7 +336,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         }
 
         @Override
-        protected Void doInBackground() throws Exception {
+        protected Void doInBackground() {
 
             // Resteasy
             ResteasyClient client = new ResteasyClientBuilder().build();
@@ -359,19 +359,15 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
             okBtn.setEnabled(false);
 
             // 成功メッセージを表示する
-            StringBuilder sb = new StringBuilder();
-            sb.append(ClientContext.getString("account.task.successMsg1"));
-            sb.append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg2"));
-            sb.append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg3"));
-            sb.append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg4"));
+            String message = ClientContext.getString("account.task.successMsg1") + "\n" +
+                ClientContext.getString("account.task.successMsg2") + "\n" +
+                ClientContext.getString("account.task.successMsg3") + "\n" +
+                ClientContext.getString("account.task.successMsg4");
             JOptionPane.showMessageDialog(
-                    AddFacilityDialog.this,
-                    sb.toString(),
-                    AddFacilityDialog.this.getTitle(),
-                    JOptionPane.INFORMATION_MESSAGE);
+                AddFacilityDialog.this,
+                message,
+                AddFacilityDialog.this.getTitle(),
+                JOptionPane.INFORMATION_MESSAGE);
 
             // サーバアカウント情報を通知する
             ServerInfo info = new ServerInfo();
@@ -392,43 +388,26 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
             String errMsg = null;
 
             if (cause instanceof javax.ejb.EJBAccessException) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("システム設定エラー");
-                sb.append("\n");
-                sb.append(appendExceptionInfo(cause));
-                errMsg = sb.toString();
+                errMsg = "システム設定エラー\n" +
+                    appendExceptionInfo(cause);
 
             } else if (cause instanceof javax.naming.CommunicationException) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("ASPサーバに接続できません。");
-                sb.append("\n");
-                sb.append("ファイヤーウォール等がサービスを利用できない設定になっている可能性があります。");
-                sb.append("\n");
-                sb.append(appendExceptionInfo(cause));
-                errMsg = sb.toString();
+                errMsg = "ASPサーバに接続できません。\n" +
+                    "ファイヤーウォール等がサービスを利用できない設定になっている可能性があります。\n" +
+                    appendExceptionInfo(cause);
 
             } else if (cause instanceof javax.naming.NamingException) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("アプリケーションエラー");
-                sb.append("\n");
-                sb.append(appendExceptionInfo(cause));
-                errMsg = sb.toString();
+                errMsg = "アプリケーションエラー\n" +
+                    appendExceptionInfo(cause);
 
             } else if (cause instanceof LoginException) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("セキュリティエラーが生じました。");
-                sb.append("\n");
-                sb.append("クライアントの環境が実行を許可されない設定になっている可能性があります。");
-                sb.append("\n");
-                sb.append(appendExceptionInfo(cause));
-                errMsg = sb.toString();
+                errMsg = "セキュリティエラーが生じました。\n" +
+                    "クライアントの環境が実行を許可されない設定になっている可能性があります。\n" +
+                    appendExceptionInfo(cause);
 
             } else if (cause instanceof Exception) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("予期しないエラー");
-                sb.append("\n");
-                sb.append(appendExceptionInfo(cause));
-                errMsg = sb.toString();
+                errMsg = "予期しないエラー\n" +
+                    appendExceptionInfo(cause);
             }
 
             String title = AddFacilityDialog.this.getTitle();

@@ -1,8 +1,8 @@
 package open.dolphin.stampbox;
 
-import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ModuleInfoBean;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -26,7 +26,7 @@ public class AspStampTreeBuilder extends AbstractStampTreeBuilder {
     private List<StampTree> products;
 
     public AspStampTreeBuilder() {
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(AspStampTreeBuilder.class);
     }
 
     /**
@@ -95,19 +95,8 @@ public class AspStampTreeBuilder extends AbstractStampTreeBuilder {
                                String id) {
 
         if (logger != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(name);
-            sb.append(",");
-            sb.append(role);
-            sb.append(",");
-            sb.append(entity);
-            sb.append(",");
-            sb.append(editable);
-            sb.append(",");
-            sb.append(memo);
-            sb.append(",");
-            sb.append(id);
-            logger.debug(sb.toString());
+            String sb = name + "," + role + "," + entity + "," + editable + "," + memo + "," + id;
+            logger.debug(sb);
         }
 
         // ASP Tree なのでエディタから発行を無視する
@@ -120,7 +109,7 @@ public class AspStampTreeBuilder extends AbstractStampTreeBuilder {
         info.setStampRole(role);
         info.setEntity(entity);
         if (editable != null) {
-            info.setEditable(Boolean.valueOf(editable));
+            info.setEditable(Boolean.parseBoolean(editable));
         }
         if (memo != null) {
             info.setStampMemo(memo);

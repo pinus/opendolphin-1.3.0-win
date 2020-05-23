@@ -5,8 +5,8 @@ import open.dolphin.helper.ImageHelper;
 import open.dolphin.impl.scheam.SchemaEditorImpl;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.ui.PNSBorderFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -37,8 +37,7 @@ public final class SchemaHolder extends AbstractComponentHolder {
     private Position end;
 
     public SchemaHolder(KartePane kartePane, SchemaModel schema) {
-        logger = Logger.getLogger(SchemaHolder.class);
-        logger.setLevel(Level.INFO);
+        logger = LoggerFactory.getLogger(SchemaHolder.class);
         logger.debug("SchemaHolder constructor");
 
         this.kartePane = kartePane;

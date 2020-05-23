@@ -13,7 +13,7 @@ import open.dolphin.orca.orcadao.bean.Syskanri;
 import open.dolphin.orca.orcadao.bean.Wksryact;
 import open.dolphin.util.ModelUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

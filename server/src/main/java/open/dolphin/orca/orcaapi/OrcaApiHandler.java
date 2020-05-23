@@ -1,7 +1,7 @@
 package open.dolphin.orca.orcaapi;
 
 import open.dolphin.orca.OrcaHostInfo;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.io.*;
 import java.net.Authenticator;

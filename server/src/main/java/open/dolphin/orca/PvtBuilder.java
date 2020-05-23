@@ -6,7 +6,7 @@ import open.dolphin.orca.orcaapi.bean.*;
 import open.dolphin.orca.orcadao.OrcaDao;
 import open.dolphin.orca.pushapi.bean.Body;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;

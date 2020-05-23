@@ -1,14 +1,14 @@
 package open.dolphin.order;
 
 import open.dolphin.client.BlockGlass;
-import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.ComponentBoundsManager;
 import open.dolphin.order.stampeditor.StampEditor;
 import open.dolphin.ui.HorizontalPanel;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,7 +54,7 @@ public class StampEditorDialog {
         this.value = value;
         isNew = (value == null);
         boundSupport = new PropertyChangeSupport(this);
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(StampEditorDialog.class);
     }
 
     /**

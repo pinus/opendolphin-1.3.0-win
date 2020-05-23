@@ -1,8 +1,6 @@
 package open.dolphin.setting;
 
-import open.dolphin.client.ClientContext;
 import open.dolphin.project.ProjectStub;
-import org.apache.log4j.Logger;
 
 import javax.swing.*;
 
@@ -15,7 +13,6 @@ import javax.swing.*;
 public abstract class AbstractSettingPanel {
 
     public static final String STATE_PROP = "stateProp";
-    private final Logger logger;
     private ProjectSettingDialog context;
     private ProjectStub projectStub;
     private SettingPanelState state = SettingPanelState.NONE;
@@ -30,7 +27,6 @@ public abstract class AbstractSettingPanel {
      * Creates a new instance of SettingPanel.
      */
     public AbstractSettingPanel() {
-        logger = ClientContext.getBootLogger();
         init();
     }
 
@@ -79,9 +75,7 @@ public abstract class AbstractSettingPanel {
     }
 
     /**
-     * ログイン後に呼ばれた場合 true.
-     *
-     * @return
+     * @return ログイン後に呼ばれた場合 true
      */
     public boolean isLoginState() {
         return loginState;

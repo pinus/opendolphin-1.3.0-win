@@ -4,7 +4,8 @@ import j2html.attributes.Attr;
 import j2html.tags.Tag;
 import open.dolphin.client.StampRenderingHints;
 import open.dolphin.infomodel.*;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +22,8 @@ import static j2html.TagCreator.*;
  * @author pns
  */
 public class HtmlHelper {
-    private static Logger logger = Logger.getLogger(HtmlHelper.class);
-
-    //static { logger.setLevel(Level.DEBUG); }
+    private static Logger logger = LoggerFactory.getLogger(HtmlHelper.class);
+    //static { (( ch.qos.logback.classic.Logger) logger).setLevel( ch.qos.logback.classic.Level.DEBUG); }
 
     public static final String ALIGN = Attr.ALIGN;
     public static final String BGCOLOR = "bgcolor";

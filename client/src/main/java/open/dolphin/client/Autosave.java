@@ -2,7 +2,8 @@ package open.dolphin.client;
 
 import open.dolphin.JsonConverter;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.io.*;
@@ -25,7 +26,7 @@ public class Autosave implements Runnable {
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
     private final KarteEditor editor;
     // Logger
-    private final Logger logger = Logger.getLogger(Autosave.class);
+    private final Logger logger = LoggerFactory.getLogger(Autosave.class);
     private AutosaveModel autosaveModel;
     private File tmpFile;
     private boolean dirty = true;
@@ -58,7 +59,7 @@ public class Autosave implements Runnable {
 
         File dir = new File(TMP_DIR);
 
-        List<AutosaveModel> ret = Stream.of(dir.listFiles(fn -> fn.getName().endsWith(SUFFIX))).map(f -> {
+        return Stream.of(dir.listFiles(fn -> fn.getName().endsWith(SUFFIX))).map(f -> {
             StringBuilder str = new StringBuilder();
 
             try (BufferedReader br = new BufferedReader(new FileReader(f))) {
@@ -71,8 +72,6 @@ public class Autosave implements Runnable {
             }
             return JsonConverter.fromJson(str.toString(), AutosaveModel.class);
         }).collect(Collectors.toList());
-
-        return ret;
     }
 
     /**
@@ -142,7 +141,7 @@ public class Autosave implements Runnable {
         String docId = editor.getDocument().getDocInfo().getDocId();
 
         tmpFile = getTemporaryFile(patientId, docId);
-        logger.info(tmpFile);
+        logger.info(String.valueOf(tmpFile));
 
         executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleWithFixedDelay(this, INITIAL_DELAY, INTERVAL, TimeUnit.SECONDS);

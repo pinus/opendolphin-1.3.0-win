@@ -15,7 +15,8 @@ import open.dolphin.stampbox.StampBoxPlugin;
 import open.dolphin.ui.MainFrame;
 import open.dolphin.ui.PNSBadgeTabbedPane;
 import open.dolphin.ui.SettingForWin;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -59,7 +60,7 @@ public class Dolphin implements MainWindow {
     // timerTask 関連
     private javax.swing.Timer taskTimer;
     // ロガー
-    private Logger bootLogger;
+    private Logger logger;
     // 環境設定用の Properties
     private Properties saveEnv;
     // BlockGlass
@@ -164,7 +165,7 @@ public class Dolphin implements MainWindow {
         pluginClassLoader = ClientContext.getPluginClassLoader();
 
         // ロガーを取得する
-        bootLogger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(Dolphin.class);
 
         // ドキュメントフォルダの有無をチェック
         checkDocumentFolder();
@@ -312,13 +313,13 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected Boolean doInBackground() throws Exception {
-                bootLogger.debug("stampTask doInBackground");
+                logger.debug("stampTask doInBackground");
                 return task.call();
             }
 
             @Override
             protected void succeeded(Boolean result) {
-                bootLogger.debug("stampTask succeeded");
+                logger.debug("stampTask succeeded");
                 if (result) {
                     stampBox.start();
                     stampBox.getFrame().setVisible(true);
@@ -333,15 +334,12 @@ public class Dolphin implements MainWindow {
             @Override
             protected void failed(Throwable cause) {
                 cause.printStackTrace(System.err);
-                bootLogger.debug("stampTask failed");
-                bootLogger.debug(cause.getCause());
-                bootLogger.debug(cause.getMessage());
                 System.exit(1);
             }
 
             @Override
             protected void cancelled() {
-                bootLogger.debug("stampTask cancelled");
+                logger.debug("stampTask cancelled");
                 System.exit(1);
             }
         };
@@ -615,7 +613,7 @@ public class Dolphin implements MainWindow {
 
                 @Override
                 protected Boolean doInBackground() throws Exception {
-                    bootLogger.debug("stoppingTask doInBackground");
+                    logger.debug("stoppingTask doInBackground");
                     boolean success = true;
                     for (Callable<Boolean> c : tasks) {
                         Boolean result = c.call();
@@ -629,7 +627,7 @@ public class Dolphin implements MainWindow {
 
                 @Override
                 protected void succeeded(Boolean result) {
-                    bootLogger.debug("stoppingTask succeeded");
+                    logger.debug("stoppingTask succeeded");
                     if (result) {
                         exit();
                     } else {
@@ -697,7 +695,7 @@ public class Dolphin implements MainWindow {
             myFrame.setVisible(false);
             myFrame.dispose();
         }
-        bootLogger.info("アプリケーションを終了します");
+        logger.info("アプリケーションを終了します");
         System.exit(0);
     }
 
@@ -847,7 +845,7 @@ public class Dolphin implements MainWindow {
      */
     private void checkDocumentFolder() {
         Path path = Paths.get(ClientContext.getDocumentDirectory());
-        bootLogger.info("document folder = " + path);
+        logger.info("document folder = " + path);
 
         try {
             if (Files.list(path).count() != 0) {

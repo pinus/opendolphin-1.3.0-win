@@ -12,7 +12,7 @@ import open.dolphin.orca.pushapi.bean.Data;
 import open.dolphin.orca.pushapi.bean.Response;
 import open.dolphin.service.PatientService;
 import open.dolphin.service.PvtService;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
 

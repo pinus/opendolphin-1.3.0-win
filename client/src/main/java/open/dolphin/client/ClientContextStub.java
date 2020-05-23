@@ -4,8 +4,8 @@ import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.DiagnosisCategoryModel;
 import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,14 +35,8 @@ public final class ClientContextStub {
     private final String RESOURCE = "Dolphin_ja";
     private final ResourceBundle resBundle;
     private final ClassLoader pluginClassLoader;
+    private final Logger logger;
     private String documentFolder;
-    private Logger bootLogger;
-    private Logger part11Logger;
-    private Logger delegaterLogger;
-    private Logger pvtLogger;
-    private Logger laboTestLogger;
-    private Logger claimLogger;
-    private Logger mmlLogger;
     private HashMap<String, Color> eventColorTable;
     private boolean isMac, isWin, isLinux;
 
@@ -55,10 +49,7 @@ public final class ClientContextStub {
         resBundle = ResourceBundle.getBundle(RESOURCE);
 
         // Logger を生成する
-        generateLoggers();
-
-        // Log4J のコンフィグレーションを行う
-        PropertyConfigurator.configure(getResource("log4j.prop"));
+        logger = LoggerFactory.getLogger(ClientContextStub.class);
 
         // 基本情報を出力する
         logStartupInformation();
@@ -79,66 +70,28 @@ public final class ClientContextStub {
         documentFolder = isWin() ? "Z:\\" : "/Volumes/documents/";
     }
 
-    private void generateLoggers() {
-        bootLogger = Logger.getLogger("boot.logger");
-        part11Logger = Logger.getLogger("part11.logger");
-        delegaterLogger = Logger.getLogger("delegater.logger");
-        pvtLogger = Logger.getLogger("pvt.logger");
-        laboTestLogger = Logger.getLogger("laboTest.logger");
-        claimLogger = Logger.getLogger("claim.logger");
-        mmlLogger = Logger.getLogger("mml.logger");
-    }
-
     private void logStartupInformation() {
-        bootLogger.info("起動時刻 = " + DateFormat.getDateTimeInstance().format(new Date()));
-        bootLogger.info("os.name = " + System.getProperty("os.name"));
-        bootLogger.info("java.version = " + System.getProperty("java.version"));
-        bootLogger.info("dolphin.version = " + getString("version"));
-        bootLogger.info("base.directory = " + getString("base.dir"));
-        bootLogger.info("lib.directory = " + getString("lib.dir"));
-        bootLogger.info("plugins.directory = " + getString("plugins.dir"));
-        bootLogger.info("log.directory = " + getString("log.dir"));
-        bootLogger.info("setting.directory = " + getString("setting.dir"));
-        bootLogger.info("security.directory = " + getString("security.dir"));
-        bootLogger.info("schema.directory = " + getString("schema.dir"));
-        bootLogger.info("log.config.file = " + getString("log.config.file"));
-        bootLogger.info("veleocity.log.file = " + getString("application.velocity.log.file"));
-        bootLogger.info("login.config.file = " + getString("application.security.login.config"));
-        bootLogger.info("ssl.trsutStore = " + getString("application.security.ssl.trustStore"));
+        logger.info("起動時刻 = " + DateFormat.getDateTimeInstance().format(new Date()));
+        logger.info("os.name = " + System.getProperty("os.name"));
+        logger.info("java.version = " + System.getProperty("java.version"));
+        logger.info("dolphin.version = " + getString("version"));
+        logger.info("base.directory = " + getString("base.dir"));
+        logger.info("lib.directory = " + getString("lib.dir"));
+        logger.info("plugins.directory = " + getString("plugins.dir"));
+        logger.info("log.directory = " + getString("log.dir"));
+        logger.info("setting.directory = " + getString("setting.dir"));
+        logger.info("security.directory = " + getString("security.dir"));
+        logger.info("schema.directory = " + getString("schema.dir"));
+        //logger.info("log.config.file = " + getString("log.config.file"));
+        //logger.info("veleocity.log.file = " + getString("application.velocity.log.file"));
+        //logger.info("login.config.file = " + getString("application.security.login.config"));
+        //logger.info("ssl.trsutStore = " + getString("application.security.ssl.trustStore"));
     }
 
     public String getDocumentDirectory() { return documentFolder; }
 
     public ClassLoader getPluginClassLoader() {
         return pluginClassLoader;
-    }
-
-    public Logger getBootLogger() {
-        return bootLogger;
-    }
-
-    public Logger getPart11Logger() {
-        return part11Logger;
-    }
-
-    public Logger getClaimLogger() {
-        return claimLogger;
-    }
-
-    public Logger getMmlLogger() {
-        return mmlLogger;
-    }
-
-    public Logger getPvtLogger() {
-        return pvtLogger;
-    }
-
-    public Logger getDelegaterLogger() {
-        return delegaterLogger;
-    }
-
-    public Logger getLaboTestLogger() {
-        return laboTestLogger;
     }
 
     public boolean isMac() { return isMac; }
@@ -590,7 +543,7 @@ public final class ClientContextStub {
             UIManager.put("TitledBorder.font", font);
             UIManager.put("List.font", font);
 
-            getBootLogger().info("デフォルトのフォントを変更しました");
+            logger.info("デフォルトのフォントを変更しました");
         }
     }
 }

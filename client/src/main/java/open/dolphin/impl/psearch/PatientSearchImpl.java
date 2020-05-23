@@ -18,7 +18,8 @@ import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.Gengo;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
@@ -65,7 +66,7 @@ public class PatientSearchImpl extends AbstractMainComponent {
 
     public PatientSearchImpl() {
         setName(NAME);
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(PatientSearchImpl.class);
         prefs = Preferences.userNodeForPackage(this.getClass());
     }
 

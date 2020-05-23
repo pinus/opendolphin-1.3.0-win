@@ -8,7 +8,8 @@ import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.project.Project;
 import open.dolphin.ui.PNSBorderFactory;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -44,7 +45,7 @@ public final class StampHolder extends AbstractComponentHolder {
     private String startTag = null;
     private String endTag = null;
     // Logger
-    private Logger logger = Logger.getLogger(StampHolder.class);
+    private Logger logger = LoggerFactory.getLogger(StampHolder.class);
 
     public StampHolder(final KartePane kartePane, final ModuleModel model) {
         super();
@@ -409,7 +410,7 @@ public final class StampHolder extends AbstractComponentHolder {
                 text = text.replace("\n", " ");
 
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(new StringSelection(text.toString()), null);
+                clipboard.setContents(new StringSelection(text), null);
             }
         }));
     }

@@ -1,6 +1,7 @@
 package open.dolphin.ui;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.awt.*;
  * @author pns
  */
 public class Focuser {
-    private static final Logger logger = Logger.getLogger(Focuser.class);
+    private static final Logger logger = LoggerFactory.getLogger(Focuser.class);
     private static Component component;
 
     //private static List<StackTraceElement> stackTrace;
@@ -47,8 +48,8 @@ public class Focuser {
         boolean succeeded = component.requestFocusInWindow();
 
         if (!succeeded) {
-            //    stackTrace.stream().map(e -> e.toString()).forEach(System.out::println);
-            logger.info(component.getClass().toString() + ": request focus " + ((succeeded) ? "succeeded" : "failed"));
+            // stackTrace.stream().map(e -> e.toString()).forEach(System.out::println);
+            logger.info(component.getClass().toString() + ": request focus failed");
         }
     }
 }

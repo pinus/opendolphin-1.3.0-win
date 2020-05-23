@@ -3,7 +3,7 @@ package open.dolphin.service;
 import open.dolphin.dto.*;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 

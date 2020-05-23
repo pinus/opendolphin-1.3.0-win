@@ -12,7 +12,8 @@ import open.dolphin.helper.Task;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,7 +60,7 @@ public class StampPublisher {
 
     public StampPublisher(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(StampPublisher.class);
     }
 
     public void start() {
@@ -208,11 +209,11 @@ public class StampPublisher {
             // 保存されているStamptreeで非公開のケース
             publishState = PublishedState.SAVED_NONE;
 
-        } else if (treeId != 0L && publishTypeStr != null && publishTypeStr.equals(facilityId)) {
+        } else if (treeId != 0L && publishTypeStr.equals(facilityId)) {
             // publishType=facilityId ローカルに公開されている
             publishState = PublishedState.LOCAL;
 
-        } else if (treeId != 0L && publishTypeStr != null && publishTypeStr.equals(IInfoModel.PUBLISHED_TYPE_GLOBAL)) {
+        } else if (treeId != 0L && publishTypeStr.equals(IInfoModel.PUBLISHED_TYPE_GLOBAL)) {
             // publishType=global グローバルに公開されている
             publishState = PublishedState.GLOBAL;
         }
@@ -427,7 +428,7 @@ public class StampPublisher {
         String note = "公開しています...";
         Component c = dialog;
 
-        Task task = new Task<Boolean>(c, message, note, maxEstimation) {
+        Task<Boolean> task = new Task<Boolean>(c, message, note, maxEstimation) {
 
             @Override
             protected Boolean doInBackground() {
@@ -519,7 +520,7 @@ public class StampPublisher {
         String note = "公開を取り消しています...";
         Component c = dialog;
 
-        Task task = new Task<Boolean>(c, message, note, maxEstimation) {
+        Task<Boolean> task = new Task<Boolean>(c, message, note, maxEstimation) {
 
             @Override
             protected Boolean doInBackground() {
@@ -553,7 +554,7 @@ public class StampPublisher {
     /**
      * META クリックで CheckBox 全部の ON/OFF
      *
-     * @param e
+     * @param e ActionEvent
      */
     private void checkCheckBox(ActionEvent e) {
         if ((e.getModifiers() & ActionEvent.META_MASK) != 0) {

@@ -5,13 +5,16 @@ import open.dolphin.delegater.PnsDelegater;
 import open.dolphin.dto.DiagnosisSearchSpec;
 import open.dolphin.infomodel.KarteBean;
 import open.dolphin.infomodel.PatientVisitModel;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
- * ちょっとカルテ内容をチェックして pvt に必要な情報をセットする
+ * ちょっとカルテ内容をチェックして pvt に必要な情報をセットする.
+ *
+ * @author pns
  */
 public class DocumentPeeker {
 
@@ -37,7 +40,7 @@ public class DocumentPeeker {
         yesterday.add(GregorianCalendar.DATE, -1);
         yesterday.set(Calendar.HOUR_OF_DAY, 23);
 
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(DocumentPeeker.class);
     }
 
     public DocumentPeeker(PatientVisitModel pvt) {
@@ -46,13 +49,8 @@ public class DocumentPeeker {
     }
 
     public static boolean isKarteEmpty(String text) {
-        boolean maybe;
-        if (text == null) { maybe = false; }
-        else if (text.length() < LEAST_KARTE_SIZE) { maybe = true; }
-        else if (text.contains("+++")) { maybe = true; } // karte のどこかに "+++" が書いてある場合，書きかけカルテと判断する
-        else { maybe = false; }
-        return maybe;
         //logger.info(text);
+        return text != null && (text.length() < LEAST_KARTE_SIZE || text.contains("+++"));
     }
 
     public void setPatientVisitModel(PatientVisitModel pvt) {

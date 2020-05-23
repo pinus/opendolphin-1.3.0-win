@@ -2,7 +2,8 @@ package open.dolphin.helper;
 
 import open.dolphin.client.Chart;
 import open.dolphin.client.ClientContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.beans.PropertyChangeEvent;
@@ -12,7 +13,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @param <T>
+ * DBTask.
+ *
+ * @param <T> object to return
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public abstract class DBTask<T> extends SwingWorker<T, Void> implements PropertyChangeListener {
@@ -27,7 +30,7 @@ public abstract class DBTask<T> extends SwingWorker<T, Void> implements Property
 
     public DBTask(Chart context) {
         this.context = context;
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(DBTask.class);
         connect();
     }
 
@@ -47,14 +50,12 @@ public abstract class DBTask<T> extends SwingWorker<T, Void> implements Property
 
     protected void timeout() {
         JFrame parent = context.getFrame();
-        StringBuilder sb = new StringBuilder();
-        sb.append("データベースアクセスにタイムアウトが生じました。");
-        sb.append("\n");
-        sb.append("リトライをお願いします。");
         String title = "DBタスク";
+        String message = "データベースアクセスにタイムアウトが生じました。\n" +
+            "リトライをお願いします。";
         JOptionPane.showMessageDialog(
                 parent,
-                sb.toString(),
+                message,
                 ClientContext.getFrameTitle(title),
                 JOptionPane.WARNING_MESSAGE);
         logger.debug("DBTask timeout");

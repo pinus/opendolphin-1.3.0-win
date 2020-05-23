@@ -1,7 +1,6 @@
 package open.dolphin.inspector;
 
 import open.dolphin.client.ChartImpl;
-import open.dolphin.client.ClientContext;
 import open.dolphin.client.CompositeArea;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.event.ProxyAction;
@@ -12,7 +11,8 @@ import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.project.Project;
 import open.dolphin.ui.PNSScrollPane;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.FocusManager;
 import javax.swing.*;
@@ -68,7 +68,7 @@ public class MemoInspector implements IInspector {
      */
     public MemoInspector(PatientInspector parent) {
         context = parent.getContext();
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(MemoInspector.class);
         path = FileInspector.getDocumentPath(context.getKarte().getPatient().getPatientId());
         initComponents();
     }
@@ -261,7 +261,7 @@ public class MemoInspector implements IInspector {
         DBTask<Void> task = new DBTask<Void>(context) {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 logger.debug("updateMemo doInBackground");
                 DocumentDelegater ddl = new DocumentDelegater();
                 ddl.updatePatientMemo(patientMemoModel);

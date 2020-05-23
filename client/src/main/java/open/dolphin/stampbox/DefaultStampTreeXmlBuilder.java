@@ -1,8 +1,8 @@
 package open.dolphin.stampbox;
 
-import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ModuleInfoBean;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class DefaultStampTreeXmlBuilder {
      */
     public DefaultStampTreeXmlBuilder() {
         super();
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(DefaultStampTreeXmlBuilder.class);
     }
 
     /**
@@ -89,9 +89,9 @@ public class DefaultStampTreeXmlBuilder {
 
     private void buildDirectoryNode(StampTreeNode node) throws IOException {
 
-        /********************************************************
-         ** 子ノードを持たないディレクトリノードは書き出さない **
-         ********************************************************/
+        //
+        // 子ノードを持たないディレクトリノードは書き出さない
+        //
         if (node.getChildCount() != 0) {
 
             if (logger != null) {
@@ -194,11 +194,7 @@ public class DefaultStampTreeXmlBuilder {
     }
 
     protected String addQuote(String s) {
-        StringBuilder buf = new StringBuilder();
-        buf.append("\"");
-        buf.append(s);
-        buf.append("\"");
-        return buf.toString();
+        return "\"" + s + "\"";
     }
 
     /**

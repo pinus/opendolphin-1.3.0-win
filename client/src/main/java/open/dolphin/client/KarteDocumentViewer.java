@@ -12,7 +12,8 @@ import open.dolphin.ui.Focuser;
 import open.dolphin.ui.PNSScrollPane;
 import open.dolphin.ui.sheet.JSheet;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +42,7 @@ public class KarteDocumentViewer extends AbstractChartDocument {
     private static final String TITLE = "参 照";
     // 検索用
     private final FindAndView findAndView = new FindAndView();
-    private final Logger logger = ClientContext.getBootLogger();
+    private final Logger logger = LoggerFactory.getLogger(KarteDocumentViewer.class);
     // このアプリケーションは文書履歴を複数選択することができる
     // このリストはそれに対応した KarteViewer(2号カルテ)を保持している
     // このリストの内容（KarteViewer)が一枚のパネルに並べて表示される

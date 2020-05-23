@@ -1,7 +1,7 @@
 package open.dolphin.orca.orcadao;
 
 import open.dolphin.orca.OrcaHostInfo;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Map;

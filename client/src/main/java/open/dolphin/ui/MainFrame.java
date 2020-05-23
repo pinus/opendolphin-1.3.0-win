@@ -1,7 +1,6 @@
 package open.dolphin.ui;
 
 import open.dolphin.client.GUIConst;
-import org.jboss.logging.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +21,6 @@ import java.awt.*;
  */
 public class MainFrame extends JFrame {
     private static final long serialVersionUID = 1L;
-    private final Logger logger = Logger.getLogger(MainFrame.class);
     // Panels
     private CommandPanel commandPanel;
     private MainPanel mainPanel;
@@ -74,7 +72,7 @@ public class MainFrame extends JFrame {
     /**
      * CommandPanel を返す
      *
-     * @return
+     * @return Command Panel
      */
     public CommandPanel getCommandPanel() {
         return commandPanel;
@@ -83,7 +81,7 @@ public class MainFrame extends JFrame {
     /**
      * MainPanel を返す
      *
-     * @return
+     * @return Main Panel
      */
     public MainPanel getMainPanel() {
         return mainPanel;
@@ -92,7 +90,7 @@ public class MainFrame extends JFrame {
     /**
      * StatusPanel を返す
      *
-     * @return
+     * @return Status Panel
      */
     public StatusPanel getStatusPanel() {
         return statusPanel;
@@ -101,7 +99,7 @@ public class MainFrame extends JFrame {
     /**
      * この frame を返す
      *
-     * @return
+     * @return Main Frame
      */
     public MainFrame getFrame() {
         return this;

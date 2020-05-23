@@ -12,7 +12,8 @@ import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.DolphinPrincipal;
 import open.dolphin.project.Project;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +53,7 @@ public class ChangePassword extends AbstractMainTool {
 
     public ChangePassword() {
         setName(TITLE);
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(ChangePassword.class);
     }
 
     @Override
@@ -427,7 +428,7 @@ public class ChangePassword extends AbstractMainTool {
             int delay = ClientContext.getInt("task.default.delay");
             String message = null;
 
-            Task task = new Task<Boolean>(frame, message, PROGRESS_NOTE, maxEstimation) {
+            Task<Boolean> task = new Task<Boolean>(frame, message, PROGRESS_NOTE, maxEstimation) {
 
                 @Override
                 protected Boolean doInBackground() {
@@ -474,11 +475,7 @@ public class ChangePassword extends AbstractMainTool {
         }
 
         private void setBusy(boolean busy) {
-            if (busy) {
-                okButton.setEnabled(false);
-            } else {
-                okButton.setEnabled(true);
-            }
+            okButton.setEnabled(!busy);
         }
 
         private boolean userIdOk() {

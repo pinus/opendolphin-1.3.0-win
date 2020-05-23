@@ -13,7 +13,8 @@ import open.dolphin.ui.IndentTableCellRenderer;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSScrollPane;
 import open.dolphin.ui.PNSTabbedPane;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,7 +47,7 @@ public class AddUser extends AbstractMainTool {
 
     public AddUser() {
         setName(TITLE);
-        logger = ClientContext.getBootLogger();
+        logger = LoggerFactory.getLogger(AddUser.class);
     }
 
     @Override
@@ -115,14 +116,12 @@ public class AddUser extends AbstractMainTool {
      * タイムアウト警告表示を行う.
      */
     private void wraningTimeOut() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ClientContext.getString("task.timeoutMsg1"));
-        sb.append("\n");
-        sb.append(ClientContext.getString("task.timeoutMsg1"));
+        String message = ClientContext.getString("task.timeoutMsg1") + "\n" +
+            ClientContext.getString("task.timeoutMsg1");
         JOptionPane.showMessageDialog(frame,
-                sb.toString(),
-                ClientContext.getFrameTitle(getName()),
-                JOptionPane.WARNING_MESSAGE);
+            message,
+            ClientContext.getFrameTitle(getName()),
+            JOptionPane.WARNING_MESSAGE);
     }
 
     /**
@@ -375,7 +374,7 @@ public class AddUser extends AbstractMainTool {
             String updateMsg = ClientContext.getString("task.default.updateMessage");
             String message = null;
 
-            Task task = new Task<Boolean>(frame, message, updateMsg, maxEstimation) {
+            Task<Boolean> task = new Task<Boolean>(frame, message, updateMsg, maxEstimation) {
 
                 @Override
                 protected Boolean doInBackground() {
@@ -487,7 +486,7 @@ public class AddUser extends AbstractMainTool {
         /**
          * 医療資格が other 以外は削除できない.
          *
-         * @param user
+         * @param user UserModel
          */
         private void controleDelete(UserModel user) {
             boolean isMe = user.getId() == Project.getUserModel().getId();
@@ -506,7 +505,7 @@ public class AddUser extends AbstractMainTool {
             String note = ClientContext.getString("task.default.searchMessage");
             String message = null;
 
-            Task task = new Task<List<UserModel>>(frame, message, note, maxEstimation) {
+            Task<List<UserModel>> task = new Task<List<UserModel>>(frame, message, note, maxEstimation) {
 
                 @Override
                 protected List<UserModel> doInBackground() {
@@ -559,7 +558,7 @@ public class AddUser extends AbstractMainTool {
 
             final String deleteId = entry.getUserId();
 
-            Task task = new Task<List<UserModel>>(frame, message, note, maxEstimation) {
+            Task<List<UserModel>> task = new Task<List<UserModel>>(frame, message, note, maxEstimation) {
 
                 @Override
                 protected List<UserModel> doInBackground() {
@@ -819,7 +818,7 @@ public class AddUser extends AbstractMainTool {
             String addMsg = ClientContext.getString("task.default.addMessage");
             String message = null;
 
-            Task task = new Task<Boolean>(frame, message, addMsg, maxEstimation) {
+            Task<Boolean> task = new Task<Boolean>(frame, message, addMsg, maxEstimation) {
 
                 @Override
                 protected Boolean doInBackground() {

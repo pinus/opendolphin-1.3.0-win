@@ -13,7 +13,8 @@ import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
 import open.dolphin.ui.*;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.FocusManager;
 import javax.swing.*;
@@ -62,7 +63,7 @@ public class DocumentHistory implements IInspector {
     // 編集終了したカルテの日付を保存する. 編集終了した時に必ず選択するために使う
     private String editDate = null;
     // ロガー
-    private Logger logger = Logger.getLogger(DocumentHistory.class);
+    private Logger logger = LoggerFactory.getLogger(DocumentHistory.class);
 
     /**
      * 文書履歴オブジェクトを生成する.

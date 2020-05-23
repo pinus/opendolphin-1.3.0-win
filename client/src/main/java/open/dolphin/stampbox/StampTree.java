@@ -8,7 +8,8 @@ import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.ui.PNSTreeCellEditor;
 import open.dolphin.ui.sheet.JSheet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
@@ -56,8 +57,7 @@ public class StampTree extends JTree implements TreeModelListener {
      */
     public StampTree(TreeModel model) {
         super(model);
-        logger = ClientContext.getBootLogger();
-
+        logger = LoggerFactory.getLogger(StampTree.class);
         init(model);
     }
 
@@ -117,8 +117,8 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * tooltip を html で出す.
      *
-     * @param event
-     * @return
+     * @param event mouse event
+     * @return tool tip
      */
     @Override
     public String getToolTipText(MouseEvent event) {
@@ -204,7 +204,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * Enable or disable tooltip.
      *
-     * @param state
+     * @param state state
      */
     public void enableToolTips(boolean state) {
 
@@ -225,7 +225,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * Set StampBox reference.
      *
-     * @param stampBox
+     * @param stampBox stamp box
      */
     public void setStampBox(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
@@ -234,7 +234,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * 選択されているノードを返す.
      *
-     * @return
+     * @return StampTreeNode
      */
     public StampTreeNode getSelectedNode() {
         return (StampTreeNode) this.getLastSelectedPathComponent();
@@ -243,8 +243,8 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * 引数のポイント位置のノードを返す.
      *
-     * @param p
-     * @return
+     * @param p Point
+     * @return StampTreeNode
      */
     public StampTreeNode getNode(Point p) {
         TreePath path = this.getPathForLocation(p.x, p.y);
@@ -266,9 +266,9 @@ public class StampTree extends JTree implements TreeModelListener {
      * KartePaneから drop されたスタンプをツリーに加える.
      * replace 対応 by pns
      *
-     * @param droppedStamp
-     * @param selected
-     * @return
+     * @param droppedStamp dropped ModuleModel
+     * @param selected selected StampTreeNode
+     * @return true if succeeded
      */
     public boolean addStamp(ModuleModel droppedStamp, StampTreeNode selected) {
         return addStamp(droppedStamp, selected, false);
@@ -311,7 +311,7 @@ public class StampTree extends JTree implements TreeModelListener {
         String note = info.getStampName() + "を保存しています...";
         Component c = SwingUtilities.getWindowAncestor(this);
 
-        Task task = new Task<String>(c, message, note, 60 * 1000) {
+        Task<String> task = new Task<String>(c, message, note, 60 * 1000) {
 
             @Override
             protected String doInBackground() {
@@ -418,9 +418,9 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * Diagnosis Table から Drag & Drop された RegisteredDiagnosis をスタンプ化する.
      *
-     * @param rd
-     * @param selected
-     * @return
+     * @param rd RegisteredDiagnosis
+     * @param selected selected StampTreeNode
+     * @return true if succeeded
      */
     public boolean addDiagnosis(RegisteredDiagnosisModel rd, final StampTreeNode selected) {
 
@@ -466,7 +466,7 @@ public class StampTree extends JTree implements TreeModelListener {
         String note = info.getStampName() + "を保存しています...";
         Component c = SwingUtilities.getWindowAncestor(this);
 
-        Task task = new Task<String>(c, message, note, 60 * 1000) {
+        Task<String> task = new Task<String>(c, message, note, 60 * 1000) {
 
             @Override
             protected String doInBackground() {
@@ -493,7 +493,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * エディタで生成した病名リストを登録する.
      *
-     * @param list
+     * @param list list of RegisteredDiagnosis
      */
     public void addDiagnosis(List<RegisteredDiagnosisModel> list) {
 
@@ -583,9 +583,9 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * テキストスタンプを追加する.
      *
-     * @param text
-     * @param selected
-     * @return
+     * @param text text
+     * @param selected selected StampTreeNode
+     * @return true if succeeded
      */
     public boolean addTextStamp(String text, final StampTreeNode selected) {
 
@@ -606,7 +606,7 @@ public class StampTree extends JTree implements TreeModelListener {
 
         // Tree へ加える 新しい StampInfo を生成する
         final ModuleInfoBean info = new ModuleInfoBean();
-        int len = text.length() > 16 ? 16 : text.length();
+        int len = Math.min(text.length(), 16);
         String name = text.substring(0, len);
         len = name.indexOf("\n");
         if (len > 0) {
@@ -624,7 +624,7 @@ public class StampTree extends JTree implements TreeModelListener {
         String note = info.getStampName() + "を保存しています...";
         Component c = SwingUtilities.getWindowAncestor(this);
 
-        Task task = new Task<String>(c, message, note, 60 * 1000) {
+        Task<String> task = new Task<String>(c, message, note, 60 * 1000) {
 
             @Override
             protected String doInBackground() {
@@ -798,10 +798,10 @@ public class StampTree extends JTree implements TreeModelListener {
         String note = "スタンプを削除しています...";
         Component c = SwingUtilities.getWindowAncestor(this);
 
-        Task task = new Task<Void>(c, message, note, 60 * 1000) {
+        Task<Void> task = new Task<Void>(c, message, note, 60 * 1000) {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 logger.debug("deleteNode doInBackground");
                 sdl.removeStamp(deleteList);
                 return null;
@@ -879,7 +879,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * 飛ばない StampTree.
      *
-     * @return
+     * @return new preferred size
      */
     @Override
     public Dimension getPreferredSize() {
@@ -888,7 +888,7 @@ public class StampTree extends JTree implements TreeModelListener {
         if (newPreferredSize.height < oldPreferredSize.height) {
             Rectangle r = ((JViewport) getParent()).getViewRect();
             int offsetSize = r.y + r.height - newPreferredSize.height;
-            offsetSize = offsetSize < 0 ? 0 : offsetSize;
+            offsetSize = Math.max(offsetSize, 0);
             newPreferredSize.height += offsetSize;
         }
 

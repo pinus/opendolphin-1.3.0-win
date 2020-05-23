@@ -1,13 +1,12 @@
 package open.dolphin.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import open.dolphin.helper.ImageHelper;
 import open.dolphin.infomodel.*;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +35,7 @@ public class AutosaveModel {
     public AutosaveModel() {
         dumper = new KartePaneDumper_2();
         imageHash = new HashSet<>();
-        logger = Logger.getLogger(AutosaveModel.class);
+        logger = LoggerFactory.getLogger(AutosaveModel.class);
     }
 
     public DocumentModel getDocumentModel() {

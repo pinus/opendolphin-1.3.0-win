@@ -4,12 +4,11 @@ import open.dolphin.JsonConverter;
 import open.dolphin.helper.HashUtil;
 import open.dolphin.infomodel.*;
 import open.dolphin.service.SystemService;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,10 +45,7 @@ public class InitDatabase {
      * InitDatabase のコンストラクタ
      */
     public InitDatabase() {
-        // Log4j の設定
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.DEBUG);
-        logger = Logger.getLogger(InitDatabase.class);
+        logger = LoggerFactory.getLogger(InitDatabase.class);
     }
 
     public static void main(String[] args) throws Exception {
@@ -74,11 +70,11 @@ public class InitDatabase {
     /**
      * Start initializing database
      *
-     * @param userId
-     * @param password
-     * @param hostAddress
+     * @param userId user id
+     * @param password password
+     * @param hostAddress host address
      */
-    public void start(String userId, String password, String hostAddress) throws Exception {
+    public void start(String userId, String password, String hostAddress) {
 
         addDatabaseAdmin(userId, password, hostAddress);
         addDolphinMaster();
@@ -89,11 +85,11 @@ public class InitDatabase {
     /**
      * Add database administrator
      *
-     * @param userId
-     * @param password
-     * @param hostAddress
+     * @param userId user id
+     * @param password password
+     * @param hostAddress host address
      */
-    public void addDatabaseAdmin(String userId, String password, String hostAddress) throws Exception {
+    public void addDatabaseAdmin(String userId, String password, String hostAddress) {
 
         HashMap<String, String> prop = new HashMap<>();
 
@@ -118,17 +114,14 @@ public class InitDatabase {
                 // "=" から key, value ペアを抜き出して HashMap に登録
                 String key = line.substring(0, index);
                 String value = line.substring(index + 1);
-
-                if (value != null) {
-                    prop.put(key, value);
-                    logger.debug("detected key = " + key + ";  value = " + value);
-                }
+                String put = prop.put(key, value);
+                logger.debug("detected key = " + key + ";  value = " + put);
             }
 
             logger.info("管理者情報ファイルを読み込みました。");
 
         } catch (IOException ioex) {
-            logger.fatal("管理者情報ファイルを読み込めません。");
+            logger.error("管理者情報ファイルを読み込めません。");
             ioex.printStackTrace(System.err);
             System.exit(1);
         }
@@ -257,11 +250,11 @@ public class InitDatabase {
             logger.info("放射線メソッドマスタを登録しました。");
 
         } catch (IOException ioex) {
-            logger.fatal("マスターファイルを読み込めません。");
+            logger.error("マスターファイルを読み込めません。");
             ioex.printStackTrace(System.err);
             System.exit(1);
         } catch (RuntimeException rtex) {
-            logger.fatal("マスターファイルの登録に失敗しました。");
+            logger.error("マスターファイルの登録に失敗しました。");
             rtex.printStackTrace(System.err);
             System.exit(1);
         }

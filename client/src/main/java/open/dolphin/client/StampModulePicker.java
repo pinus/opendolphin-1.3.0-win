@@ -7,7 +7,6 @@ import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.stampbox.StampTree;
 import open.dolphin.stampbox.StampTreeNode;
-import org.apache.log4j.Logger;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,21 +24,19 @@ public class StampModulePicker {
     private final ChartMediator mediator;
     private final LocalDate today;
     private final LastVisit lastVisit;
-    private Logger logger;
 
     public StampModulePicker(ChartImpl context) {
         mediator = context.getChartMediator();
         today = LocalDate.now();
         lastVisit = context.getLastVisit();
-        logger = Logger.getLogger(StampModulePicker.class);
     }
 
     /**
      * entity のスタンプ箱から key に一致する module を探して返す. 無ければ null が返る.
      * ただし，フォルダの中身までは検索しない.
      *
-     * @param entity
-     * @param key
+     * @param entity entity
+     * @param key key
      * @return ModuleInfoBean or null
      */
     private ModuleModel getStampModule(String entity, String key) {
@@ -73,7 +70,7 @@ public class StampModulePicker {
     /**
      * テキストスタンプから title のスタンプを取ってきて返す.
      *
-     * @param title
+     * @param title title
      * @return ModuleModel
      */
     public ModuleModel getTextStamp(String title) {
@@ -88,7 +85,7 @@ public class StampModulePicker {
     /**
      * エディタを開いたときに最初に挿入するスタンプ名.
      *
-     * @return
+     * @return initial stamp name
      */
     public ModuleModel getInitialStamp() {
         return isShoshin() ?
@@ -99,7 +96,7 @@ public class StampModulePicker {
     /**
      * 初診・再診を判定して，module として返す.
      *
-     * @return
+     * @return ModuleModel
      */
     public ModuleModel getBaseCharge() {
         /*

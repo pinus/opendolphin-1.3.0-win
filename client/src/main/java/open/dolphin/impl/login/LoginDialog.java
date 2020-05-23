@@ -13,7 +13,8 @@ import open.dolphin.setting.ProjectSettingDialog;
 import open.dolphin.ui.Focuser;
 import open.dolphin.ui.IMEControl;
 import open.dolphin.util.ModelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -99,7 +100,7 @@ public class LoginDialog {
 
         // ロガーを取得する
         if (logger == null) {
-            logger = Logger.getLogger(getClass());
+            logger = LoggerFactory.getLogger(LoginDialog.class);
         }
 
         // トライ出来る最大回数を得る
@@ -124,7 +125,7 @@ public class LoginDialog {
         String message = "ログイン";
         String note = "認証中...";
 
-        Task task = new Task<UserModel>(view, message, note, maxEstimation) {
+        Task<UserModel> task = new Task<UserModel>(view, message, note, maxEstimation) {
             private UserDelegater userDlg;
 
             @Override
@@ -170,8 +171,8 @@ public class LoginDialog {
             @Override
             protected void failed(java.lang.Throwable cause) {
                 logger.warn("Task failed");
-                logger.warn(cause.getCause());
                 logger.warn(cause.getMessage());
+
                 if (tryCount <= maxTryCount && cause instanceof Exception) {
                     userDlg.processError((Exception) cause);
                     String errMsg = userDlg.getErrorMessage();
