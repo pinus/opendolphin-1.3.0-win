@@ -91,6 +91,7 @@ public final class ProjectSettingDialog {
             allSettings = new ArrayList<>();
             allSettings.add(new KarteSettingPanel());
             allSettings.add(new CodeHelperSettingPanel());
+            allSettings.add(new CalendarSettingPanel());
             allSettings.add(new MiscSettingPanel());
 
             // 設定パネル(AbstractSettingPanel)を格納する Hashtableを生成する

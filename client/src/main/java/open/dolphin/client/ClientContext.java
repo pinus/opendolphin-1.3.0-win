@@ -146,9 +146,7 @@ public class ClientContext {
         return stub.getColorArray(name);
     }
 
-    public static ImageIcon getImageIcon(String name) {
-        return stub.getImageIcon(name);
-    }
+    public static ImageIcon getImageIcon(String name) { return stub.getImageIcon(name); }
 
     public static String getFrameTitle(String name) {
         return stub.getFrameTitle(name);

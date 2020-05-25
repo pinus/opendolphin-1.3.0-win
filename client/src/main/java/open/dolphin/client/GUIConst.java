@@ -156,6 +156,9 @@ public class GUIConst {
     public static final ImageIcon ICON_STAMP_EXPORT_22 = ClientContext.getImageIcon("icons/22x22/database_up.png");
     public static final ImageIcon ICON_STAMP_IMPORT_22 = ClientContext.getImageIcon("icons/22x22/database_down.png");
 
+    // カレンダー
+    public static final ImageIcon ICON_CALENDAR_32 = ClientContext.getImageIcon("icons/32x32/google-calendar.png");
+
     // black & white icons
     public static final ImageIcon ICON_SEARCH_16 = ClientContext.getImageIcon("bw/16x16/search.png");
     public static final ImageIcon ICON_PRINT_16 = ClientContext.getImageIcon("bw/16x16/print.png");

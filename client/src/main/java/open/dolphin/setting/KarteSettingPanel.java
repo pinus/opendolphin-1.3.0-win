@@ -31,7 +31,7 @@ import java.util.prefs.Preferences;
 public class KarteSettingPanel extends AbstractSettingPanel {
 
     private static final String ID = "karteSetting";
-    private static final String TITLE = "カルテ";
+    private static final String TITLE = "　カルテ　";
     private static final ImageIcon ICON = GUIConst.ICON_KARTE_EDIT_32;
     private static final int INSPECTOR_COMBO_COUNT = 5;
 

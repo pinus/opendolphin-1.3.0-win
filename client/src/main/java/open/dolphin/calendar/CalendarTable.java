@@ -57,7 +57,7 @@ public class CalendarTable extends JTable {
     /**
      * GregorianCalendar で指定された月のカレンダーを作る.
      *
-     * @param gc
+     * @param gc GregorianCalendar
      */
     public CalendarTable(GregorianCalendar gc) {
         initComponents(gc);
@@ -160,7 +160,7 @@ public class CalendarTable extends JTable {
     /**
      * 曜日ヘッダ付きのカレンダーを返す.
      *
-     * @return
+     * @return calendar panel
      */
     public JPanel getPanel() {
         return calendarPanel;
@@ -169,7 +169,7 @@ public class CalendarTable extends JTable {
     /**
      * タイトル部分に年月ラベルを付けた，TitledBorder 付きカレンダーを返す.
      *
-     * @return
+     * @return titled calendar panel
      */
     public JPanel getTitledPanel() {
         // タイトルを変えるためにリスナを付ける
@@ -187,8 +187,6 @@ public class CalendarTable extends JTable {
 
     /**
      * カレンダーのタイトル部分を描画する.
-     *
-     * @return
      */
     private void setCalendarTitle() {
         String title = String.format("%d年%d月", tableModel.getYear(), tableModel.getMonth() + 1);
@@ -215,7 +213,7 @@ public class CalendarTable extends JTable {
     /**
      * 日付選択リスナーを登録する.
      *
-     * @param l
+     * @param l CalendarListener
      */
     public void addCalendarListener(CalendarListener l) {
         listener = l;
@@ -224,7 +222,7 @@ public class CalendarTable extends JTable {
     /**
      * 日付選択リスナーを返す.
      *
-     * @return
+     * @return Calendar Listener
      */
     public CalendarListener getCalendarListener() {
         return listener;
@@ -242,7 +240,7 @@ public class CalendarTable extends JTable {
     /**
      * バックグランドに月と年を出すかどうか.
      *
-     * @param b
+     * @param b true to show background
      */
     public void setShowBackgroundTitle(boolean b) {
         showBackgroundTitle = b;
@@ -251,8 +249,8 @@ public class CalendarTable extends JTable {
     /**
      * SimpleDate の Event 名を表示する.
      *
-     * @param e
-     * @return
+     * @param e MouseEvent
+     * @return tool tip text
      */
     @Override
     public String getToolTipText(MouseEvent e) {
@@ -265,7 +263,7 @@ public class CalendarTable extends JTable {
     /**
      * バックグランドに月と年を出す.
      *
-     * @param graphics
+     * @param graphics Graphics
      */
     @Override
     public void paintComponent(Graphics graphics) {
@@ -306,7 +304,7 @@ public class CalendarTable extends JTable {
     /**
      * バックグランドタイトル表示用に年号型式の年を作る.
      *
-     * @return
+     * @return Gengo year
      */
     private String getNengo() {
         SimpleDate date = new SimpleDate(tableModel.getYear(), tableModel.getMonth(), 1);
@@ -315,7 +313,7 @@ public class CalendarTable extends JTable {
         String[] split = nengoDate.split("-");
 
         String nengoAlphabet = String.valueOf(split[0].charAt(0));
-        int year = Integer.valueOf(split[0].substring(1));
+        int year = Integer.parseInt(split[0].substring(1));
         String nengo = Gengo.gengoAlphabetToHalfKanji(nengoAlphabet);
 
         return nengo + (year == 1 ? "元" : year);
@@ -392,9 +390,7 @@ public class CalendarTable extends JTable {
 
                 // 曜日によって ForeColor を変える
                 switch (col) {
-                    // 当院は日・水は休み
                     case 0:
-                    case 3:
                         foregroundColor = SUNDAY_FOREGROUND;
                         break;
                     case 6:

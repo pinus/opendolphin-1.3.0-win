@@ -23,7 +23,7 @@ import java.util.prefs.Preferences;
 public class CodeHelperSettingPanel extends AbstractSettingPanel {
 
     private static final String ID = "codeHelperSetting";
-    private static final String TITLE = "コード";
+    private static final String TITLE = "　コード　";
     private static final ImageIcon ICON = GUIConst.ICON_SHORTCUTS_32;
 
     private JRadioButton ctrlMask;
