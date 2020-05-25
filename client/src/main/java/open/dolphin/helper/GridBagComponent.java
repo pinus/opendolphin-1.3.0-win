@@ -128,9 +128,7 @@ public final class GridBagComponent {
         this.rowWeight = rowWeight;
     }
 
-    public double getColWeight() {
-        return colWeight;
-    }
+    public double getColWeight() { return colWeight; }
 
     public void setColWeight(double colWeight) {
         this.colWeight = colWeight;
