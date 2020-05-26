@@ -112,6 +112,11 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
     }
 
     public void updateAction(ActionEvent e) {
+        // trimming
+        holidayCalendarIdField.setText(holidayCalendarIdField.getText().trim());
+        calendarIdField.setText(calendarIdField.getText().trim());
+        credentialField.setText(credentialField.getText().trim());
+
         if (StringUtils.isEmpty(holidayCalendarIdField.getText())
             || StringUtils.isEmpty(calendarIdField.getText())
             || StringUtils.isEmpty(credentialField.getText())) {
