@@ -204,6 +204,9 @@ public class Dolphin implements MainWindow {
 
         // 環境設定ダイアログで変更される場合があるので保存する
         saveEnv = new Properties();
+
+        // Holiday database 構築
+        Holiday.setupCalendarData();
     }
 
     /**

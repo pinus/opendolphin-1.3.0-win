@@ -1,9 +1,11 @@
 package open.dolphin.service;
 
+import open.dolphin.JsonConverter;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.util.ModelUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.MassIndexer;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
@@ -13,6 +15,7 @@ import javax.ejb.Stateless;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 /**
@@ -23,10 +26,13 @@ import java.util.stream.Collectors;
 @Stateless
 public class PnsServiceImpl extends DolphinService implements PnsService {
     private static final long serialVersionUID = 1L;
+    private static final String CALENDAR_DATA = "calendar.data";
+
+    private final Preferences prefs = Preferences.userNodeForPackage(PnsServiceImpl.class);
     private final Logger logger = Logger.getLogger(PnsServiceImpl.class);
 
     /**
-     * patient_id から，今日のカルテ内容の module のリストを返す.　カルテがなければ null
+     * patient_id から，今日のカルテ内容の module のリストを返す.　カルテがなければ null.
      *
      * @param patientId PatientModel の pk
      * @return List of ModuleModel
@@ -67,6 +73,30 @@ public class PnsServiceImpl extends DolphinService implements PnsService {
             logger.info(e.getMessage(), e.getCause());
         }
         return null;
+    }
+
+    /**
+     * Preferences に保存したカレンダー情報をクライアントに知らせる.
+     *
+     * @return Calendar data array
+     */
+    @Override
+    public String[][] getCalendarData() {
+        String json = prefs.get(CALENDAR_DATA, null);
+        return StringUtils.isEmpty(json)
+            ? null
+            : JsonConverter.fromJson(json, String[][].class);
+    }
+
+    /**
+     * Calendar data を Preferences に保存する.
+     *
+     * @param data Calendar data array
+     */
+    public void saveCalendarData(String[][] data) {
+        String json = JsonConverter.toJson(data);
+        prefs.put(CALENDAR_DATA, json);
+        logger.info("calendar data saved");
     }
 
     /**

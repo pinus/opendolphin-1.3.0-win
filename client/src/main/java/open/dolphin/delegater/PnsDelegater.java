@@ -43,6 +43,24 @@ public class PnsDelegater extends BusinessDelegater<PnsService> {
     }
 
     /**
+     * サーバからカレンダー情報を読みこむ.
+     *
+     * @return Calendar data
+     */
+    public String[][] getCalendarData() {
+        return getService().getCalendarData();
+    }
+
+    /**
+     * サーバにカレンダー情報を保存する.
+     *
+     * @param data Calendar data
+     */
+    public void saveCalendarData(String[][] data) {
+        getService().saveCalendarData(data);
+    }
+
+    /**
      * HibernateSearch 用のインデックスを作る.
      */
     public void makeInitialIndex() {

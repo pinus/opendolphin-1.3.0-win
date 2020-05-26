@@ -1,13 +1,11 @@
 package open.dolphin.helper;
 
-import open.dolphin.JsonConverter;
+import open.dolphin.delegater.PnsDelegater;
 import open.dolphin.infomodel.SimpleDate;
-import open.dolphin.setting.CalendarSettingPanel;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 /**
@@ -16,26 +14,32 @@ import java.util.stream.Stream;
  * @author pns
  */
 public class Holiday {
+    private static final Logger logger = LoggerFactory.getLogger(Holiday.class);
 
     // yyyyMMdd 文字列をキー，休日名を value とする HashMap
     private static final HashMap<String, String> DATABASE = new HashMap<>();
 
-    // 休診 DATABASE を作製する. 初めてこのクラスが call された時に読まれる.
-    static {
-        Preferences prefs = Preferences.userNodeForPackage(CalendarSettingPanel.class);
-        String jsonData = prefs.get(CalendarSettingPanel.CALENDAR_DATA, "");
-
-        if (StringUtils.isEmpty(jsonData)) {
-            // CalendarSettingPanel の Google Calendar データが無いときは, ハードコーディングされたデータを読み込む
-            Stream.of(HolidayDatabase.HOLIDAY_DATA).forEach(data -> DATABASE.put(data[0], data[1]));
-
-        } else {
-            // Google Calendar data を読み込む
-            String[][] holidayData = JsonConverter.fromJson(jsonData, String[][].class);
-            Stream.of(holidayData).forEach(data -> DATABASE.put(data[0], data[1]));
-        }
+    /**
+     * サーバからデータを取得してカレンダーデータベースを作成する.
+     */
+    public static void setupCalendarData() {
+        DBTask<Void> setup = new DBTask<Void>() {
+            @Override
+            protected Void doInBackground() {
+                PnsDelegater dlg = new PnsDelegater();
+                String[][] holidayData = dlg.getCalendarData();
+                if (holidayData == null) {
+                    // サーバにデータが無いときは, ハードコーディングされたデータを読み込む
+                    holidayData = HolidayDatabase.HOLIDAY_DATA;
+                    logger.info("No holiday data in server, use local instead.");
+                }
+                Stream.of(holidayData).forEach(data -> DATABASE.put(data[0], data[1]));
+                logger.info("Holiday database created.");
+                return null;
+            }
+        };
+        setup.execute();
     }
-
 
     /**
      * SimpleDate から yyyyMMdd 型式のキーを作る.
