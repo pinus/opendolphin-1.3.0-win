@@ -45,7 +45,6 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
     private static final String TITLE = "カレンダー";
     private static final ImageIcon ICON = GUIConst.ICON_CALENDAR_32;
     private static final int TEXT_FIELD_WIDTH = 40;
-    private static final Dimension TEXT_FIELD_SIZE = new Dimension(300, 28);
     private static long DAY_LENGTH = 86400000L;
 
     // Google Calendar
@@ -91,13 +90,10 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
 
         JLabel calendarLabel = new JLabel("カレンダーID");
         calendarIdField = new CompletableJTextField(TEXT_FIELD_WIDTH);
-        calendarIdField.setPreferredSize(TEXT_FIELD_SIZE);
         JLabel holidayCalendarLabel = new JLabel("休日カレンダーID");
         holidayCalendarIdField = new CompletableJTextField(TEXT_FIELD_WIDTH);
-        holidayCalendarIdField.setPreferredSize(TEXT_FIELD_SIZE);
         JLabel credentialLabel = new JLabel("証明書データ");
         credentialField = new JTextField(TEXT_FIELD_WIDTH);
-        credentialField.setPreferredSize(TEXT_FIELD_SIZE);
 
         JButton updateButton = new JButton("アップデート");
 

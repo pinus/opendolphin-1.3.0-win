@@ -1,9 +1,6 @@
 package open.dolphin.laf;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.JComponent;
@@ -49,6 +46,9 @@ public class MyTextFieldUI extends BasicTextFieldUI {
                 c.repaint();
             }
         });
+
+        // original preferred size = (16, 13)
+        tf.setPreferredSize(new Dimension(16, 28));
     }
 
     @Override
