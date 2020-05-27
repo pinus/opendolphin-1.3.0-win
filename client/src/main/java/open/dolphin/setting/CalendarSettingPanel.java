@@ -57,17 +57,22 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
     private static final String TOKENS_DIRECTORY_PATH = TMP_DIR + "com.google.calendar.tokens";
 
     // Keys for preferences
-    private static String CALENDAR_ID = "calendarId";
-    private static String HOLIDAY_CALENDAR_ID = "holidayCalendarId";
-    private static String CREDENTIAL = "calendarCredential";
-    public static String CALENDAR_DATA = "calendarData";
+    private static String CALENDAR_ID = "calendar.id";
+    private static String HOLIDAY_CALENDAR_ID = "holidayCalendar.id";
+    private static String CREDENTIAL = "calendar.credential";
+    private static String FROM_YEAR = "from.year";
+    private static String TO_YEAR = "to.year";
 
     // GUI
     private CompletableJTextField holidayCalendarIdField;
     private CompletableJTextField calendarIdField;
     private JTextField credentialField;
+    private JSpinner fromYearSpinner;
+    private JSpinner toYearSpinner;
 
+    // カレンダー情報
     private String[][] calendarData = null;
+
     private final Preferences prefs = Preferences.userNodeForPackage(CalendarSettingPanel.class);
     private final Logger logger = LoggerFactory.getLogger(CalendarSettingPanel.class);
 
@@ -97,16 +102,33 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
         JLabel credentialLabel = new JLabel("証明書データ");
         credentialField = new JTextField(TEXT_FIELD_WIDTH);
 
+        JLabel yearLabel = new JLabel("データ取込期間");
+        JLabel fromYearLabel = new JLabel("年前から");
+        JLabel toYearLabel = new JLabel("年後まで");
+        // 0-3 年前から
+        fromYearSpinner = new JSpinner(new SpinnerNumberModel(1,0,3,1));
+        // 1-5 年後まで
+        toYearSpinner = new JSpinner(new SpinnerNumberModel(1,1,5,1));
+
+        fromYearSpinner.setPreferredSize(new Dimension(50, 28));
+        toYearSpinner.setPreferredSize(new Dimension(50, 28));
+
         JButton updateButton = new JButton("アップデート");
 
-        gbb.add(calendarLabel, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(calendarIdField, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(holidayCalendarLabel, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(holidayCalendarIdField, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(credentialLabel, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(credentialField, 0, row++, 1, 1, GridBagConstraints.WEST);
-        gbb.add(updateButton, 0, row++, 1, 1, GridBagConstraints.CENTER);
+        gbb.add(calendarLabel, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(calendarIdField, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(holidayCalendarLabel, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(holidayCalendarIdField, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(credentialLabel, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(credentialField, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(yearLabel, 0, row++, 4, 1, GridBagConstraints.WEST);
+        gbb.add(fromYearSpinner, 0, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(fromYearLabel, 1, row, 1, 1, GridBagConstraints.WEST);
+        gbb.add(toYearSpinner, 2, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(toYearLabel, 3, row, 1, 1, GridBagConstraints.WEST);
 
+        row++;
+        gbb.add(updateButton, 0, row, 4, 1, GridBagConstraints.CENTER);
         getUI().add(gbb.getProduct());
 
         // connect
@@ -163,10 +185,13 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
                 Calendar service = new Calendar.Builder(httpTransport, JSON_FACTORY, credential)
                     .setApplicationName(APPLICATION_NAME).build();
 
-                // 前後 1年部のデータを読み込む
+                // 前後 Spinner 年分のデータを読み込む
                 LocalDate today = LocalDate.now();
-                Date nextYear = Date.from(today.plusYears(1L).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                Date prevYear = Date.from(today.minusYears(1L).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Number toPlus = (Number) toYearSpinner.getValue();
+                Number toMinus = (Number) fromYearSpinner.getValue();
+                logger.info("Fetch from -" + toMinus.intValue() + " year to " + toPlus.intValue() + " year.");
+                Date nextYear = Date.from(today.plusYears(toPlus.longValue()).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Date prevYear = Date.from(today.minusYears(toMinus.longValue()).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
                 Events events = service.events().list(calendarIdField.getText())
                     .setTimeMin(new DateTime(prevYear.getTime()))
@@ -204,7 +229,7 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
                 }
                 DateTime end = event.getEnd().getDateTime();
                 if (end != null) {
-                    long floordiv = Math.floorDiv(start.getValue(), DAY_LENGTH);
+                    long floordiv = Math.floorDiv(end.getValue(), DAY_LENGTH);
                     event.getEnd().setDate(new DateTime(true, floordiv, 0));
                 }
 
@@ -276,12 +301,22 @@ public class CalendarSettingPanel extends AbstractSettingPanel {
         calendarIdField.setText(prefs.get(CALENDAR_ID, ""));
         holidayCalendarIdField.setText(prefs.get(HOLIDAY_CALENDAR_ID, ""));
         credentialField.setText(prefs.get(CREDENTIAL, ""));
+
+        String from = prefs.get(FROM_YEAR, "1");
+        fromYearSpinner.setValue(Integer.valueOf(from));
+        String to = prefs.get(TO_YEAR, "1");
+        toYearSpinner.setValue(Integer.valueOf(to));
     }
 
     private void bindViewToModel() {
         prefs.put(CALENDAR_ID, calendarIdField.getText());
         prefs.put(HOLIDAY_CALENDAR_ID, holidayCalendarIdField.getText());
         prefs.put(CREDENTIAL, credentialField.getText());
+
+        String from = fromYearSpinner.getValue().toString();
+        prefs.put(FROM_YEAR, from);
+        String to = toYearSpinner.getValue().toString();
+        prefs.put(TO_YEAR, to);
 
         // サーバにデータを保存する
         DBTask<Void> task = new DBTask<Void>() {
