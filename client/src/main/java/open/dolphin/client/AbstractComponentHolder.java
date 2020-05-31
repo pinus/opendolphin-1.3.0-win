@@ -7,10 +7,7 @@ import open.dolphin.ui.Focuser;
 import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 
 /**
  * ComponentHolder.
@@ -19,7 +16,8 @@ import java.awt.event.MouseMotionListener;
  * @author Kazushi Minagawa
  * @author pns
  */
-public abstract class AbstractComponentHolder extends JLabel implements ComponentHolder<JLabel>, MouseListener, MouseMotionListener {
+public abstract class AbstractComponentHolder extends JLabel
+    implements ComponentHolder<JLabel>, MouseListener, MouseMotionListener, KeyListener {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -35,22 +33,13 @@ public abstract class AbstractComponentHolder extends JLabel implements Componen
         setFocusable(true);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyListener(this);
         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+
         ActionMap am = this.getActionMap();
         am.put(TransferHandler.getCutAction().getValue(Action.NAME), TransferHandler.getCutAction());
         am.put(TransferHandler.getCopyAction().getValue(Action.NAME), TransferHandler.getCopyAction());
         am.put(TransferHandler.getPasteAction().getValue(Action.NAME), TransferHandler.getPasteAction());
-
-        // tab でフォーカス移動
-        InputMap im = this.getInputMap();
-        im.put(KeyStroke.getKeyStroke("TAB"), "focusNext");
-        am.put("focusNext", new ProxyAction(() -> SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusNextComponent)));
-        im.put(KeyStroke.getKeyStroke("shift TAB"), "focusPrevious");
-        am.put("focusPrevious", new ProxyAction(() -> SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusPreviousComponent)));
-
-        // SPACE で edit
-        im.put(KeyStroke.getKeyStroke("SPACE"), "startEdit");
-        am.put("startEdit", new ProxyAction(this::edit));
     }
 
     public boolean isEditable() {
@@ -62,28 +51,25 @@ public abstract class AbstractComponentHolder extends JLabel implements Componen
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-        // ダブルクリックで編集
-        // ここでは e.isPopupTrigger は常に false になる
-        //if (e.getClickCount() == 2 && !e.isPopupTrigger()) edit();
+    public void keyPressed(KeyEvent e) {
+        KeyStroke key = KeyStroke.getKeyStrokeForEvent(e);
+        if (KeyStroke.getKeyStroke("TAB").equals(key)) {
+            // TAB キーでフォーカス次移動
+            SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusNextComponent);
+        } else if (KeyStroke.getKeyStroke("shift TAB").equals(key)) {
+            // shift TAB キーでフォーカス前移動
+            SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusPreviousComponent);
+        } else if (KeyStroke.getKeyStroke("SPACE").equals(key)) {
+            // SPACE で編集
+            edit();
+        }
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-        // requestFocusInWindow(); // 自動的にフォーカス取るようにしたら，うざかった
-    }
+    public void keyReleased(KeyEvent e) { }
 
     @Override
-    public void mouseExited(MouseEvent e) {
-     /* Component c = getParent(); // うざかったのでやめた
-        while ( c != null) {
-            if (c instanceof JTextPane) {
-                c.requestFocusInWindow();
-                break;
-            }
-            c = c.getParent();
-        }*/
-    }
+    public void keyTyped(KeyEvent e) { }
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -111,7 +97,6 @@ public abstract class AbstractComponentHolder extends JLabel implements Componen
     public void mouseDragged(MouseEvent e) {
         // ドラッグの際にも，スタンプを selected 状態にする
         Focuser.requestFocus(this);
-        setSelected(true);
 
         int ctrlMask = InputEvent.CTRL_DOWN_MASK;
         int optionMask = InputEvent.ALT_DOWN_MASK;
@@ -124,8 +109,16 @@ public abstract class AbstractComponentHolder extends JLabel implements Componen
     }
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-    }
+    public void mouseClicked(MouseEvent e) { }
+
+    @Override
+    public void mouseMoved(MouseEvent e) { }
+
+    @Override
+    public void mouseEntered(MouseEvent e) { }
+
+    @Override
+    public void mouseExited(MouseEvent e) { }
 
     @Override
     public abstract void edit();

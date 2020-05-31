@@ -89,10 +89,16 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     private ComponentHolder<?>[] draggedStamp;
     private int draggedCount;
     private int droppedCount;
+    // 全ての StampHolder を保持するリスト
+    private List<StampHolder> allStamps = new ArrayList<>();
 
     public KartePane() {
         undoManager = new TextComponentUndoManager();
         undoListener = undoManager::listener;
+    }
+
+    public List<StampHolder> getAllStamps() {
+        return allStamps;
     }
 
     public void setMargin(Insets margin) {
@@ -483,16 +489,13 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-    }
+    public void mouseClicked(MouseEvent e) { }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-    }
+    public void mouseEntered(MouseEvent e) { }
 
     @Override
-    public void mouseExited(MouseEvent e) {
-    }
+    public void mouseExited(MouseEvent e) { }
 
     /**
      * 背景を編集不可カラーに設定する.
@@ -582,6 +585,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             StampModifier.modify(stamp);
             EventQueue.invokeLater(() -> {
                 StampHolder h = new StampHolder(KartePane.this, stamp);
+                allStamps.add(h);
                 h.setTransferHandler(stampHolderTransferHandler);
                 KarteStyledDocument doc = getDocument();
                 doc.stamp(h);
@@ -609,6 +613,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             // 外用剤の bundleNumber を補正する
             StampModifier.adjustNumber(stamp);
             StampHolder h = new StampHolder(this, stamp);
+            allStamps.add(h);
             h.setTransferHandler(stampHolderTransferHandler);
             KarteStyledDocument doc = getDocument();
             doc.flowStamp(h);
@@ -1075,6 +1080,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      */
     public void removeStamp(StampHolder sh) {
         getDocument().removeStamp(sh.getStartPos(), 2);
+        allStamps.remove(sh);
     }
 
     /**
@@ -1084,9 +1090,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      */
     public void removeStamp(StampHolder[] sh) {
         if (sh != null && sh.length > 0) {
-            for (StampHolder h : sh) {
-                removeStamp(h);
-            }
+            for (StampHolder h : sh) { removeStamp(h); }
         }
     }
 
