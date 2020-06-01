@@ -11,6 +11,7 @@ import open.dolphin.helper.TextComponentUndoManager;
 import open.dolphin.impl.scheam.SchemaEditorImpl;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
+import open.dolphin.ui.Focuser;
 import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.sheet.JSheet;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -43,7 +45,7 @@ import java.util.prefs.Preferences;
 /**
  * KarteComposite の一つで，内部に JTextPane を１つ保持している.
  * 保持している JTextPane は，{@link open.dolphin.client.KartePane#setTextPane setTextPane} されるときに
- * client property "kartePane" に親の KartePane を入れる.<br>
+ * client property "kartePane" に親の KartePane を入れる.
  * ２号カルテはこれを２枚 KarteViewer / KarteEditor に入れて使う.
  *
  * @author Kazushi Minagawa, Digital Globe, inc.
@@ -89,16 +91,10 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     private ComponentHolder<?>[] draggedStamp;
     private int draggedCount;
     private int droppedCount;
-    // 全ての StampHolder を保持するリスト
-    private List<StampHolder> allStamps = new ArrayList<>();
 
     public KartePane() {
         undoManager = new TextComponentUndoManager();
         undoListener = undoManager::listener;
-    }
-
-    public List<StampHolder> getAllStamps() {
-        return allStamps;
     }
 
     public void setMargin(Insets margin) {
@@ -290,9 +286,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @return このPaneからDragされたスタンプ配列
      */
-    protected ComponentHolder<?>[] getDraggedStamp() {
-        return draggedStamp;
-    }
+    protected ComponentHolder<?>[] getDraggedStamp() { return draggedStamp; }
 
     /**
      * このPaneからDragされたスタンプを設定（記録）する.
@@ -369,7 +363,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
 
     @Override
     public void caretUpdate(CaretEvent e) {
-        boolean newSelection = (e.getDot() != e.getMark());
+        boolean newSelection = e.getDot() != e.getMark();
         if (newSelection != hasSelection) {
             hasSelection = newSelection;
 
@@ -380,6 +374,12 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
                 curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? State.SOA : State.P;
             }
             controlMenus(mediator.getActions());
+        }
+        // カーソル移動で Component 部に来たら, Component にフォーカスする
+        if (!newSelection) {
+            KarteStyledDocument doc = getDocument();
+            Component c = StyleConstants.getComponent(doc.getCharacterElement(e.getDot()).getAttributes());
+            if (Objects.nonNull(c)) { Focuser.requestFocus(c); }
         }
     }
 
@@ -585,7 +585,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             StampModifier.modify(stamp);
             EventQueue.invokeLater(() -> {
                 StampHolder h = new StampHolder(KartePane.this, stamp);
-                allStamps.add(h);
                 h.setTransferHandler(stampHolderTransferHandler);
                 KarteStyledDocument doc = getDocument();
                 doc.stamp(h);
@@ -613,7 +612,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             // 外用剤の bundleNumber を補正する
             StampModifier.adjustNumber(stamp);
             StampHolder h = new StampHolder(this, stamp);
-            allStamps.add(h);
             h.setTransferHandler(stampHolderTransferHandler);
             KarteStyledDocument doc = getDocument();
             doc.flowStamp(h);
@@ -1080,7 +1078,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      */
     public void removeStamp(StampHolder sh) {
         getDocument().removeStamp(sh.getStartPos(), 2);
-        allStamps.remove(sh);
     }
 
     /**

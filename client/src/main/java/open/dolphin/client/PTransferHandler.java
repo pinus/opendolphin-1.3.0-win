@@ -5,6 +5,8 @@ import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.stampbox.LocalStampTreeNodeTransferable;
 import open.dolphin.stampbox.StampTreeNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -23,16 +25,13 @@ import java.util.List;
  * @author Minagawa, Kazushi
  */
 public class PTransferHandler extends TransferHandler {
-
     private static final long serialVersionUID = -7891004155072724783L;
-
     private DataFlavor stringFlavor = DataFlavor.stringFlavor;
+    private Logger logger = LoggerFactory.getLogger(PTransferHandler.class);
 
     // KartePane
     private KartePane pPane;
-
     private JTextPane source;
-
     private boolean shouldRemove;
 
     // Start and end position in the source text.
@@ -44,9 +43,6 @@ public class PTransferHandler extends TransferHandler {
         this.pPane = pPane;
     }
 
-    /**
-     * DropされたFlavorをインポートする.
-     */
     @Override
     public boolean importData(JComponent c, Transferable tr) {
 
@@ -79,10 +75,8 @@ public class PTransferHandler extends TransferHandler {
                 shouldRemove = (tc == source);
                 return true;
             }
-        } catch (UnsupportedFlavorException ufe) {
-            System.out.println("PTransferHandler.java: " + ufe);
-        } catch (IOException ioe) {
-            System.out.println("PTransferHandler.java: " + ioe);
+        } catch (UnsupportedFlavorException | IOException ex) {
+            logger.error(ex.getMessage());
         }
 
         return false;
@@ -185,12 +179,16 @@ public class PTransferHandler extends TransferHandler {
             if (droppedNode.isLeaf()) {
                 ModuleInfoBean stampInfo = droppedNode.getStampInfo();
                 String role = stampInfo.getStampRole();
-                if (role.equals(IInfoModel.ROLE_P)) {
-                    pPane.stampInfoDropped(stampInfo);
-                } else if (role.equals(IInfoModel.ROLE_TEXT)) {
-                    pPane.stampInfoDropped(stampInfo);
-                } else if (role.equals(IInfoModel.ROLE_ORCA_SET)) {
-                    pPane.stampInfoDropped(stampInfo);
+                switch (role) {
+                    case IInfoModel.ROLE_P:
+                        pPane.stampInfoDropped(stampInfo);
+                        break;
+                    case IInfoModel.ROLE_TEXT:
+                        pPane.stampInfoDropped(stampInfo);
+                        break;
+                    case IInfoModel.ROLE_ORCA_SET:
+                        pPane.stampInfoDropped(stampInfo);
+                        break;
                 }
 
                 return true;
@@ -245,11 +243,11 @@ public class PTransferHandler extends TransferHandler {
         try {
             // スタンプのリストを取得する
             OrderList list = (OrderList) tr.getTransferData(OrderListTransferable.orderListFlavor);
-            ModuleModel[] stamps = list.orderList;
+            ModuleModel[] stamps = list.getOrderList();
 
             // pPaneにスタンプを挿入する
-            for (int i = 0; i < stamps.length; i++) {
-                pPane.stamp(stamps[i]);
+            for (ModuleModel stamp : stamps) {
+                pPane.stamp(stamp);
             }
 
             // drag されたスタンプがあるとき drop した数を設定する
@@ -260,9 +258,9 @@ public class PTransferHandler extends TransferHandler {
 
             } else {
                 // 他の pane からの DnD の場合は重複チェックをする
-                for (int i = 0; i < stamps.length; i++) {
-                    int duplicate = StampModifier.checkDuplicates(stamps[i], pPane);
-                    if (duplicate > 0) break;
+                for (ModuleModel stamp : stamps) {
+                    int duplicate = StampModifier.checkDuplicates(stamp, pPane);
+                    if (duplicate > 0) { break; }
                 }
             }
 

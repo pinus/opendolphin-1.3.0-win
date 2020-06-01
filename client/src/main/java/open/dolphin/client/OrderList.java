@@ -3,24 +3,16 @@ package open.dolphin.client;
 import open.dolphin.infomodel.ModuleModel;
 
 /**
- * OrderList
+ * OrderList.
  *
  * @author Kazushi Minagawa
  */
 public final class OrderList implements java.io.Serializable {
-
     private static final long serialVersionUID = -6049175115811888229L;
 
-    ModuleModel[] orderList;
-
-    /**
-     * Creates new OrderList
-     */
-    public OrderList() {
-    }
+    private ModuleModel[] orderList;
 
     public OrderList(ModuleModel[] stamp) {
-        this();
         setOrderStamp(stamp);
     }
 

@@ -9,21 +9,17 @@ import open.dolphin.infomodel.*;
 import open.dolphin.orca.ClaimConst;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.project.Project;
-import open.dolphin.ui.Focuser;
 import open.dolphin.ui.PNSBorderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
+import java.util.List;
+import java.beans.PropertyChangeEvent;
 import javax.swing.border.Border;
-import javax.swing.text.Position;
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.util.Objects;
+import java.awt.*;
 
 /**
  * KartePane に Component　として挿入されるスタンプを保持するクラス.
@@ -42,8 +38,6 @@ public final class StampHolder extends AbstractComponentHolder {
     private final KartePane kartePane;
     private ModuleModel stamp;
     private StampRenderingHints hints;
-    private Position start;
-    private Position end;
     private boolean selected;
     // 検索語にマークする
     private String searchText = null;
@@ -53,7 +47,7 @@ public final class StampHolder extends AbstractComponentHolder {
     private Logger logger = LoggerFactory.getLogger(StampHolder.class);
 
     public StampHolder(final KartePane kartePane, final ModuleModel model) {
-        super();
+        super(kartePane);
         //logger.setLevel(Level.DEBUG);
 
         this.kartePane = kartePane;
@@ -76,14 +70,13 @@ public final class StampHolder extends AbstractComponentHolder {
     }
 
     /**
-     * 数字キーでスタンプ数量を変更する. 上下キーでスタンプのフォーカスを移動する.
+     * 数字キーでスタンプ数量を変更する.
      *
      * @param e KeyEvent
      */
     @Override
     public void keyPressed(KeyEvent e) {
         super.keyPressed(e);
-        KeyStroke key = KeyStroke.getKeyStrokeForEvent(e);
 
         if (e.getKeyChar() > '0' && e.getKeyChar() < '9') {
             //
@@ -180,70 +173,6 @@ public final class StampHolder extends AbstractComponentHolder {
             dialog.setLocation(dispX, dispY);
 
             dialog.setVisible(true);
-
-        } else if (KeyStroke.getKeyStroke("UP").equals(key)) {
-            //
-            // 自分より上のスタンプを探して移動する
-            //
-            int myY = getLocationOnScreen().y;
-            StampHolder found = null;
-            StampHolder last = this;
-            for (StampHolder h : kartePane.getAllStamps()) {
-                int y = h.getLocationOnScreen().y;
-                if (y < myY) {
-                    if (Objects.isNull(found)) {
-                        found = h;
-                    } else {
-                        if (myY - found.getLocationOnScreen().y > myY - y) {
-                            // より近いのが見つかった
-                            found = h;
-                        }
-                    }
-                }
-                if (last.getLocationOnScreen().y < h.getLocationOnScreen().y) {
-                    last = h;
-                }
-            }
-            if (Objects.nonNull(found)) {
-                // 上のスタンプに移動
-                Focuser.requestFocus(found);
-
-            } else {
-                // 一番上の場合, 一番下のスタンプに移動
-                Focuser.requestFocus(last);
-            }
-
-        } else if (KeyStroke.getKeyStroke("DOWN").equals(key)) {
-            //
-            // 自分より下のスタンプを探して移動する
-            //
-            int myY = getLocationOnScreen().y;
-            StampHolder found = null;
-            StampHolder top = this;
-            for (StampHolder h : kartePane.getAllStamps()) {
-                int y = h.getLocationOnScreen().y;
-                if (y > myY) {
-                    if (Objects.isNull(found)) {
-                        found = h;
-                    } else {
-                        if (found.getLocationOnScreen().y - myY > y - myY) {
-                            // より近いのが見つかった
-                            found = h;
-                        }
-                    }
-                }
-                if (top.getLocationOnScreen().y > h.getLocationOnScreen().y) {
-                    top = h;
-                }
-            }
-            if (Objects.nonNull(found)) {
-                // 下のスタンプに移動
-                Focuser.requestFocus(found);
-
-            } else {
-                // 一番下の場合, 一番上のスタンプに移動
-                Focuser.requestFocus(top);
-            }
         }
     }
 
@@ -393,7 +322,7 @@ public final class StampHolder extends AbstractComponentHolder {
 
         } else {
             // ダブルクリックで EditorFrame に入力
-            java.util.List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
+            List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
             if (!allFrames.isEmpty()) {
                 EditorFrame frame = allFrames.get(0);
                 if (this.isEditable()) {
@@ -452,79 +381,46 @@ public final class StampHolder extends AbstractComponentHolder {
     }
 
     /**
-     * TextPane内での開始と終了ポジションを保存する.
-     *
-     * @param start Position
-     * @param end Position
-     */
-    @Override
-    public void setEntry(Position start, Position end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    /**
-     * 開始ポジションを返す.
-     *
-     * @return position
-     */
-    @Override
-    public int getStartPos() {
-        return start.getOffset();
-    }
-
-    /**
-     * 終了ポジションを返す.
-     *
-     * @return position
-     */
-    @Override
-    public int getEndPos() {
-        return end.getOffset();
-    }
-
-    /**
-     * Velocity を利用してスタンプの内容を表示する.
+     * j2html を利用してスタンプの内容を表示する.
      */
     private void setMyText() {
 
-            IInfoModel bundle = getStamp().getModel(); // BundleMed > BundleDolphin > ClaimBundle
-            String stampName = getStamp().getModuleInfo().getStampName();
-            logger.debug("bundle = " + bundle.getClass().getName() + ", stampName = " + stampName);
+        IInfoModel bundle = getStamp().getModel(); // BundleMed > BundleDolphin > ClaimBundle
+        String stampName = getStamp().getModuleInfo().getStampName();
+        logger.debug("bundle = " + bundle.getClass().getName() + ", stampName = " + stampName);
 
-            String text;
+        String text;
 
-            if (bundle instanceof BundleMed) {
-                text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
+        if (bundle instanceof BundleMed) {
+            text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
 
-            } else if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
-                && Project.getPreferences().getBoolean("laboFold", true)) {
-                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
+        } else if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
+            && Project.getPreferences().getBoolean("laboFold", true)) {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
 
-            } else {
-                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
+        } else {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
+        }
+
+
+        text = StringTool.toHankakuNumber(text);
+        text = StringTool.toHankakuUpperLower(text);
+        text = text.replaceAll("　", " ");
+
+        // 検索語の attribute をセットする
+        if (searchText != null) {
+            String taggedText = startTag + searchText + endTag;
+            int pos = text.indexOf(searchText);
+            while (pos != -1) {
+                text = text.substring(0, pos) + taggedText + text.substring(pos + searchText.length());
+                pos = text.indexOf(searchText, pos + taggedText.length());
             }
+        }
 
+        this.setText(text);
 
-            text = StringTool.toHankakuNumber(text);
-            text = StringTool.toHankakuUpperLower(text);
-            text = text.replaceAll("　", " ");
-
-            // 検索語の attribute をセットする
-            if (searchText != null) {
-                String taggedText = startTag + searchText + endTag;
-                int pos = text.indexOf(searchText);
-                while (pos != -1) {
-                    text = text.substring(0, pos) + taggedText + text.substring(pos + searchText.length());
-                    pos = text.indexOf(searchText, pos + taggedText.length());
-                }
-            }
-
-            this.setText(text);
-
-            // カルテペインへ展開された時広がるのを防ぐ
-            this.setMaximumSize(this.getPreferredSize());
-
+        // カルテペインへ展開された時広がるのを防ぐ
+        this.setMaximumSize(this.getPreferredSize());
     }
 
     public void setAttr(String searchText, String startTag, String endTag) {
@@ -539,41 +435,5 @@ public final class StampHolder extends AbstractComponentHolder {
         this.startTag = null;
         this.endTag = null;
         setMyText();
-    }
-
-    /**
-     * Stamp のコピー.
-     */
-    public void copy() {
-        if (getStamp().getModel() instanceof BundleMed) {
-            BundleMed bundle = (BundleMed) getStamp().getModel();
-
-            StringBuilder sb = new StringBuilder();
-
-            for (ClaimItem item : bundle.getClaimItem()) {
-                if (!item.getCode().matches("099[0-9]{6}")) {
-                    sb.append(item.getName());
-                    sb.append(" ");
-
-                    if (!item.getCode().matches("0085[0-9]{5}")
-                        && !item.getCode().matches("001000[0-9]{3}")
-                        && !item.getCode().matches("810000001")) {
-                        sb.append(item.getNumber());
-                        sb.append(item.getUnit());
-                    }
-                }
-            }
-            sb.append(bundle.getAdminDisplayString());
-
-            // 全角数字とスペースを直す
-            String text = sb.toString();
-            text = StringTool.toHankakuNumber(text);
-            text = StringTool.toHankakuUpperLower(text);
-            text = text.replaceAll("　", " ");
-            text = text.replace("\n", " ");
-
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            clipboard.setContents(new StringSelection(text), null);
-        }
     }
 }

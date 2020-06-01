@@ -109,12 +109,11 @@ public class KarteStyledDocument extends DefaultStyledDocument {
      * @param len length
      */
     public void removeStamp(int start, int len) {
-
         try {
 //masuda^   Stamp/Schemaをremoveするときは直後の改行も削除する
             // Stamp は一文字で表されている
             //remove(start, 1);
-            if (start < getLength() && "\n".equals(getText(start + 1, 1))) {
+            if (start < getLength() - 1 && "\n".equals(getText(start + 1, 1))) {
                 remove(start, 2);
             } else {
                 remove(start, 1);

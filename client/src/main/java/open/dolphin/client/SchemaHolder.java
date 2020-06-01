@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -28,17 +27,14 @@ public final class SchemaHolder extends AbstractComponentHolder {
     private static final Border MY_SELECTED_BORDER = PNSBorderFactory.createSelectedBorder();
     private static final Border MY_CLEAR_BORDER = PNSBorderFactory.createClearBorder();
     private final KartePane kartePane;
-    private final Logger logger;
+    private final Logger logger = LoggerFactory.getLogger(SchemaHolder.class);
     private SchemaModel schema;
     private ImageIcon icon;
     private float imgRatio = 1.0f;
     private boolean selected;
-    private Position start;
-    private Position end;
 
     public SchemaHolder(KartePane kartePane, SchemaModel schema) {
-        logger = LoggerFactory.getLogger(SchemaHolder.class);
-        logger.debug("SchemaHolder constructor");
+        super(kartePane);
 
         this.kartePane = kartePane;
         this.schema = schema;
@@ -258,21 +254,5 @@ public final class SchemaHolder extends AbstractComponentHolder {
 
         // dirty セット
         kartePane.setDirty(true);
-    }
-
-    @Override
-    public void setEntry(Position start, Position end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    @Override
-    public int getStartPos() {
-        return start.getOffset();
-    }
-
-    @Override
-    public int getEndPos() {
-        return end.getOffset();
     }
 }

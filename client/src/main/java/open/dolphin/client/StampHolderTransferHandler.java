@@ -7,6 +7,8 @@ import open.dolphin.project.Project;
 import open.dolphin.stampbox.LocalStampTreeNodeTransferable;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.ui.PNSTransferHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,20 +27,27 @@ import java.io.IOException;
  */
 public class StampHolderTransferHandler extends PNSTransferHandler {
     private static final long serialVersionUID = -9182879162438446790L;
+    private Logger logger = LoggerFactory.getLogger(StampHolderTransferHandler.class);
 
     public StampHolderTransferHandler() {
     }
 
+    /**
+     * OrderListTransferable を作る.
+     *
+     * @param c StampHolder
+     * @return OrderListTransferable
+     */
     @Override
     protected Transferable createTransferable(JComponent c) {
         StampHolder source = (StampHolder) c;
-        KartePane context = source.getKartePane();
-        context.setDraggedStamp(new ComponentHolder[]{source});
-        context.setDraggedCount(1);
+        KartePane kartePane = source.getKartePane();
+        kartePane.setDraggedStamp(new ComponentHolder[]{source});
+        kartePane.setDraggedCount(1);
         ModuleModel stamp = source.getStamp();
         OrderList list = new OrderList(new ModuleModel[]{stamp});
-        Transferable tr = new OrderListTransferable(list);
-        return tr;
+
+        return new OrderListTransferable(list);
     }
 
     @Override
@@ -150,17 +159,15 @@ public class StampHolderTransferHandler extends PNSTransferHandler {
                 droppedNode = (StampTreeNode) tr.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
 
             } catch (UnsupportedFlavorException e) {
-                System.out.println("StampHolderTransferHandler.java: " + e);
+               logger.error(e.getMessage());
                 e.printStackTrace(System.err);
                 return false;
             } catch (IOException e) {
-                System.out.println("StampHolderTransferHandler.java: " + e);
+                logger.error(e.getMessage());
                 return false;
             }
 
-            if (droppedNode == null || (!droppedNode.isLeaf())) {
-                return false;
-            }
+            if (!droppedNode.isLeaf()) { return false; }
 
             final ModuleInfoBean stampInfo = droppedNode.getStampInfo();
             String role = stampInfo.getStampRole();
@@ -188,23 +195,25 @@ public class StampHolderTransferHandler extends PNSTransferHandler {
 
         if (action == MOVE) {
             StampHolder test = (StampHolder) c;
-            KartePane context = test.getKartePane();
+            KartePane kartePane = test.getKartePane();
 
-            if (context.getComponent().isEditable()) {
-                context.removeStamp(test);
+            // 同一 KartePane 内の DnD の場合だけ移動, それ以外はコピー
+            logger.info("dropped count = " + kartePane.getDroppedCount());
+            if (kartePane.getComponent().isEditable() && kartePane.getDroppedCount() > 0) {
+                kartePane.removeStamp(test);
             }
-            context.setDraggedStamp(null);
-            context.setDraggedCount(0);
-            context.setDroppedCount(0);
+            kartePane.setDraggedStamp(null);
+            kartePane.setDraggedCount(0);
+            kartePane.setDroppedCount(0);
         }
     }
 
     /**
      * インポート可能かどうかを返す.
      *
-     * @param c
-     * @param flavors
-     * @return
+     * @param c StampHolder
+     * @param flavors array of flavors
+     * @return can import?
      */
     @Override
     public boolean canImport(JComponent c, DataFlavor[] flavors) {
