@@ -18,11 +18,6 @@ import java.util.StringTokenizer;
 public class PatientVisitModel extends InfoModel {
     private static final long serialVersionUID = 7049490761810599245L;
 
-    public static final DataFlavor PVT_FLAVOR =
-            new DataFlavor(open.dolphin.infomodel.PatientVisitModel.class, "Patient Visit");
-
-    public static final DataFlavor[] flavors = {PVT_FLAVOR};
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -282,21 +277,6 @@ public class PatientVisitModel extends InfoModel {
 
     public void setInsuranceUid(String insuranceUid) {
         this.insuranceUid = insuranceUid;
-    }
-
-    /////////////////// Transferable 処理 //////////////////////////
-    public boolean isDataFlavorSupported(DataFlavor df) {
-        return df.equals(PVT_FLAVOR);
-    }
-
-    public Object getTransferData(DataFlavor df) throws UnsupportedFlavorException {
-        if (df.equals(PVT_FLAVOR)) {
-            return this;
-        } else throw new UnsupportedFlavorException(df);
-    }
-
-    public DataFlavor[] getTransferDataFlavors() {
-        return flavors;
     }
 
     @Override

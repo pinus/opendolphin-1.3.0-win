@@ -3,6 +3,7 @@ package open.dolphin.stampbox;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.GUIConst;
 import open.dolphin.delegater.StampDelegater;
+import open.dolphin.dnd.StampTreeNodeTransferHandler;
 import open.dolphin.helper.HexBytesTool;
 import open.dolphin.helper.MenuActionManager;
 import open.dolphin.helper.MenuActionManager.MenuAction;
@@ -200,7 +201,7 @@ public class StampBoxExtraMenu extends MouseAdapter {
                     }
 
                     // StampTree に組み込む transfer handler を作っておく
-                    StampTreeTransferHandler transferHandler = new StampTreeTransferHandler();
+                    StampTreeNodeTransferHandler transferHandler = new StampTreeNodeTransferHandler();
 
                     userTrees.stream().filter(stampTree -> !stampTree.getEntity().equals(IInfoModel.ENTITY_ORCA))
                         .forEach(stampTree -> {

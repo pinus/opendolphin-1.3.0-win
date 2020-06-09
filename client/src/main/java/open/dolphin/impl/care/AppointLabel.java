@@ -1,7 +1,7 @@
 package open.dolphin.impl.care;
 
 import open.dolphin.infomodel.AppointmentModel;
-import open.dolphin.ui.PNSTransferHandler;
+import open.dolphin.dnd.DolphinTransferHandler;
 
 import javax.swing.*;
 import java.awt.datatransfer.Transferable;
@@ -35,7 +35,7 @@ public class AppointLabel extends JLabel {
         });
     }
 
-    private class AppointTransferHandler extends PNSTransferHandler {
+    private class AppointTransferHandler extends DolphinTransferHandler {
         private static final long serialVersionUID = 1L;
 
         public AppointTransferHandler() {

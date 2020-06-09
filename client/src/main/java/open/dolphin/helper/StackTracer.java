@@ -14,8 +14,8 @@ public class StackTracer {
         Throwable t = new Throwable();
         StackTraceElement[] e = t.getStackTrace();
 
-        for (int i = 4; i < e.length; i++) {
-            System.out.println("depth:" + i + " : " + e[i].getClassName() + "#" + e[i].getMethodName());
+        for (int i = 1; i < e.length; i++) {
+            System.out.println(String.format("%d:%s#%s:%d", i, e[i].getClassName(), e[i].getMethodName(), e[i].getLineNumber()));
         }
     }
 

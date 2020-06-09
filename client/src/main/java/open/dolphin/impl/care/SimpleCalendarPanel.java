@@ -10,7 +10,7 @@ import open.dolphin.event.ProxyAction;
 import open.dolphin.infomodel.AppointmentModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.SimpleDate;
-import open.dolphin.ui.PNSTransferHandler;
+import open.dolphin.dnd.DolphinTransferHandler;
 import open.dolphin.util.MMLDate;
 import open.dolphin.util.ModelUtils;
 
@@ -475,7 +475,7 @@ public final class SimpleCalendarPanel extends JPanel {
     /**
      * 予約の TransferHandler.
      */
-    private class CalendarTableTransferHandler extends PNSTransferHandler {
+    private class CalendarTableTransferHandler extends DolphinTransferHandler {
         private static final long serialVersionUID = 1L;
 
         private int srcRow;

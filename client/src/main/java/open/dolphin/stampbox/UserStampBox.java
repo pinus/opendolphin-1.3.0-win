@@ -1,6 +1,7 @@
 package open.dolphin.stampbox;
 
 import open.dolphin.client.*;
+import open.dolphin.dnd.StampTreeNodeTransferHandler;
 import open.dolphin.helper.MouseHelper;
 import open.dolphin.helper.StampTreeUtils;
 import open.dolphin.infomodel.IInfoModel;
@@ -9,6 +10,7 @@ import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.inspector.DiagnosisInspector;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.event.*;
 import java.util.*;
 
@@ -63,7 +65,7 @@ public class UserStampBox extends AbstractStampBox {
         List<StampTree> userTrees = StampTreeUtils.xmlDecode(treeXml);
 
         // StampTreeへ設定するPopupMenuとTransferHandlerを生成する
-        StampTreeTransferHandler transferHandler = new StampTreeTransferHandler();
+        StampTreeNodeTransferHandler transferHandler = new StampTreeNodeTransferHandler();
 
         // userTrees を順番に並べ替える
         userTrees.sort(Comparator.comparingInt(o -> tabMap.get(o.getTreeName())));
@@ -108,6 +110,14 @@ public class UserStampBox extends AbstractStampBox {
                  * スタンプを右クリックポップメニューからカルテに入力できるようにする
                  */
                 private void showPopup(MouseEvent e) {
+                    // popup を出す前に選択する
+                    TreePath path = stampTree.getPathForLocation(e.getX(), e.getY());
+                    if (Objects.nonNull(path)) {
+                        stampTree.setSelectionPath(path);
+                    } else {
+                        stampTree.clearSelection();
+                    }
+
                     // ToolTipWindow を消す
                     MouseHelper.hideToolTipWindow();
 

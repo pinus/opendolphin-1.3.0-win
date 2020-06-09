@@ -1,13 +1,13 @@
-package open.dolphin.client;
+package open.dolphin.dnd;
 
+import open.dolphin.client.DiagnosisDocument;
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.InfoModelTransferable;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
-import open.dolphin.stampbox.LocalStampTreeNodeTransferable;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.ui.ObjectReflectTableModel;
-import open.dolphin.ui.PNSTransferHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -26,8 +26,10 @@ import java.util.stream.Stream;
  * @author Minagawa, Kazushi
  * @author pns
  */
-public class DiagnosisTransferHandler extends PNSTransferHandler {
+public class DiagnosisTransferHandler extends DolphinTransferHandler {
     private static final long serialVersionUID = 1L;
+    private Logger logger = LoggerFactory.getLogger(DiagnosisTransferHandler.class);
+
     private final DiagnosisDocument parent;
     private JTable sourceTable;
     private RegisteredDiagnosisModel dragItem;
@@ -44,7 +46,7 @@ public class DiagnosisTransferHandler extends PNSTransferHandler {
         ObjectReflectTableModel<RegisteredDiagnosisModel> tableModel
                 = (ObjectReflectTableModel<RegisteredDiagnosisModel>) sourceTable.getModel();
         dragItem = tableModel.getObject(sourceTable.getSelectedRow());
-        return dragItem != null ? new InfoModelTransferable(dragItem) : null;
+        return dragItem != null ? new DiagnosisTransferable(dragItem) : null;
     }
 
     @Override
@@ -68,17 +70,19 @@ public class DiagnosisTransferHandler extends PNSTransferHandler {
     }
 
     @Override
-    public boolean importData(JComponent c, Transferable t) {
+    public boolean importData(TransferSupport support) {
+        if (!canImport(support)) { return false; }
 
         try {
             // 病名の挿入位置を決めておく
             // canImport で得た選択行に挿入（DiagnosisDocument#importStamp では使ってないんだけど）
-            JTable dropTable = (JTable) c;
+            JTable dropTable = (JTable) support.getComponent();
             int index = dropTable.getSelectedRow();
-            index = index < 0 ? 0 : index;
+            index = Math.max(index, 0);
 
             // Dropされたノードを取得する
-            StampTreeNode droppedNode = (StampTreeNode) t.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
+            StampTreeNode droppedNode =
+                (StampTreeNode) support.getTransferable().getTransferData(DolphinDataFlavor.stampTreeNodeFlavor);
 
             // Import するリストを生成する
             List<ModuleInfoBean> importList = new ArrayList<>(3);
@@ -124,11 +128,8 @@ public class DiagnosisTransferHandler extends PNSTransferHandler {
                 return false;
             }
 
-        } catch (UnsupportedFlavorException ex) {
-            System.out.println("DiagnosisTransferHandler.java: " + ex);
-        } catch (IOException ioe) {
-            System.out.println("DiagnosisTransferHandler.java: " + ioe);
-            ioe.printStackTrace(System.err);
+        } catch (UnsupportedFlavorException | IOException ex) {
+            ex.printStackTrace(System.err);
         }
 
         return false;
@@ -146,9 +147,8 @@ public class DiagnosisTransferHandler extends PNSTransferHandler {
     @Override
     public boolean canImport(TransferSupport support) {
         // drop position の選択をしないようにする
-        support.setShowDropLocation(false);
-
+        if (support.isDrop()) { support.setShowDropLocation(false); }
         return Stream.of(support.getDataFlavors())
-                .anyMatch(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor::equals);
+                .anyMatch(DolphinDataFlavor.stampTreeNodeFlavor::equals);
     }
 }

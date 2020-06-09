@@ -1,6 +1,7 @@
 package open.dolphin.inspector;
 
 import open.dolphin.client.*;
+import open.dolphin.dnd.DiagnosisInspectorTransferHandler;
 import open.dolphin.helper.MenuActionManager;
 import open.dolphin.helper.MenuActionManager.MenuAction;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;

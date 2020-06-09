@@ -219,7 +219,7 @@ public abstract class AbstractCodeHelper {
             // 病名以外の場合はテキストは不要なので消す
             textPane.replaceSelection("");
         }
-        comp.getTransferHandler().importData(comp, e.getTransferable());
+        comp.getTransferHandler().importData(new TransferHandler.TransferSupport(comp, e.getTransferable()));
     }
 
     /**

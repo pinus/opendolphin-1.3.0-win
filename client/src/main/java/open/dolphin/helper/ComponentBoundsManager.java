@@ -13,20 +13,21 @@ import java.util.prefs.Preferences;
  * Component の位置・サイズ変更を Listen して，リアルタイムで preference ファイルに保存する.
  *
  * @author Kazushi Minagawa
+ * @author pns
  */
 public class ComponentBoundsManager implements ComponentListener {
+    private static final Logger logger = LoggerFactory.getLogger(ComponentBoundsManager.class);
 
     private final Component target;
     private final Point defaultLocation;
     private final Dimension defaultSize;
-    private final Logger logger;
     private Preferences prefs;
     private String key;
 
     /**
      * @param component - target component
      * @param location  - initial component location
-     * @param size      - intitial component size
+     * @param size      - initial component size
      * @param object    - この object のクラス名が preference の key になる. null にすると記録されない.
      */
     public ComponentBoundsManager(Component component, Point location, Dimension size, Object object) {
@@ -40,13 +41,8 @@ public class ComponentBoundsManager implements ComponentListener {
         // 初期値
         component.setLocation(defaultLocation);
         component.setSize(defaultSize);
-
-        connect(component);
-        logger = LoggerFactory.getLogger(ComponentBoundsManager.class);
-    }
-
-    private void connect(Component c) {
-        c.addComponentListener(this);
+        // リスナ
+        component.addComponentListener(this);
     }
 
     @Override
@@ -71,12 +67,10 @@ public class ComponentBoundsManager implements ComponentListener {
     }
 
     @Override
-    public void componentShown(java.awt.event.ComponentEvent e) {
-    }
+    public void componentShown(java.awt.event.ComponentEvent e) { }
 
     @Override
-    public void componentHidden(java.awt.event.ComponentEvent e) {
-    }
+    public void componentHidden(java.awt.event.ComponentEvent e) { }
 
     /**
      * Preferences に記録された Bounds に戻す.
@@ -95,11 +89,7 @@ public class ComponentBoundsManager implements ComponentListener {
      * target component を画面中央に設定する.
      */
     public void putCenter() {
-        if (ClientContext.isMac()) {
-            putCenter(3);
-        } else {
-            putCenter(2);
-        }
+        putCenter(ClientContext.isMac()? 3 : 2);
     }
 
     private void putCenter(int n) {

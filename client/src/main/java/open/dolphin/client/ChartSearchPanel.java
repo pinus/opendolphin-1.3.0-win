@@ -54,7 +54,7 @@ public class ChartSearchPanel extends JPanel {
                 JPopupMenu popup = chart.getChartMediator().createDiagnosisPopup(pattern, ev -> {
                     JComponent c = chart.getDiagnosisDocument().getDiagnosisTable();
                     TransferHandler handler = c.getTransferHandler();
-                    handler.importData(c, ev.getTransferable());
+                    handler.importData(new TransferHandler.TransferSupport(c, ev.getTransferable()));
                     // transfer 後にキーワードフィールドをクリアする
                     stampSearchField.setText("");
                 });

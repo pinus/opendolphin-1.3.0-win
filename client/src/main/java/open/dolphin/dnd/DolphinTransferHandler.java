@@ -1,9 +1,13 @@
-package open.dolphin.ui;
+package open.dolphin.dnd;
 
 import open.dolphin.client.ClientContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.image.BufferedImage;
 
 /**
@@ -11,16 +15,33 @@ import java.awt.image.BufferedImage;
  *
  * @author pns
  */
-public class PNSTransferHandler extends TransferHandler {
+public class DolphinTransferHandler extends TransferHandler {
     private static final long serialVersionUID = 1L;
-
+    private Logger logger = LoggerFactory.getLogger(DolphinTransferHandler.class);
     private final boolean isWin = ClientContext.isWin();
+
     private final Point offset = new Point(0, 0);
 
     /**
-     * JLabel から DragImage を作る.
+     * String から DragImage を作ってセットする.
      *
-     * @param label
+     * @param text String
+     */
+    protected void setDragImage(String text) {
+        if (text.contains("\n")) {
+            // 改行があれば html 化する
+            text = text.replaceAll("\n", "<br>");
+            text = "<html>" + text + "</html>";
+        }
+        JLabel label = new JLabel(text);
+        label.setSize(label.getPreferredSize());
+        setDragImage(label, true);
+    }
+
+    /**
+     * JLabel から DragImage を作ってセットする.
+     *
+     * @param label JLabel
      */
     protected void setDragImage(JLabel label) {
         Point mousePosition = label.getMousePosition();
@@ -32,14 +53,14 @@ public class PNSTransferHandler extends TransferHandler {
     }
 
     /**
-     * JLabel から DragImage を作る.
+     * JLabel から DragImage を作ってセットする. 文字ラベル対応.
      *
-     * @param label
+     * @param label JLabel
      * @param clip  true の場合，文字幅に合わせて clipping する
      */
     protected void setDragImage(JLabel label, boolean clip) {
-        int width = label.getWidth();
-        int height = label.getHeight();
+        int width = label.getWidth() != 0? label.getWidth() : label.getPreferredSize().width;
+        int height = label.getHeight() != 0? label.getHeight() : label.getPreferredSize().height;
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics g = image.getGraphics();
 
@@ -68,7 +89,7 @@ public class PNSTransferHandler extends TransferHandler {
     /**
      * DragImageOffset を設定してから setDragImage する.
      *
-     * @param image
+     * @param image drag image
      */
     @Override
     public void setDragImage(Image image) {
@@ -89,5 +110,17 @@ public class PNSTransferHandler extends TransferHandler {
         offset.y = 0;
 
         super.setDragImage(image);
+    }
+
+    @Override
+    public boolean importData(JComponent comp, Transferable t) {
+        logger.error("deprecated: super class = " + super.getClass());
+        return false;
+    }
+
+    @Override
+    public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+        logger.error("deprecated: super class = " + super.getClass());
+        return false;
     }
 }

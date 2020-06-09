@@ -1,5 +1,6 @@
 package open.dolphin.stampbox;
 
+import open.dolphin.dnd.AspStampTreeNodeTransferHandler;
 import open.dolphin.helper.StampTreeUtils;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class AspStampBox extends AbstractStampBox {
         List<StampTree> aspTrees = StampTreeUtils.xmlDecode(treeXml, new AspStampTreeBuilder());
 
         // StampTreeに設定するポップアップメニューとトランスファーハンドラーを生成する
-        AspStampTreeTransferHandler transferHandler = new AspStampTreeTransferHandler();
+        AspStampTreeNodeTransferHandler transferHandler = new AspStampTreeNodeTransferHandler();
 
         // StampBox(TabbedPane) へリスト順に格納する
         for (StampTree stampTree : aspTrees) {

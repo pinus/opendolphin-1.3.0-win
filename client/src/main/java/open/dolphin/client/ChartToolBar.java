@@ -145,7 +145,7 @@ public class ChartToolBar extends JToolBar {
 
         // 選択されている場合, 前の文字が区切り文字の場合は先頭を feedback, それ以外は１文字前を feedback
         int num = (start != end || prevChar.equals("\n")) ? start : start - 1;
-        num = num < 0 ? 0 : num;
+        num = Math.max(num, 0);
         AttributeSet a = pane.getStyledDocument().getCharacterElement(num).getAttributes();
 
         // feedback 中は ActionEvent を抑制する
@@ -427,7 +427,7 @@ public class ChartToolBar extends JToolBar {
 
                     if (Objects.nonNull(c)) {
                         TransferHandler handler = c.getTransferHandler();
-                        handler.importData(c, ev.getTransferable());
+                        handler.importData(new TransferHandler.TransferSupport(c, ev.getTransferable()));
                     }
 
                     // transfer 後にキーワードフィールドをクリアする

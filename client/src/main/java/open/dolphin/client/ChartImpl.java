@@ -2,10 +2,7 @@ package open.dolphin.client;
 
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.event.ProxyAction;
-import open.dolphin.helper.GUIDGenerator;
-import open.dolphin.helper.PreferencesUtils;
-import open.dolphin.helper.Task;
-import open.dolphin.helper.WindowSupport;
+import open.dolphin.helper.*;
 import open.dolphin.impl.care.CareMapDocument;
 import open.dolphin.impl.lbtest.LaboTestBean;
 import open.dolphin.impl.pinfo.PatientInfoDocument;
@@ -37,7 +34,6 @@ import java.util.prefs.Preferences;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
-    public static final String PN_FRAME = "chart.frame";
     private static final long serialVersionUID = 1L;
     //  Chart インスタンスを管理するstatic 変数
     private static final List<ChartImpl> allCharts = new ArrayList<>(3);
@@ -722,22 +718,20 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         // Frame の大きさをストレージからロードする
         frame.pack(); // pack しないと，TextField に文字を入力してリターンを押した後にレイアウトがずれる
-        int x = 5;
-        int y = 20;
-        int width = 900;
-        int height = 740;
-        Rectangle bounds = PreferencesUtils.getRectangle(prefs, PN_FRAME, new Rectangle(x, y, width, height));
+        Point defaultLocation = new Point(5, 20);
+        Dimension defaultSize = new Dimension(900, 740);
+        ComponentBoundsManager manager = new ComponentBoundsManager(frame, defaultLocation, defaultSize, this);
 
         // フレームの表示位置を決める J2SE 5.0
         boolean locByPlatform = Project.getPreferences().getBoolean(Project.LOCATION_BY_PLATFORM, false);
 
         if (locByPlatform) {
             frame.setLocationByPlatform(true);
-            frame.setSize(bounds.width, bounds.height);
+            manager.putCenter();
 
         } else {
             frame.setLocationByPlatform(false);
-            frame.setBounds(bounds);
+            manager.revertToPreferenceBounds();
         }
 
         frame.setVisible(true);
@@ -1547,8 +1541,6 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
         mediator.dispose();
         inspector.dispose();
-
-        PreferencesUtils.putRectangle(prefs, PN_FRAME, getFrame().getBounds());
 
         getFrame().setVisible(false); // ここで windowClosed が呼ばれる
         getFrame().setJMenuBar(null);

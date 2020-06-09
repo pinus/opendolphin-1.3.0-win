@@ -1,6 +1,7 @@
 package open.dolphin.stampbox;
 
 import open.dolphin.client.GUIConst;
+import open.dolphin.dnd.StampTreeNodeTransferable;
 import open.dolphin.infomodel.ModuleInfoBean;
 
 import javax.swing.*;
@@ -63,14 +64,14 @@ public class StampTreeMenuBuilder {
             HashMap<StampTreeNode, JMenu> parentMap = new HashMap<>();
 
             DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
-            Enumeration e = rootNode.preorderEnumeration();
+            Enumeration<StampTreeNode> e = rootNode.preorderEnumeration();
 
             // スタンプをスキャンする
             e.nextElement(); // consume root
 
             while (e.hasMoreElements()) {
                 // 調査対象のノードを得る
-                StampTreeNode node = (StampTreeNode) e.nextElement();
+                StampTreeNode node = e.nextElement();
                 // その親を得る
                 StampTreeNode parent = (StampTreeNode) node.getParent();
 
@@ -148,13 +149,13 @@ public class StampTreeMenuBuilder {
     /**
      * Menu item にリスナを登録する. ActionListener から StampMenuActionListener へブリッジする.
      *
-     * @param item
-     * @param tree
-     * @param node
+     * @param item menu item
+     * @param tree stamp tree
+     * @param node stamp tree node
      */
     private void addActionListener(JMenuItem item, StampTree tree, StampTreeNode node) {
         StampTreeMenuEvent menuEvent = new StampTreeMenuEvent(item);
-        menuEvent.setTransferable(new LocalStampTreeNodeTransferable(node));
+        menuEvent.setTransferable(new StampTreeNodeTransferable(node));
         menuEvent.setEntity(tree.getEntity());
 
         item.addActionListener(e -> menuListener.actionPerformed(menuEvent));
@@ -165,8 +166,8 @@ public class StampTreeMenuBuilder {
     /**
      * searchText が completion にマッチするかどうかを判断する.
      *
-     * @param completion
-     * @return
+     * @param completion completion
+     * @return matched
      */
     private boolean matches(String completion) {
         // searchText が null の場合は合致と判断
@@ -183,7 +184,7 @@ public class StampTreeMenuBuilder {
     /**
      * StampTreeMenuModel から JMenu を構築する.
      *
-     * @param menu
+     * @param menu JMenu
      */
     public void build(JMenu menu) {
         build();
@@ -203,7 +204,7 @@ public class StampTreeMenuBuilder {
     /**
      * StampTreeMenuModel から JPopupMenu を構築する.
      *
-     * @param popup
+     * @param popup popup menu
      */
     public void build(JPopupMenu popup) {
         build();
@@ -223,7 +224,7 @@ public class StampTreeMenuBuilder {
     /**
      * StampTreeMenuModel から Entity 部分のない Rootless の JMenu を作る.
      *
-     * @param menu
+     * @param menu JMenu
      */
     public void buildRootless(JMenu menu) {
         build();
@@ -234,7 +235,7 @@ public class StampTreeMenuBuilder {
     /**
      * StampTreeMenuModel から Entity 部分のない Rootless の JPopupMenu を作る.
      *
-     * @param popup
+     * @param popup popup menu
      */
     public void buildRootless(JPopupMenu popup) {
         build();
@@ -245,7 +246,7 @@ public class StampTreeMenuBuilder {
     /**
      * メニュー選択時のアクションを定義するリスナを登録する.
      *
-     * @param listener
+     * @param listener StampTreeMenuListener
      */
     public void addStampTreeMenuListener(StampTreeMenuListener listener) {
         menuListener = listener;

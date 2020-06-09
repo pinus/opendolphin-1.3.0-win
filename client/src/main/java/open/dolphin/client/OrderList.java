@@ -3,7 +3,7 @@ package open.dolphin.client;
 import open.dolphin.infomodel.ModuleModel;
 
 /**
- * OrderList.
+ * OrderList. Contains array of stamps.
  *
  * @author Kazushi Minagawa
  */

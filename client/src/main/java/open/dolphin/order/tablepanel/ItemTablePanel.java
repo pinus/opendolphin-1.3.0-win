@@ -1,6 +1,7 @@
 package open.dolphin.order.tablepanel;
 
 import open.dolphin.client.GUIConst;
+import open.dolphin.dnd.MasterItemTransferHandler;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.PNSTriple;
 import open.dolphin.helper.StringTool;
@@ -910,9 +911,8 @@ public class ItemTablePanel extends JPanel {
         ClaimItem[] items = bundle.getClaimItem();
         int count = items.length;
 
-        for (int i = 0; i < count; i++) {
+        for (ClaimItem item : items) {
 
-            ClaimItem item = items[i];
             MasterItem mItem = new MasterItem();
 
             // 手技・材料・薬品のフラグ
@@ -990,7 +990,7 @@ public class ItemTablePanel extends JPanel {
             MasterItem mItem = (MasterItem) i;
 
             // コードが 84xxxxxxx コメントの場合，number にパラメータを入れるので，number チェックしない
-            if (mItem.getCode().substring(0, 2).equals("84")) {
+            if (mItem.getCode().startsWith("84")) {
                 return true;
             }
             //System.out.println("---- code= " + mItem.getCode().substring(0,2));

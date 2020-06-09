@@ -1,9 +1,11 @@
 package open.dolphin.client;
 
+import open.dolphin.dnd.KartePaneTransferHandler;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.util.ModelUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -98,6 +100,7 @@ public class KarteViewer2 extends AbstractChartDocument implements Comparable<Ka
         // SOA Pane を生成する
         soaPane = new KartePane();
         soaPane.setTextPane(kartePanel.getSoaTextPane());
+        soaPane.getTextPane().setTransferHandler(new KartePaneTransferHandler(soaPane));
         soaPane.setRole(IInfoModel.ROLE_SOA);
         soaPane.setParent(this);
         if (Objects.nonNull(getDocument())) {
@@ -109,6 +112,7 @@ public class KarteViewer2 extends AbstractChartDocument implements Comparable<Ka
         // P Pane を生成する
         pPane = new KartePane();
         pPane.setTextPane(kartePanel.getPTextPane());
+        pPane.getTextPane().setTransferHandler(new KartePaneTransferHandler(pPane));
         pPane.setRole(IInfoModel.ROLE_P);
         pPane.setParent(this);
 
@@ -276,7 +280,7 @@ public class KarteViewer2 extends AbstractChartDocument implements Comparable<Ka
      * @return compareTo 値
      */
     @Override
-    public int compareTo(KarteViewer2 other) {
+    public int compareTo(@NotNull KarteViewer2 other) {
         if (other != null && other.getClass() == this.getClass()) {
             DocInfoModel otheInfo = other.getDocument().getDocInfo();
             return getDocument().getDocInfo().compareTo(otheInfo);

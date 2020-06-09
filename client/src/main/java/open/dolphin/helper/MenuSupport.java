@@ -20,8 +20,8 @@ import java.util.stream.Stream;
  * <li>chains[2] = this
  * <li>chains[3] = Dolphin
  * </ul>
- * addChain するところは {@link open.dolphin.client.Dolphin#initComponents() Dolphin} のタブ切換設定の部分.
- * StampBoxPlugin, ImageBox もインスタンスを持っているが，メニュー表示だけで addChain は未実装.<br>
+ * addChain するところは {@link open.dolphin.client.Dolphin Dolphin#initComponents} のタブ切換設定の部分.
+ * StampBoxPlugin, ImageBox もインスタンスを持っているが，メニュー表示だけで addChain は未実装.
  * ChartDocument 層での使用は {@link open.dolphin.client.ChartMediator ChartMediator} で行う.
  *
  * @author Minagawa, Kazushi
