@@ -14,7 +14,6 @@ import open.dolphin.impl.scheam.SchemaEditorImpl;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.ui.Focuser;
-import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.sheet.JSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -318,8 +317,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         getTextPane().setFocusable(editable);
 
         if (editable) {
-            IMEControl.setImeOnIfFocused(getTextPane());
-
             if (myRole.equals(IInfoModel.ROLE_SOA)) {
                 SOACodeHelper helper = new SOACodeHelper(this, getMediator());
             } else {

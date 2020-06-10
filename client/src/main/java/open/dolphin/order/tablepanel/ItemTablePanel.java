@@ -223,7 +223,6 @@ public class ItemTablePanel extends JPanel {
             TableColumn column = table.getColumnModel().getColumn(i);
 
             JTextField tf = new JTextField();
-            IMEControl.setImeOffIfFocused(tf);
             DefaultCellEditor de = new PNSCellEditor(tf);
             int ccts = Project.getPreferences().getInt("order.table.clickCountToStart", 1);
             de.setClickCountToStart(ccts);
@@ -245,14 +244,12 @@ public class ItemTablePanel extends JPanel {
         // コメントフィールド（メモ）を生成する
         commentField = new JTextField(15);
         commentField.setMaximumSize(new Dimension(10, 22));
-        IMEControl.setImeOnIfFocused(commentField);
 
         // スタンプ名フィールドを生成する
         stampNameField = new JTextField(20);
         stampNameField.setMaximumSize(new Dimension(10, 22));
         // stampNameField.setOpaque(true); opaque にすると，色が枠からはみ出す
         //stampNameField.setBackground(new Color(251, 239, 128));  // TODO
-        IMEControl.setImeOnIfFocused(stampNameField);
 
         // 削除ボタンを生成する
         removeButton = new JButton(REMOVE_BUTTON_IMAGE);

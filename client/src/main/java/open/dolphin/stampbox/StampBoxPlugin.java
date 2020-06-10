@@ -733,7 +733,6 @@ public class StampBoxPlugin extends AbstractMainTool {
     public void enter() {
         if (frame != null) {
             frame.toFront();
-            IMEControl.setImeOff(frame);
         }
     }
 

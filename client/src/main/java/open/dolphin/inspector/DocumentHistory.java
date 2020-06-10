@@ -139,7 +139,6 @@ public class DocumentHistory implements IInspector {
         // タイトルカラムに CellEditor を登録
         JTextField tf = new JTextField();
         tf.setBackground(Color.WHITE);
-        IMEControl.setImeOnIfFocused(tf);
         TableColumn column = view.getTable().getColumnModel().getColumn(1);
         column.setCellEditor(new PNSCellEditor(tf));
 

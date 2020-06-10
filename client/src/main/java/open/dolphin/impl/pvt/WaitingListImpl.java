@@ -13,7 +13,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.KarteState;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
-import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.IndentTableCellRenderer;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSBadgeTabbedPane;
@@ -310,7 +309,6 @@ public class WaitingListImpl extends AbstractMainComponent {
      */
     @Override
     public void enter() {
-        IMEControl.setImeOff(view);
         controlMenu();
     }
 

@@ -11,7 +11,6 @@ import open.dolphin.inspector.InspectorCategory;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectStub;
 import open.dolphin.ui.ComboBoxFactory;
-import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSTabbedPane;
 
 import javax.swing.*;
@@ -735,11 +734,6 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         defaultSanyakuNum.setText(model.getDefaultSanyakuNum());
         defaultRpNum.setText(model.getDefaultRpNum());
 
-        IMEControl.setImeOffIfFocused(defaultZyozaiNum);
-        IMEControl.setImeOffIfFocused(defaultMizuyakuNum);
-        IMEControl.setImeOffIfFocused(defaultSanyakuNum);
-        IMEControl.setImeOffIfFocused(defaultRpNum);
-
         //
         // CLAIM 送信関係
         // 仮保存の時は送信できない. 理由は CRC 等の入力するケース.
@@ -781,7 +775,6 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         }
 
         defaultKarteTitle.getDocument().addDocumentListener((ProxyDocumentListener) e -> checkState());
-        IMEControl.setImeOnIfFocused(defaultKarteTitle);
 
         //
         // 確認ダイアログ関係

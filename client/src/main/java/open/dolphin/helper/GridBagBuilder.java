@@ -1,6 +1,5 @@
 package open.dolphin.helper;
 
-import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSBorderFactory;
 
 import javax.swing.*;
@@ -227,17 +226,10 @@ public class GridBagBuilder {
     }
 
     public void addTextItem(int row, int col, String title, int length, boolean kanji) {
-
         JLabel l = new JLabel(title, SwingConstants.RIGHT);
 
         JTextField tf = new JTextField(length);
         tf.setMargin(new Insets(1, 2, 1, 2));
-
-        if (kanji) {
-            IMEControl.setImeOnIfFocused(tf);
-        } else {
-            IMEControl.setImeOffIfFocused(tf);
-        }
 
         add(l, col, row, 1, 1, SwingConstants.EAST);
         add(tf, col, row, 1, 1, SwingConstants.WEST);

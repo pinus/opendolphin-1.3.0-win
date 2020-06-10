@@ -8,7 +8,6 @@ import open.dolphin.infomodel.AllergyModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.SimpleDate;
 import open.dolphin.ui.Focuser;
-import open.dolphin.ui.IMEControl;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -36,11 +35,9 @@ public class AllergyEditor {
         view = new AllergyEditorView();
 
         // factor field
-        IMEControl.setImeOnIfFocused(view.getFactorFld());
         view.getFactorFld().getDocument().addDocumentListener((ProxyDocumentListener) e -> checkBtn());
 
         // memo field
-        IMEControl.setImeOnIfFocused(view.getMemoFld());
 
         // identified field
         Date date = new Date();
@@ -49,7 +46,6 @@ public class AllergyEditor {
         view.getIdentifiedFld().setText(todayString);
         view.getIdentifiedFld().addMouseListener(new PopupListener());
         view.getIdentifiedFld().putClientProperty("Quaqua.TextComponent.showPopup", false);
-        IMEControl.setImeOffIfFocused(view.getIdentifiedFld());
 
         addBtn = new JButton("追加");
         addBtn.addActionListener(e -> add());
