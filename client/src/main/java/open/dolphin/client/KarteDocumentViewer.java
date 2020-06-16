@@ -617,7 +617,7 @@ public class KarteDocumentViewer extends AbstractChartDocument {
 
             if (result.equals(OrcaDelegater.Result.NO_ERROR)) {
                 message = "ORCA に送信しました";
-                messageType = JOptionPane.PLAIN_MESSAGE;
+                messageType = JOptionPane.INFORMATION_MESSAGE;
             } else {
                 message = "ORCA に送信できませんでした";
                 messageType = JOptionPane.ERROR_MESSAGE;

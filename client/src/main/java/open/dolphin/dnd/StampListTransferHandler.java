@@ -1,12 +1,16 @@
-package open.dolphin.client;
+package open.dolphin.dnd;
 
+import open.dolphin.client.ComponentHolder;
+import open.dolphin.client.KartePane;
+import open.dolphin.client.OrderList;
+import open.dolphin.client.StampHolder;
 import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.*;
 import open.dolphin.orca.ClaimConst;
 import open.dolphin.project.Project;
-import open.dolphin.stampbox.LocalStampTreeNodeTransferable;
 import open.dolphin.stampbox.StampTreeNode;
-import open.dolphin.ui.PNSTransferHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,29 +20,36 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.stream.Stream;
 
 /**
- * StampHolderTransferHandler.
+ * カルテの StampHolder の TransferHandler.
  *
  * @author Kazushi Minagawa
  * @author pns
  */
-public class StampHolderTransferHandler extends PNSTransferHandler {
+public class StampListTransferHandler extends DolphinTransferHandler {
     private static final long serialVersionUID = -9182879162438446790L;
+    private Logger logger = LoggerFactory.getLogger(StampListTransferHandler.class);
 
-    public StampHolderTransferHandler() {
-    }
+    public StampListTransferHandler() { }
 
+    /**
+     * OrderListTransferable を作る.
+     *
+     * @param c StampHolder
+     * @return OrderListTransferable
+     */
     @Override
     protected Transferable createTransferable(JComponent c) {
         StampHolder source = (StampHolder) c;
-        KartePane context = source.getKartePane();
-        context.setDraggedStamp(new ComponentHolder[]{source});
-        context.setDraggedCount(1);
+        KartePane kartePane = source.getKartePane();
+        kartePane.setDraggedStamp(new ComponentHolder[]{source});
+        kartePane.setDraggedCount(1);
         ModuleModel stamp = source.getStamp();
         OrderList list = new OrderList(new ModuleModel[]{stamp});
-        Transferable tr = new OrderListTransferable(list);
-        return tr;
+
+        return new StampListTransferable(list);
     }
 
     @Override
@@ -139,87 +150,62 @@ public class StampHolderTransferHandler extends PNSTransferHandler {
     }
 
     @Override
-    public boolean importData(JComponent c, Transferable tr) {
+    public boolean importData(TransferSupport support) {
+        if (!canImport(support)) { return false; }
 
-        if (canImport(c, tr.getTransferDataFlavors())) {
+        try {
+            StampHolder target = (StampHolder) support.getComponent();
+            StampTreeNode droppedNode =
+                (StampTreeNode) support.getTransferable().getTransferData(DolphinDataFlavor.stampTreeNodeFlavor);
 
-            final StampHolder target = (StampHolder) c;
-            StampTreeNode droppedNode;
-
-            try {
-                droppedNode = (StampTreeNode) tr.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
-
-            } catch (UnsupportedFlavorException e) {
-                System.out.println("StampHolderTransferHandler.java: " + e);
-                e.printStackTrace(System.err);
-                return false;
-            } catch (IOException e) {
-                System.out.println("StampHolderTransferHandler.java: " + e);
-                return false;
-            }
-
-            if (droppedNode == null || (!droppedNode.isLeaf())) {
-                return false;
-            }
+            // 葉しか扱わない
+            if (!droppedNode.isLeaf()) { return false; }
 
             final ModuleInfoBean stampInfo = droppedNode.getStampInfo();
             String role = stampInfo.getStampRole();
 
-            if (!role.equals(IInfoModel.ROLE_P)) {
-                return false;
-            }
+            // Role P しか扱わない
+            if (!role.equals(IInfoModel.ROLE_P)) { return false; }
 
             if (Project.getPreferences().getBoolean("replaceStamp", false)) {
                 replaceStamp(target, stampInfo);
-
             } else {
                 SwingUtilities.invokeLater(() -> confirmReplace(target, stampInfo));
             }
             return true;
+
+        } catch (UnsupportedFlavorException | IOException ex) {
+            logger.error(ex.getMessage());
         }
         return false;
     }
 
     @Override
     protected void exportDone(JComponent c, Transferable tr, int action) {
-        if (action == NONE) {
-            return;
-        }
+        if (action == NONE) { return; }
 
         if (action == MOVE) {
             StampHolder test = (StampHolder) c;
-            KartePane context = test.getKartePane();
+            KartePane kartePane = test.getKartePane();
 
-            if (context.getComponent().isEditable()) {
-                context.removeStamp(test);
+            // 同一 KartePane 内の DnD の場合だけ移動, それ以外はコピー
+            logger.debug("dropped count = " + kartePane.getDroppedCount());
+            if (kartePane.getComponent().isEditable() && kartePane.getDroppedCount() > 0) {
+                kartePane.removeStamp(test);
             }
-            context.setDraggedStamp(null);
-            context.setDraggedCount(0);
-            context.setDroppedCount(0);
+            kartePane.setDraggedStamp(null);
+            kartePane.setDraggedCount(0);
+            kartePane.setDroppedCount(0);
         }
     }
 
-    /**
-     * インポート可能かどうかを返す.
-     *
-     * @param c
-     * @param flavors
-     * @return
-     */
     @Override
-    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-        StampHolder test = (StampHolder) c;
+    public boolean canImport(TransferSupport support) {
+        StampHolder test = (StampHolder) support.getComponent();
         JTextPane tc = test.getKartePane().getTextPane();
-        return tc.isEditable() && hasFlavor(flavors);
-    }
-
-    protected boolean hasFlavor(DataFlavor[] flavors) {
-        for (DataFlavor flavor : flavors) {
-            if (LocalStampTreeNodeTransferable.localStampTreeNodeFlavor.equals(flavor)) {
-                return true;
-            }
-        }
-        return false;
+        return tc.isEditable()
+            && Stream.of(support.getDataFlavors()).
+            anyMatch(DolphinDataFlavor.stampTreeNodeFlavor::equals);
     }
 
     /**

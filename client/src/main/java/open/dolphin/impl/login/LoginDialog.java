@@ -11,7 +11,6 @@ import open.dolphin.project.DolphinPrincipal;
 import open.dolphin.project.Project;
 import open.dolphin.setting.ProjectSettingDialog;
 import open.dolphin.ui.Focuser;
-import open.dolphin.ui.IMEControl;
 import open.dolphin.util.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,13 +254,11 @@ public class LoginDialog {
         // User ID Field
         JTextField userIdField = view.getUserIdField();
         userIdField.getDocument().addDocumentListener((ProxyDocumentListener) e -> checkButtons());
-        IMEControl.setImeOffIfFocused(userIdField);
         userIdField.addActionListener(e -> requestFocus(view.getPasswordField()));
 
         // Password Field
         JPasswordField passwdField = view.getPasswordField();
         passwdField.getDocument().addDocumentListener((ProxyDocumentListener) e -> checkButtons());
-        IMEControl.setImeOffIfFocused(passwdField);
         passwdField.addActionListener(e -> {
             if (view.getUserIdField().getText().equals("")) {
                 requestFocus(view.getUserIdField());

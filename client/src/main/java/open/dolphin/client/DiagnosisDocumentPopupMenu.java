@@ -10,7 +10,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeSupport;
 
 /**
- * DiagnosisDocument のポップアップメニューを一手に引き受ける
+ * DiagnosisDocument のポップアップメニューを一手に引き受ける.
  *
  * @author pns
  */
@@ -84,9 +84,9 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 右クリックの処理
+     * 右クリックの処理.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void rightPressed(MouseEvent e) {
 
@@ -138,9 +138,9 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 左クリックの処理
+     * 左クリックの処理.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void leftPressed(MouseEvent e) {
         if (e.getClickCount() == 2) {
@@ -156,9 +156,9 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * カレンダーポップアップを出す
+     * カレンダーポップアップを出す.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void popupCalendar(MouseEvent e) {
         CalendarPanel cp = new CalendarPanel();
@@ -172,7 +172,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     /**
      * SimpleDate を diagTable にセットする.
      *
-     * @param date
+     * @param date SimpleDate
      */
     public void setDate(SimpleDate date) {
         String d = SimpleDate.simpleDateToMmldate(date);
@@ -187,9 +187,9 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 診断修飾語ポップアップを出す
+     * 診断修飾語ポップアップを出す.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void popupDiagnosis(final MouseEvent e) {
         // diagPopup は最初に作ってあるので show するだけでよい
@@ -197,7 +197,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 病名修飾ポップアップメニュー作成
+     * 病名修飾ポップアップメニュー作成.
      */
     private void createDiagnosisPopupMenu() {
         diagPopup = new JPopupMenu();
@@ -219,27 +219,27 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * DiagnosisInspector で diagPopup を使う
+     * DiagnosisInspector で diagPopup を使う.
      *
-     * @return
+     * @return diagnosis popup
      */
     public JPopupMenu getDiagPopup() {
         return diagPopup;
     }
 
     /**
-     * DiagnosisInspector で outcomePopup を使う
+     * DiagnosisInspector で outcomePopup を使う.
      *
-     * @return
+     * @return outcome popup
      */
     public JPopupMenu getOutcomePopup() {
         return outcomePopup;
     }
 
     /**
-     * DiagnosisInspector で categoryPopup を使う
+     * DiagnosisInspector で categoryPopup を使う.
      *
-     * @return
+     * @return category popup
      */
     public JPopupMenu getCategoryPopup() {
         return categoryPopup;
@@ -269,7 +269,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
                 }
             }
 
-            if (newDiagDesc != null && newDiagCode != null) {
+            if (newDiagDesc != null) {
                 DiagnosisLiteModel newDiag = new DiagnosisLiteModel(rd);
                 newDiag.setDiagnosisDesc(newDiagDesc);
                 newDiag.setDiagnosisCode(newDiagCode);
@@ -282,7 +282,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 診断名から postposition を取り去る
+     * 診断名から postposition を取り去る.
      */
     public void dropPostposition() {
         int[] rows = diagTable.getSelectedRows();
@@ -305,7 +305,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
                 }
             }
 
-            if (newDiagDesc != null && newDiagCode != null) {
+            if (newDiagDesc != null) {
                 DiagnosisLiteModel newDiag = new DiagnosisLiteModel(rd);
                 newDiag.setDiagnosisDesc(newDiagDesc);
                 newDiag.setDiagnosisCode(newDiagCode);
@@ -318,25 +318,25 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 主病名／疑い病名ポップアップを出す
+     * 主病名／疑い病名ポップアップを出す.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void popupCategory(MouseEvent e) {
         categoryPopup.show(e.getComponent(), e.getX(), e.getY());
     }
 
     /**
-     * 転帰ポップアップを出す
+     * 転帰ポップアップを出す.
      *
-     * @param e
+     * @param e MouseEvent
      */
     private void popupOutcome(MouseEvent e) {
         outcomePopup.show(e.getComponent(), e.getX(), e.getY());
     }
 
     /**
-     * 主病名／疑い病名ポップアップを作る
+     * 主病名／疑い病名ポップアップを作る.
      */
     private void createCategoryPopupMenu() {
         categoryPopup = new JPopupMenu();
@@ -349,7 +349,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 転帰ポップアップを作る
+     * 転帰ポップアップを作る.
      */
     private void createOutcomePopupMenu() {
         outcomePopup = new JPopupMenu();
@@ -362,9 +362,9 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 外部からポップアップの action を使うためのメソッド群
+     * 外部からポップアップの action を使うためのメソッド群.
      *
-     * @param s
+     * @param s 選択するメニューの文字列
      */
     public void doClickDiagPopup(String s) {
         doClickPopup(diagPopup, s);
@@ -399,7 +399,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
         右("2056"), 左("2049"), 両("2057");
         private final String code;
 
-        private DiagnosisPreposition(String code) {
+        DiagnosisPreposition(String code) {
             this.code = code;
         }
 
@@ -416,7 +416,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
         の急性増悪("8061"), の二次感染("8069"), の再発("8065"), の術後("8048"), の治療後("8075");
         private final String code;
 
-        private DiagnosisPostposition(String code) {
+        DiagnosisPostposition(String code) {
             this.code = code;
         }
 
@@ -430,7 +430,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 病名修飾の実務 action
+     * 病名修飾の実務 action.
      */
     private class DiagAction implements ActionListener {
         Object modifier;
@@ -498,7 +498,7 @@ public class DiagnosisDocumentPopupMenu extends MouseAdapter implements MouseMot
     }
 
     /**
-     * 主病名／疑い病名，転帰の実務
+     * 主病名／疑い病名，転帰の実務.
      */
     private class CategoryOutcomeAction implements ActionListener {
         Object model;

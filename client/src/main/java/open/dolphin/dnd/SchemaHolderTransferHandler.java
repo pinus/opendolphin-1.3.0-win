@@ -1,36 +1,34 @@
-package open.dolphin.client;
+package open.dolphin.dnd;
 
+import open.dolphin.client.*;
 import open.dolphin.infomodel.SchemaModel;
-import open.dolphin.ui.PNSTransferHandler;
 
 import javax.swing.*;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 /**
- * SchemaHolderTransferHandler
+ * SchemaHolder に付ける TransferHandler.
  *
  * @author Kazushi Minagawa
  * @author pns
  */
-public class SchemaHolderTransferHandler extends PNSTransferHandler {
+public class SchemaHolderTransferHandler extends DolphinTransferHandler {
     private static final long serialVersionUID = -1293765478832142035L;
 
-    public SchemaHolderTransferHandler() {
-    }
+    public SchemaHolderTransferHandler() { }
 
     @Override
     protected Transferable createTransferable(JComponent c) {
         SchemaHolder source = (SchemaHolder) c;
-        KartePane context = source.getKartePane();
-        context.setDraggedStamp(new ComponentHolder[]{source});
-        context.setDraggedCount(1);
+        KartePane kartePane = source.getKartePane();
+        kartePane.setDraggedStamp(new ComponentHolder[]{source});
+        kartePane.setDraggedCount(1);
         SchemaModel schema = source.getSchema();
         SchemaList list = new SchemaList();
         list.setSchemaList(new SchemaModel[]{schema});
-        Transferable tr = new SchemaListTransferable(list);
-        return tr;
+
+        return new SchemaListTransferable(list);
     }
 
     @Override
@@ -59,7 +57,18 @@ public class SchemaHolderTransferHandler extends PNSTransferHandler {
     }
 
     @Override
-    public boolean canImport(JComponent c, DataFlavor[] flavors) {
+    public boolean importData(TransferSupport support) {
+        return false;
+    }
+
+    /**
+     * SchemaHolder の上への Drop はできない.
+     *
+     * @param support TransferSupport
+     * @return can import
+     */
+    @Override
+    public boolean canImport(TransferSupport support) {
         return false;
     }
 

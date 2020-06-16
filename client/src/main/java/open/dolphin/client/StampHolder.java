@@ -1,24 +1,25 @@
 package open.dolphin.client;
 
 import open.dolphin.event.ProxyAction;
+import open.dolphin.event.ProxyActionListener;
 import open.dolphin.helper.HtmlHelper;
-import open.dolphin.helper.PreferencesUtils;
 import open.dolphin.helper.StringTool;
 import open.dolphin.infomodel.*;
+import open.dolphin.orca.ClaimConst;
 import open.dolphin.order.StampEditorDialog;
 import open.dolphin.project.Project;
+import open.dolphin.ui.Focuser;
+import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSBorderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.text.Position;
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.util.List;
 import java.beans.PropertyChangeEvent;
+import javax.swing.border.Border;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * KartePane に Component　として挿入されるスタンプを保持するクラス.
@@ -34,11 +35,11 @@ public final class StampHolder extends AbstractComponentHolder {
     private static final Color COMMENT_COLOR = new Color(120, 20, 140);
     private static final Border MY_SELECTED_BORDER = PNSBorderFactory.createSelectedBorder();
     private static final Border MY_CLEAR_BORDER = PNSBorderFactory.createClearBorder();
+    private static final int MARGIN = 24; // JTextPane より MARGIN 分だけ小さくする
+
     private final KartePane kartePane;
     private ModuleModel stamp;
     private StampRenderingHints hints;
-    private Position start;
-    private Position end;
     private boolean selected;
     // 検索語にマークする
     private String searchText = null;
@@ -48,44 +49,166 @@ public final class StampHolder extends AbstractComponentHolder {
     private Logger logger = LoggerFactory.getLogger(StampHolder.class);
 
     public StampHolder(final KartePane kartePane, final ModuleModel model) {
-        super();
-        //logger.setLevel(Level.DEBUG);
+        super(kartePane);
 
         this.kartePane = kartePane;
+        stamp = model;
         hints = new StampRenderingHints();
-        hints.setCommentColor(COMMENT_COLOR);
-
-        // スタンプの初期幅は ChartImpl の幅から決定する
-        Rectangle bounds = PreferencesUtils.getRectangle(Project.getPreferences(), ChartImpl.PN_FRAME, new Rectangle(0, 0, 0, 0));
-        int w = (bounds.width + 1) / 2 - 168; // 実験から連立方程式で求めた
-        hints.setWidth(Math.max(320, w));
-
-        init(model);
+        initialize();
     }
 
-    private void init(ModuleModel model) {
+    private void initialize() {
         setForeground(FOREGROUND);
         setBackground(BACKGROUND);
         setBorder(MY_CLEAR_BORDER);
 
-        setStamp(model);
+        MyHierarchyBoundsListener listener = new MyHierarchyBoundsListener();
+        addHierarchyBoundsListener(listener);
+
+        // コメント用の色をセット
+        hints.setCommentColor(COMMENT_COLOR);
+
+        // 幅が決定していれば hint にセットして描画, 未定ならパスして HierarchyBoundsListener に任せる
+        if (kartePane.getTextPane().getWidth() > 1) { listener.repaintStamp(); }
     }
 
     /**
-     * Focusされた場合のメニュー制御とボーダーを表示する.
+     * Component の変化に乗じて stamp を書き換える.
+     */
+    private class MyHierarchyBoundsListener extends HierarchyBoundsAdapter {
+        public void repaintStamp() {
+            int width = kartePane.getTextPane().getWidth();
+            hints.setWidth(Math.max(320, width - MARGIN));
+            setMyText();
+        }
+        @Override
+        public void ancestorResized(HierarchyEvent e) {
+            repaintStamp();
+        }
+    }
+
+    /**
+     * 数字キーでスタンプ数量を変更する.
+     *
+     * @param e KeyEvent
+     */
+    @Override
+    public void keyPressed(KeyEvent e) {
+        super.keyPressed(e);
+
+        if (Character.isDigit(e.getKeyChar())) {
+            //
+            // 数字キー入力処理編集は editable でないと意味が無い
+            //
+            if (!kartePane.getTextPane().isEditable()
+                || !StampHolder.this.isEditable()
+                || !(stamp.getModel() instanceof BundleMed)) { return; }
+
+            Color translucent = new Color(0, 0, 0, 0);
+            Color lightGray = new Color(238, 238, 238);
+            Color origColor;
+
+            // 数字キー入力のための minimal な dialog を作る
+            JDialog dialog = new JDialog((Frame) null, true);
+            dialog.setUndecorated(true);
+            dialog.setBackground(translucent);
+
+            // 入力中はスタンプの背景を暗くする
+            origColor = getBackground();
+            setBackground(lightGray);
+            setOpaque(true);
+
+            // dialog closing procedure
+            ProxyActionListener closeDialog = () -> {
+                dialog.setVisible(false);
+                setBackground(origColor);
+                setOpaque(false);
+                Focuser.requestFocus(this);
+            };
+
+            // text field を作って, 最初の1文字を入力する
+            JTextField tf = new JTextField(3);
+            tf.setText(String.valueOf(e.getKeyChar()));
+
+            // enter key でスタンプの数量を変更する
+            tf.addActionListener(actionEvent -> {
+                try {
+                    // 数字が入力されたかどうか
+                    String num = tf.getText();
+                    Float.parseFloat(num);
+
+                    BundleMed bundle = (BundleMed) stamp.getModel();
+                    if (ClaimConst.RECEIPT_CODE_NAIYO.equals(bundle.getClassCode()) ||
+                        ClaimConst.RECEIPT_CODE_TONYO.equals(bundle.getClassCode())) {
+                        // 投与日数を変更する
+                        String old = bundle.getBundleNumber();
+                        if (!old.equals(num)) {
+                            bundle.setBundleNumber(num);
+                            setMyText();
+                            kartePane.setDirty(true);
+                            logger.debug("bundle number changed to " + num);
+                        }
+
+                    } else {
+                        // 外用剤の量を変更する
+                        boolean dirty = false;
+                        for (ClaimItem item : bundle.getClaimItem()) {
+                            if (item.getCode().startsWith("6")) {
+                                String old = item.getNumber();
+                                if (!old.equals(num)) {
+                                    item.setNumber(num);
+                                    dirty = true;
+                                }
+                            }
+                        }
+                        if (dirty) {
+                            setMyText();
+                            kartePane.setDirty(true);
+                            logger.debug("item number changed to " + num);
+                        }
+                    }
+                } catch (NumberFormatException ex) {
+                    logger.error("wrong input");
+                }
+                // dialog-close
+                closeDialog.actionPerformed();
+            });
+            dialog.add(tf);
+            dialog.pack();
+
+            // escape or command-w to cancel
+            InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            im.put(KeyStroke.getKeyStroke("ESCAPE"), "dialog-close");
+            im.put(KeyStroke.getKeyStroke("meta W"), "dialog-close");
+            ActionMap am = dialog.getRootPane().getActionMap();
+            am.put("dialog-close", new ProxyAction(closeDialog));
+
+            // centering
+            Point stampLocation = StampHolder.this.getLocationOnScreen();
+            Dimension stampSize = StampHolder.this.getSize();
+            Dimension dialogSize = dialog.getSize();
+            int dispX = stampLocation.x + (stampSize.width - dialogSize.width) / 2;
+            int dispY = stampLocation.y + (stampSize.height - dialogSize.height) / 2;
+            dialog.setLocation(dispX, dispY);
+
+            dialog.setVisible(true);
+        }
+    }
+
+    /**
+     * Focus されると {@link open.dolphin.client.ChartMediator ChartMediator} から呼ばれる.
+     * メニュー制御とボーダーを表示する.
      *
      * @param map ActionMap
      */
     @Override
     public void enter(ActionMap map) {
-
         map.get(GUIConst.ACTION_COPY).setEnabled(true);
         map.get(GUIConst.ACTION_CUT).setEnabled(kartePane.getTextPane().isEditable());
         map.get(GUIConst.ACTION_PASTE).setEnabled(false);
 
         setSelected(true);
-        // 隠しコマンドセット
-        addHiddenCommand();
+        IMEControl.off();
     }
 
     /**
@@ -96,8 +219,6 @@ public final class StampHolder extends AbstractComponentHolder {
     @Override
     public void exit(ActionMap map) {
         setSelected(false);
-        // 隠しコマンド除去
-        removeHiddenCommand();
     }
 
     /**
@@ -159,16 +280,6 @@ public final class StampHolder extends AbstractComponentHolder {
         return stamp;
     }
 
-    /**
-     * このホルダのモデルを設定する.
-     *
-     * @param model ModuleModel
-     */
-    public void setStamp(ModuleModel model) {
-        stamp = model;
-        setMyText();
-    }
-
     public StampRenderingHints getHints() {
         return hints;
     }
@@ -222,7 +333,7 @@ public final class StampHolder extends AbstractComponentHolder {
 
         } else {
             // ダブルクリックで EditorFrame に入力
-            java.util.List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
+            List<EditorFrame> allFrames = EditorFrame.getAllEditorFrames();
             if (!allFrames.isEmpty()) {
                 EditorFrame frame = allFrames.get(0);
                 if (this.isEditable()) {
@@ -273,87 +384,62 @@ public final class StampHolder extends AbstractComponentHolder {
         // 「月　日」の自動挿入：replace の場合はここに入る
         // replace でない場合は，KartePane でセット
         StampModifier.modify(newStamp);
+        stamp = newStamp;
+        setMyText();
 
-        setStamp(newStamp);
         kartePane.setDirty(true);
         kartePane.getTextPane().validate();
         kartePane.getTextPane().repaint();
+        Focuser.requestFocus(this);
     }
 
     /**
-     * TextPane内での開始と終了ポジションを保存する.
-     *
-     * @param start Position
-     * @param end Position
-     */
-    @Override
-    public void setEntry(Position start, Position end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    /**
-     * 開始ポジションを返す.
-     *
-     * @return position
-     */
-    @Override
-    public int getStartPos() {
-        return start.getOffset();
-    }
-
-    /**
-     * 終了ポジションを返す.
-     *
-     * @return position
-     */
-    @Override
-    public int getEndPos() {
-        return end.getOffset();
-    }
-
-    /**
-     * Velocity を利用してスタンプの内容を表示する.
+     * j2html を利用してスタンプの内容を表示する.
      */
     private void setMyText() {
 
-            IInfoModel bundle = getStamp().getModel(); // BundleMed > BundleDolphin > ClaimBundle
-            String stampName = getStamp().getModuleInfo().getStampName();
-            logger.debug("bundle = " + bundle.getClass().getName() + ", stampName = " + stampName);
+        IInfoModel bundle = getStamp().getModel(); // BundleMed > BundleDolphin > ClaimBundle
+        String stampName = getStamp().getModuleInfo().getStampName();
+        logger.debug("bundle = " + bundle.getClass().getName() + ", stampName = " + stampName);
 
-            String text;
+        String text;
 
-            if (bundle instanceof BundleMed) {
-                text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
+        if (bundle instanceof BundleMed) {
+            text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
+            //logger.info("bundleMed = " + text);
 
-            } else if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
-                && Project.getPreferences().getBoolean("laboFold", true)) {
-                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
+        } else if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
+            && Project.getPreferences().getBoolean("laboFold", true)) {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
+            //logger.info("labo = " + text);
 
-            } else {
-                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
+        } else {
+            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
+            //logger.info("bundleDolphin = " + text);
+        }
+
+
+        text = StringTool.toHankakuNumber(text);
+        text = StringTool.toHankakuUpperLower(text);
+        text = text.replaceAll("　", " ");
+        text = text.replaceAll("．", ".");
+        // グラムは全角で
+        text = text.replaceAll(">g<", ">ｇ<"); // ℊ
+
+        // 検索語の attribute をセットする
+        if (searchText != null) {
+            String taggedText = startTag + searchText + endTag;
+            int pos = text.indexOf(searchText);
+            while (pos != -1) {
+                text = text.substring(0, pos) + taggedText + text.substring(pos + searchText.length());
+                pos = text.indexOf(searchText, pos + taggedText.length());
             }
+        }
 
+        this.setText(text);
 
-            text = StringTool.toHankakuNumber(text);
-            text = StringTool.toHankakuUpperLower(text);
-            text = text.replaceAll("　", " ");
-
-            // 検索語の attribute をセットする
-            if (searchText != null) {
-                String taggedText = startTag + searchText + endTag;
-                int pos = text.indexOf(searchText);
-                while (pos != -1) {
-                    text = text.substring(0, pos) + taggedText + text.substring(pos + searchText.length());
-                    pos = text.indexOf(searchText, pos + taggedText.length());
-                }
-            }
-
-            this.setText(text);
-
-            // カルテペインへ展開された時広がるのを防ぐ
-            this.setMaximumSize(this.getPreferredSize());
-
+        // カルテペインへ展開された時広がるのを防ぐ
+        this.setMaximumSize(this.getPreferredSize());
     }
 
     public void setAttr(String searchText, String startTag, String endTag) {
@@ -368,59 +454,5 @@ public final class StampHolder extends AbstractComponentHolder {
         this.startTag = null;
         this.endTag = null;
         setMyText();
-    }
-
-    /**
-     * ショートカットキー.
-     */
-    private void addHiddenCommand() {
-
-        InputMap im = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap am = this.getActionMap();
-
-        // Shift-commnad-C ショートカットでクリップボードにスタンプをコピーする.
-        im.put(KeyStroke.getKeyStroke("shift meta C"), "copyAsText");
-        am.put("copyAsText", new ProxyAction(() -> {
-
-            if (getStamp().getModel() instanceof BundleMed) {
-                BundleMed bundle = (BundleMed) getStamp().getModel();
-
-                StringBuilder sb = new StringBuilder();
-
-                for (ClaimItem item : bundle.getClaimItem()) {
-                    if (!item.getCode().matches("099[0-9]{6}")) {
-                        sb.append(item.getName());
-                        sb.append(" ");
-
-                        if (!item.getCode().matches("0085[0-9]{5}")
-                            && !item.getCode().matches("001000[0-9]{3}")
-                            && !item.getCode().matches("810000001")) {
-                            sb.append(item.getNumber());
-                            sb.append(item.getUnit());
-                        }
-                    }
-                }
-                sb.append(bundle.getAdminDisplayString());
-
-                // 全角数字とスペースを直す
-                String text = sb.toString();
-                text = StringTool.toHankakuNumber(text);
-                text = StringTool.toHankakuUpperLower(text);
-                text = text.replaceAll("　", " ");
-                text = text.replace("\n", " ");
-
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(new StringSelection(text), null);
-            }
-        }));
-    }
-
-    /**
-     * 登録した Shift-command-C ショートカットを削除する.
-     */
-    private void removeHiddenCommand() {
-        // Shift+command C
-        InputMap im = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        im.remove(KeyStroke.getKeyStroke("shift meta C"));
     }
 }

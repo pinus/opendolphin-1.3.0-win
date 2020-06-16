@@ -11,8 +11,12 @@ import open.dolphin.order.tablepanel.DiagnosisTablePanel;
 import open.dolphin.order.tablepanel.ItemTablePanel;
 import open.dolphin.order.tablepanel.RadiologyTablePanel;
 import open.dolphin.order.tablepanel.RecipeTablePanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.Objects;
 
 /**
  * StampEditor.
@@ -32,9 +36,59 @@ public class StampEditor extends JPanel implements IStampEditor {
     private ItemTablePanel tablePanel;
     private MasterSearchPanel masterSearchPanel;
     private String entity;
+    private Logger logger = LoggerFactory.getLogger(StampEditor.class);
 
     public StampEditor(String entity) {
         this.entity = entity;
+
+        // フォーカス処理: tab で search field -> search panel -> table panel の順番にフォーカス移動する
+        setFocusTraversalPolicyProvider(true);
+        setFocusTraversalPolicy(new FocusTraversalPolicy() {
+            @Override
+            public Component getComponentAfter(Container aContainer, Component aComponent) {
+                switch (Objects.isNull(aComponent.getName()) ? "" : aComponent.getName()) {
+                    case StampEditor.MASTER_SEARCH_FIELD:
+                        getMasterSearchPanel().requestFocusOnTable();
+                        break;
+
+                    case StampEditor.MASTER_TABLE:
+                        getTablePanel().requestFocusOnTable();
+                        break;
+
+                    default:
+                        enter();
+                        break;
+                }
+                return null;
+            }
+
+            @Override
+            public Component getComponentBefore(Container aContainer, Component aComponent) {
+                switch (Objects.isNull(aComponent.getName()) ? "" : aComponent.getName()) {
+                    case StampEditor.MASTER_SEARCH_FIELD:
+                        getTablePanel().requestFocusOnTable();
+                        break;
+
+                    case StampEditor.ITEM_TABLE:
+                        getMasterSearchPanel().requestFocusOnTable();
+                        break;
+
+                    default:
+                        enter();
+                        break;
+                }
+                return null;
+            }
+
+            @Override
+            public Component getFirstComponent(Container aContainer) { return null; }
+
+            @Override
+            public Component getLastComponent(Container aContainer) { return null; }
+
+            @Override
+            public Component getDefaultComponent(Container aContainer) { return null; }
+        });
     }
 
     @Override
@@ -188,11 +242,10 @@ public class StampEditor extends JPanel implements IStampEditor {
 
     @Override
     public void setTitle(String title) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(title);
-        buf.append(ClientContext.getString("application.title.editorText"));
-        buf.append(ClientContext.getString("application.title.separator"));
-        buf.append(ClientContext.getString("application.title"));
-        this.title = buf.toString();
+        String buf = title +
+            ClientContext.getString("application.title.editorText") +
+            ClientContext.getString("application.title.separator") +
+            ClientContext.getString("application.title");
+        this.title = buf;
     }
 }

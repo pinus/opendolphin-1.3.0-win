@@ -99,20 +99,8 @@ public class KartePanelFactory {
             initComponents();
 
             // workaround http://ron.shoutboot.com/2010/05/23/swing-jscrollpane-scrolls-to-bottom/
-            soaTextPane.setCaret(new DefaultCaret() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void adjustVisibility(Rectangle r) {
-                }
-            });
-            pTextPane.setCaret(new DefaultCaret() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void adjustVisibility(Rectangle r) {
-                }
-            });
+            soaTextPane.setCaret(new MyCaret());
+            pTextPane.setCaret(new MyCaret());
 
             textPanePanel.add(soaTextPane);
             textPanePanel.add(pTextPane);
@@ -231,6 +219,15 @@ public class KartePanelFactory {
         public JPanel getTimeStampPanel() {
             return timeStampPanel;
         }
+    }
+
+    /**
+     * workaround caret moving to the end on opening
+     * http://ron.shoutboot.com/2010/05/23/swing-jscrollpane-scrolls-to-bottom/
+     */
+    private class MyCaret extends DefaultCaret {
+        @Override
+        protected void adjustVisibility(Rectangle r) { }
     }
 
     /**

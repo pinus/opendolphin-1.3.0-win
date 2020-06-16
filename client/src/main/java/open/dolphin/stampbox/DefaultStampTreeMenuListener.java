@@ -3,7 +3,7 @@ package open.dolphin.stampbox;
 import javax.swing.*;
 
 /**
- * StampTreeMenuBuilder に登録する Defalut Listener.
+ * StampTreeMenuBuilder に登録する Default Listener.
  *
  * @author pns
  */
@@ -18,6 +18,6 @@ public class DefaultStampTreeMenuListener implements StampTreeMenuListener {
 
     @Override
     public void actionPerformed(StampTreeMenuEvent e) {
-        handler.importData(component, e.getTransferable());
+        handler.importData(new TransferHandler.TransferSupport(component, e.getTransferable()));
     }
 }

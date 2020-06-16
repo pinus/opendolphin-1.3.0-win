@@ -7,6 +7,7 @@ import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.project.Project;
 import open.dolphin.ui.ObjectReflectTableModel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
 import java.beans.PropertyChangeSupport;
@@ -29,6 +30,7 @@ public class DiagnosisDocumentTableModel extends ObjectReflectTableModel<Registe
     // undo/redo 用 map（rd ごとに queue を作っておく）
     private final Map<Integer, Deque<DiagnosisLiteModel>> undoMap = new HashMap<>();
     private final Map<Integer, Deque<DiagnosisLiteModel>> redoMap = new HashMap<>();
+    private DiagnosisOutcomeGenerator outcomeGenerator = new DiagnosisOutcomeGenerator();
     private DiagnosisDocumentTable diagTable;
     private LastVisit lastVisit;
 
@@ -41,11 +43,19 @@ public class DiagnosisDocumentTableModel extends ObjectReflectTableModel<Registe
         return boundSupport;
     }
 
+    /**
+     * LastVisit をセットする.
+     *
+     * @param lastVisit LastVisit
+     */
     public void setLastVisit(LastVisit lastVisit) { this.lastVisit = lastVisit; }
 
-    public void setDiagTable(DiagnosisDocumentTable table) {
-        diagTable = table;
-    }
+    /**
+     * この Model を保持する DiagnosisDocumentTable をセットする.
+     *
+     * @param table DiagnosisDocumentTable
+     */
+    public void setDiagTable(DiagnosisDocumentTable table) { diagTable = table; }
 
     // Diagnosisは編集不可
     @Override
@@ -173,14 +183,14 @@ public class DiagnosisDocumentTableModel extends ObjectReflectTableModel<Registe
                             // 疾患終了日を入れる
                             if (Project.getPreferences().getBoolean("autoOutcomeInput", false)) {
                                 String val = rd.getEndDate();
-                                if (val == null || val.equals("")) {
+                                if (StringUtils.isEmpty(val)) {
+                                    outcomeGenerator.setParams(rd, lastVisit);
                                     if (dom.getOutcome().equals(DiagnosisOutcome.fullyRecovered.name())) {
-                                        // 終了の場合は lastVisit のロジックに従う
-                                        rd.setEndDate(lastVisit.getDiagnosisOutcomeDate());
+                                        // 終了の場合
+                                        rd.setEndDate(outcomeGenerator.standard());
                                     } else if (dom.getOutcome().equals(DiagnosisOutcome.pause.name())) {
-                                        // 中止の場合，開始月の最終日に終了
-                                        LocalDate startMonth = rd.getStarted().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                                        rd.setEndDate(startMonth.withDayOfMonth(startMonth.lengthOfMonth()).format(DateTimeFormatter.ISO_DATE));
+                                        // 中止の場合
+                                        rd.setEndDate(outcomeGenerator.special());
                                     }
                                 }
                             }

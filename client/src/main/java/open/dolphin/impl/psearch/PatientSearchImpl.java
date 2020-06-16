@@ -287,9 +287,6 @@ public class PatientSearchImpl extends AbstractMainComponent {
         // 履歴保存する prefs をセット
         view.getKeywordFld().setPreferences(prefs);
 
-        // IME off
-        IMEControl.setImeOffIfFocused(view.getKeywordFld());
-
         // Table に ListSelectionListener 登録
         final JTable table = view.getTable();
         final ObjectReflectTableModel<PatientModel> tableModel = (ObjectReflectTableModel<PatientModel>) table.getModel();

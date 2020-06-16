@@ -4,7 +4,6 @@ import open.dolphin.helper.ComponentBoundsManager;
 import open.dolphin.helper.MenuSupport;
 import open.dolphin.helper.Task;
 import open.dolphin.helper.WindowSupport;
-import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.MainFrame;
 import open.dolphin.ui.PNSTabbedPane;
 import org.slf4j.Logger;
@@ -65,7 +64,6 @@ public class ImageBox extends AbstractMainTool {
     public void enter() {
         if (frame != null) {
             frame.setVisible(true);
-            IMEControl.setImeOff(frame);
         }
     }
 

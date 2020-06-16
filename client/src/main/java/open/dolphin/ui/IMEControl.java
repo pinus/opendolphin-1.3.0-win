@@ -1,123 +1,111 @@
 package open.dolphin.ui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
 
 /**
  * Mac で IME on/off を切り替える.
  * <ul>
- * <li>ver 1: AppleScript で on/off するバージョン　：　遅すぎてストレスたまる
- * <li>ver 2: InputContext.selectInputMethod バージョン　：　調子よかったが，1.6.0_29 で使えなくなる
+ * <li>ver 1: AppleScript で on/off するバージョン: 遅すぎてストレスたまる
+ * <li>ver 2: InputContext.selectInputMethod バージョン: 調子よかったが，1.6.0_29 で使えなくなる
  * <li>ver 3: Robot version 切り替わったかどうか判定するために event queue システム導入
- * <li>ver 4: enableInputMethod(true/false) バージョン
- * <li>ver 5: To DO
+ * <li>ver 4: enableInputMethod(true/false) バージョン: short-cut が効かなくなったり不安定
+ * <li>ver 5: Robot version 復活. かな／英数キーではなく ATOK short-cut を使ってみる
  * </ul>
  *
  * @author pns
  */
 public class IMEControl {
-
+    private static Logger logger = LoggerFactory.getLogger(IMEControl.class);
+    private static boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
+    private static Robot robot;
     static {
-        // 「かな」キーで ime on
-/*        KeyboardFocusManager.setCurrentKeyboardFocusManager(new DefaultKeyboardFocusManager() {
+        try { robot = new Robot(); }
+        catch (AWTException e) { logger.error(e.getMessage()); }
+    }
+
+    /**
+     * IME-off. Shift-Control-C で英字
+     */
+    public static void off() {
+        if (isMac) {
+            logger.info("atok eiji mode");
+            type(KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_C);
+        }
+    }
+
+    /**
+     * IME-on. Shift-Control-Z でひらがな
+     */
+    public static void on() {
+        if (isMac) {
+            logger.info("atok hiragana mode");
+            type(KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_Z);
+        }
+    }
+
+    private static void type(int... keys) {
+        for (int i = 0; i < keys.length; i++) { robot.keyPress(keys[i]); }
+        for (int i = keys.length -1 ; i >= 0; i--) { robot.keyRelease(keys[i]); }
+    }
+
+    /**
+     * IME-off when focused.
+     *
+     * @param c component to add focus listener
+     */
+    public static void off(final Component c) {
+        c.addFocusListener(new FocusAdapter() {
             @Override
-            public void processKeyEvent(Component focusedComponent, KeyEvent e) {
-                if (focusedComponent instanceof JTextComponent) {
-                    if (e.getKeyCode() == KeyEvent.VK_KATAKANA) {
-                        focusedComponent.enableInputMethods(true);
-                    //} else if (e.getKeyCode() == KeyEvent.VK_ALPHANUMERIC) {
-                    //    focusedComponent.enableInputMethods(false);
-                    }
-                }
-                super.processKeyEvent(focusedComponent, e);
-            }
-        });*/
+            public void focusGained(FocusEvent e) { off(); }
+        });
+    }
 
-        // 上の方法だと，時々ショートカットキーが効かなくなることがあったので，
-/*        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener(){
+    /**
+     * IME-on when focused.
+     *
+     * @param c component to add focus listener
+     */
+    public static void on(final Component c) {
+        c.addFocusListener(new FocusAdapter() {
             @Override
-            public void eventDispatched(AWTEvent event) {
-                if (((KeyEvent)event).getKeyCode() == KeyEvent.VK_KATAKANA) {
-                    Object source = event.getSource();
-                    if (source instanceof Component) {
-                        ((Component)source).enableInputMethods(true);
-                    }
-                }
-            }
-        }, AWTEvent.KEY_EVENT_MASK);*/
-    }
-
-    /**
-     * IME off
-     *
-     * @param c
-     */
-    public static void setImeOff(Component c) {
-        //c.enableInputMethods(false);
-    }
-
-    /**
-     * IME on
-     *
-     * @param c
-     */
-    public static void setImeOn(Component c) {
-        //if (c instanceof JTextComponent) {
-        //    c.enableInputMethods(true);
-        //}
-    }
-
-    /**
-     * Component c がフォーカスを取ったら ime を切る
-     *
-     * @param c
-     */
-    public static void setImeOffIfFocused(final Component c) {
-        //c.addFocusListener(new FocusAdapter() {
-        //    @Override
-        //    public void focusGained(FocusEvent e) {
-        //        setImeOff(c);
-        //    }
-        //});
-    }
-
-    /**
-     * Component c がフォーカスを取ったら ime を on にする
-     *
-     * @param c
-     */
-    public static void setImeOnIfFocused(final Component c) {
-        //c.addFocusListener(new FocusAdapter() {
-        //    @Override
-        //    public void focusGained(FocusEvent e) {
-        //        setImeOn(c);
-        //    }
-        //    @Override
-        //    public void focusLost(FocusEvent e) {
-        //        Component w = SwingUtilities.getWindowAncestor(c);
-        //        if (w != null) { setImeOff(w); }
-        //    }
-        //});
+            public void focusGained(FocusEvent e) { on(); }
+        });
     }
 
     public static void main(String[] argv) {
-        //System.out.println("java.version = " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + " bit");
 
         JFrame f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JTextField tf = new JTextField(100);
-        IMEControl.setImeOnIfFocused(tf);
-        //IMEControl.setImeOffIfFocused(tf);
-        f.add(tf);
+
+        JLabel l1 = new JLabel("TF1");
+        JLabel l2 = new JLabel("TF2");
+
+        JTextField tf1 = new JTextField(30);
+        on(tf1);
+        JTextField tf2 = new JTextField(30);
+        off(tf2);
+
+        JPanel p1 = new JPanel();
+        p1.setLayout(new BoxLayout(p1, BoxLayout.X_AXIS));
+        p1.add(l1);
+        p1.add(tf1);
+        JPanel p2 = new JPanel();
+        p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
+        p2.add(l2);
+        p2.add(tf2);
+
+        f.getRootPane().setLayout(new BoxLayout(f.getRootPane(), BoxLayout.Y_AXIS));
+        f.getRootPane().add(p1);
+        f.getRootPane().add(p2);
         f.pack();
+        f.setLocation(200,100);
         f.setVisible(true);
-
-        JFrame f2 = new JFrame();
-        JTextField tf2 = new JTextField(50);
-        IMEControl.setImeOffIfFocused(tf2);
-        f2.add(tf2);
-        f2.pack();
-        f2.setVisible(true);
-
     }
 }

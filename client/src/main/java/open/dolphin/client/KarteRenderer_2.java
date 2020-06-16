@@ -4,6 +4,7 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ProgressCourse;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -187,13 +188,12 @@ public class KarteRenderer_2 {
             isSoaPane = false;
             thePane = pPane;
             renderPane(pSpec);
-
-            // StampHolder直後の改行がない場合は補う
-            pPane.getDocument().fixCrAfterStamp();
         }
 
         // 最後の CR は attribute が変になってるので取り除く
+        soaPane.getDocument().removeRepeatedCr();
         soaPane.getDocument().removeLastCr();
+        pPane.getDocument().removeRepeatedCr();
         pPane.getDocument().removeLastCr();
     }
 

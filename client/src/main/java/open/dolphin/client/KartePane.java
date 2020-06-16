@@ -5,13 +5,15 @@ import open.dolphin.codehelper.PCodeHelper;
 import open.dolphin.codehelper.SOACodeHelper;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.StampDelegater;
+import open.dolphin.dnd.SchemaHolderTransferHandler;
+import open.dolphin.dnd.StampListTransferHandler;
 import open.dolphin.helper.DBTask;
 import open.dolphin.helper.ImageHelper;
 import open.dolphin.helper.TextComponentUndoManager;
 import open.dolphin.impl.scheam.SchemaEditorImpl;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditorDialog;
-import open.dolphin.ui.IMEControl;
+import open.dolphin.ui.Focuser;
 import open.dolphin.ui.sheet.JSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +25,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -43,7 +45,7 @@ import java.util.prefs.Preferences;
 /**
  * KarteComposite の一つで，内部に JTextPane を１つ保持している.
  * 保持している JTextPane は，{@link open.dolphin.client.KartePane#setTextPane setTextPane} されるときに
- * client property "kartePane" に親の KartePane を入れる.<br>
+ * client property "kartePane" に親の KartePane を入れる.
  * ２号カルテはこれを２枚 KarteViewer / KarteEditor に入れて使う.
  *
  * @author Kazushi Minagawa, Digital Globe, inc.
@@ -68,7 +70,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     // この KartePaneのオーナ
     private ChartDocument parent;
     // StampHolderのTransferHandler
-    private StampHolderTransferHandler stampHolderTransferHandler;
+    private StampListTransferHandler stampListTransferHandler;
     // SchemaHolderのTransferHandler
     private SchemaHolderTransferHandler schemaHolderTransferHandler;
     // SchemaModel にファイル名を付けるときの Id (インクリメントする)
@@ -93,19 +95,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     public KartePane() {
         undoManager = new TextComponentUndoManager();
         undoListener = undoManager::listener;
-    }
-
-    public void setMargin(Insets margin) {
-        textPane.setMargin(margin);
-    }
-
-    public void setPreferredSize(Dimension size) {
-        textPane.setPreferredSize(size);
-    }
-
-    public void setSize(Dimension size) {
-        textPane.setMinimumSize(size);
-        textPane.setMaximumSize(size);
     }
 
     /**
@@ -201,17 +190,17 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     /**
      * JTextPaneを設定する.
      *
-     * @param textPane JTextPane
+     * @param tp JTextPane
      */
-    public void setTextPane(JTextPane textPane) {
-        this.textPane = textPane;
-        if (this.textPane != null) {
+    public void setTextPane(JTextPane tp) {
+        textPane = tp;
+        if (textPane != null) {
             KarteStyledDocument doc = new KarteStyledDocument();
-            this.textPane.setDocument(doc);
-            this.textPane.putClientProperty("kartePane", this);
+            textPane.setDocument(doc);
+            textPane.putClientProperty("kartePane", this);
 
             doc.setParent(this);
-            stampHolderTransferHandler = new StampHolderTransferHandler();
+            stampListTransferHandler = new StampListTransferHandler();
             schemaHolderTransferHandler = new SchemaHolderTransferHandler();
         }
     }
@@ -248,7 +237,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @return このPaneからDragされたスタンプ数
      */
-    protected int getDraggedCount() {
+    public int getDraggedCount() {
         return draggedCount;
     }
 
@@ -257,7 +246,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @param draggedCount このPaneからDragされたスタンプ数
      */
-    protected void setDraggedCount(int draggedCount) {
+    public void setDraggedCount(int draggedCount) {
         this.draggedCount = draggedCount;
     }
 
@@ -266,7 +255,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @return このPaneにDropされたスタンプ数
      */
-    protected int getDroppedCount() {
+    public int getDroppedCount() {
         return droppedCount;
     }
 
@@ -275,7 +264,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @param droppedCount このPaneにDropされたスタンプ数
      */
-    protected void setDroppedCount(int droppedCount) {
+    public void setDroppedCount(int droppedCount) {
         this.droppedCount = droppedCount;
     }
 
@@ -284,7 +273,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @return このPaneからDragされたスタンプ配列
      */
-    protected ComponentHolder<?>[] getDraggedStamp() {
+    public ComponentHolder<?>[] getDraggedStamp() {
         return draggedStamp;
     }
 
@@ -293,7 +282,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      *
      * @param drragedStamp このPaneからDragされたスタンプ配列
      */
-    protected void setDraggedStamp(ComponentHolder<?>[] drragedStamp) {
+    public void setDraggedStamp(ComponentHolder<?>[] drragedStamp) {
         this.draggedStamp = drragedStamp;
     }
 
@@ -328,8 +317,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         getTextPane().setFocusable(editable);
 
         if (editable) {
-            IMEControl.setImeOnIfFocused(getTextPane());
-
             if (myRole.equals(IInfoModel.ROLE_SOA)) {
                 SOACodeHelper helper = new SOACodeHelper(this, getMediator());
             } else {
@@ -361,9 +348,10 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     public void changedUpdate(DocumentEvent e) {
     }
 
+    private int dotBefore = 0;
     @Override
     public void caretUpdate(CaretEvent e) {
-        boolean newSelection = (e.getDot() != e.getMark());
+        boolean newSelection = e.getDot() != e.getMark();
         if (newSelection != hasSelection) {
             hasSelection = newSelection;
 
@@ -374,6 +362,13 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
                 curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? State.SOA : State.P;
             }
             controlMenus(mediator.getActions());
+        }
+
+        // カーソル移動で Component 部に来たら, Component にフォーカスする
+        if (!newSelection) {
+            KarteStyledDocument doc = getDocument();
+            Component c = StyleConstants.getComponent(doc.getCharacterElement(e.getDot()).getAttributes());
+            if (Objects.nonNull(c)) { Focuser.requestFocus(c); }
         }
     }
 
@@ -582,7 +577,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             StampModifier.modify(stamp);
             EventQueue.invokeLater(() -> {
                 StampHolder h = new StampHolder(KartePane.this, stamp);
-                h.setTransferHandler(stampHolderTransferHandler);
+                h.setTransferHandler(stampListTransferHandler);
                 KarteStyledDocument doc = getDocument();
                 doc.stamp(h);
             });
@@ -609,7 +604,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             // 外用剤の bundleNumber を補正する
             StampModifier.adjustNumber(stamp);
             StampHolder h = new StampHolder(this, stamp);
-            h.setTransferHandler(stampHolderTransferHandler);
+            h.setTransferHandler(stampListTransferHandler);
             KarteStyledDocument doc = getDocument();
             doc.flowStamp(h);
         }
@@ -677,30 +672,33 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             Toolkit.getDefaultToolkit().beep();
             return;
         }
-        // Text スタンプを挿入する
-        if (entity.equals(IInfoModel.ENTITY_TEXT)) {
-            textStampInfoDropped(list);
-            return;
-        }
         // ORCA 入力セットの場合
         if (role.equals(IInfoModel.ROLE_ORCA_SET)) {
             applyOrcaSet(stampInfo);
             return;
         }
-        // データベースに保存されているスタンプを挿入する
-        if (stampInfo.isSerialized()) {
+        // Serialized のものと Text スタンプは挿入する
+        if (stampInfo.isSerialized() || entity.equals(IInfoModel.ENTITY_TEXT)) {
             stampInfoDropped(list);
-            return;
+        } else {
+            // serialize されていない場合 Stamp エディタを起動する
+            editStamp(stampInfo);
         }
-        // Stamp エディタを起動する
-        logger.debug("launch stampEditor = " + entity);
+    }
+
+    /**
+     * スタンプエディタを起動する.
+     *
+     * @param stampInfo ModuleInfoBean
+     */
+    private void editStamp(ModuleInfoBean stampInfo) {
+        logger.info("launch stampEditor entity: " + stampInfo.getEntity());
         ModuleModel stamp = new ModuleModel();
         stamp.setModuleInfo(stampInfo);
 
-        StampEditorDialog stampEditor = new StampEditorDialog(entity, stamp);
+        StampEditorDialog stampEditor = new StampEditorDialog(stampInfo.getEntity(), stamp);
         stampEditor.addPropertyChangeListener(this);
         stampEditor.start();
-        logger.debug("stampEditor started");
     }
 
     /**
@@ -713,17 +711,33 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         // 4 個以上一気にドロップされたら警告を出す
         if (addList.size() >= 4) {
             int ans = JSheet.showConfirmDialog(parent.getContext().getFrame(),
-                    addList.size() + "個のスタンプが同時にドロップされましたが続けますか", "スタンプ挿入確認",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
+                addList.size() + "個のスタンプが同時にドロップされましたが続けますか", "スタンプ挿入確認",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE
             );
             if (ans != JOptionPane.YES_OPTION) {
                 return;
             }
         }
 
-        final StampDelegater sdl = new StampDelegater();
+        // リストの最初の StampInfo を取り出す
+        ModuleInfoBean stampInfo = addList.get(0);
 
+        // serialize されていなければエディタを起動
+        if (!stampInfo.isSerialized()) {
+            editStamp(stampInfo);
+            return;
+        }
+
+        // ORCA は複数ドロップに対応していない
+        String role = stampInfo.getStampRole();
+        if (InfoModel.ROLE_ORCA_SET.equals(role)) {
+            addList.forEach(this::applyOrcaSet);
+            return;
+        }
+
+        // ORCA 以外で serialize されているものはサーバに問い合わせる
         DBTask<List<StampModel>> task = new DBTask<List<StampModel>>(parent.getContext()) {
+            private StampDelegater sdl = new StampDelegater();
 
             @Override
             protected List<StampModel> doInBackground() {
@@ -733,79 +747,56 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
             @Override
             public void succeeded(List<StampModel> list) {
                 logger.debug("stampInfoDropped succeeded");
-                if (list != null) {
 
+                if (Objects.isNull(list)) {
+                    showNoStampModelMessage();
+                    return;
+                }
+                // role で分岐する
+                if (IInfoModel.ROLE_TEXT.equals(role)) {
+                    logger.info("text stamp");
+                    // テキストは toString したものを流す
+                    list.stream().map(StampModel::getStamp).filter(Objects::nonNull)
+                        .map(model -> model.toString() + "\n").forEach(KartePane.this::insertTextStamp);
+
+                } else {
                     List<ModuleModel> duplicateCheckList = new ArrayList<>();
 
                     for (int i = 0; i < list.size(); i++) {
                         ModuleInfoBean stampInfo = addList.get(i);
                         StampModel stampModel = list.get(i);
                         IInfoModel stamp = stampModel.getStamp();
-                        if (stamp != null) {
+
+                        if (Objects.nonNull(stamp)) {
+                            // スタンプ作成
                             ModuleModel module = new ModuleModel();
                             module.setModel(stamp);
                             module.setModuleInfo(stampInfo);
+                            // スタンプ挿入
                             stamp(module);
-
+                            // 後で重複チェック
                             duplicateCheckList.add(module);
                         }
                     }
 
                     // スタンプ重複チェック
                     for (ModuleModel module : duplicateCheckList) {
-                        int count = StampModifier.checkDuplicates(module, KartePane.this);
-                        if (count > 0) {
+                        int duplicateCount = StampModifier.checkDuplicates(module, KartePane.this);
+                        if (duplicateCount > 0) {
                             break;
                         }
                     }
-                } else {
-                    showNoStampModelMessage();
                 }
             }
         };
 
         task.execute();
-    }
-
-    /**
-     * TextStampInfo が Drop された時の処理を行なう.
-     *
-     * @param addList List of ModuleInfoBean (= stampInfo)
-     */
-    public void textStampInfoDropped(final List<ModuleInfoBean> addList) {
-
-        final StampDelegater sdl = new StampDelegater();
-
-        DBTask<List<StampModel>> task = new DBTask<List<StampModel>>(parent.getContext()) {
-
-            @Override
-            protected List<StampModel> doInBackground() {
-                return sdl.getStamp(addList);
-            }
-
-            @Override
-            public void succeeded(List<StampModel> list) {
-                logger.debug("textStampInfoDropped succeeded");
-                if (list != null) {
-                    list.stream().map(StampModel::getStamp).filter(Objects::nonNull)
-                            .map(model -> model.toString() + "\n").forEach(KartePane.this::insertTextStamp);
-                } else {
-                    showNoStampModelMessage();
-                }
-            }
-        };
-
-        task.execute();
-    }
-
-    private void showNoStampModelMessage() {
-        JOptionPane.showMessageDialog(null, "実体のないスタンプです。削除してください。",
-                ClientContext.getFrameTitle("実体のないスタンプ"),
-                JOptionPane.WARNING_MESSAGE);
     }
 
     /**
      * ORCA の入力セットを取得してこのペインに展開する.
+     *
+     * @param stampInfo ModuleInfoBean
      */
     private void applyOrcaSet(final ModuleInfoBean stampInfo) {
 
@@ -827,15 +818,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         };
 
         task.execute();
-    }
-
-    private void showMetaDataMessage() {
-
-        Window w = SwingUtilities.getWindowAncestor(getTextPane());
-        JOptionPane.showMessageDialog(w,
-                "画像のメタデータが取得できず、読み込むことができません。",
-                ClientContext.getFrameTitle("画像インポート"),
-                JOptionPane.WARNING_MESSAGE);
     }
 
     private boolean showMaxSizeMessage() {
@@ -868,21 +850,21 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         Window w = SwingUtilities.getWindowAncestor(getTextPane());
 
         int option = JOptionPane.showOptionDialog(w,
-                new Object[]{box},
-                ClientContext.getFrameTitle(title),
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                new String[]{"縮小する", "取消す"}, "縮小する");
+            new Object[]{box},
+            ClientContext.getFrameTitle(title),
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            new String[]{"縮小する", "取消す"}, "縮小する");
         return option == 0;
     }
 
     private void showNoReaderMessage() {
         Window w = SwingUtilities.getWindowAncestor(getTextPane());
         JOptionPane.showMessageDialog(w,
-                "選択した画像を読むことができるリーダが存在しません。",
-                ClientContext.getFrameTitle("画像インポート"),
-                JOptionPane.WARNING_MESSAGE);
+            "選択した画像を読むことができるリーダが存在しません。",
+            ClientContext.getFrameTitle("画像インポート"),
+            JOptionPane.WARNING_MESSAGE);
     }
 
     public void imageEntryDropped(final ImageEntry entry) {
@@ -1023,6 +1005,20 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         imageEntryDropped(entry);
     }
 
+    private void showNoStampModelMessage() {
+        JOptionPane.showMessageDialog(null, "実体のないスタンプです。削除してください。",
+            ClientContext.getFrameTitle("実体のないスタンプ"),
+            JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void showMetaDataMessage() {
+        Window w = SwingUtilities.getWindowAncestor(getTextPane());
+        JOptionPane.showMessageDialog(w,
+            "画像のメタデータが取得できず、読み込むことができません。",
+            ClientContext.getFrameTitle("画像インポート"),
+            JOptionPane.WARNING_MESSAGE);
+    }
+
     /**
      * StampEditor の編集が終了するとここへ通知される.
      * 通知されたスタンプをペインに挿入する.
@@ -1061,11 +1057,8 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      */
     protected boolean canPaste() {
         Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-
-        return Objects.nonNull(t) &&
-                (t.isDataFlavorSupported(DataFlavor.stringFlavor)
-                || (getMyRole().equals(IInfoModel.ROLE_P) && t.isDataFlavorSupported(OrderListTransferable.orderListFlavor))
-                || (getMyRole().equals(IInfoModel.ROLE_SOA) && t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)));
+        return getTextPane().getTransferHandler().canImport(
+            new TransferHandler.TransferSupport(getTextPane(), t));
     }
 
     /**

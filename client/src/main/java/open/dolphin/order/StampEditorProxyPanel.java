@@ -10,8 +10,8 @@ import java.awt.*;
 import java.util.HashMap;
 
 /**
- * 全ての StampEditor を保持可能なパネル
- * valid data かどうかを確認するリスナを登録必要
+ * 全ての StampEditor を保持可能なパネル.
+ * valid data かどうかを確認するリスナを登録必要.
  *
  * @author pns
  */

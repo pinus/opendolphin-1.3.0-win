@@ -38,8 +38,8 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * 分数対応で文字列を double にして返す.
      *
-     * @param str
-     * @return
+     * @param str 分数
+     * @return double
      */
     public static double stringToDouble(String str) {
         String[] num = str.split("/");
@@ -81,9 +81,11 @@ public class StampHolderPopupMenu extends JPopupMenu {
         addSeparator();
 
         // 処方日数メニュー
+        JMenu bundles = new JMenu("処方日数");
         for (int n : BUNDLE_NUMS) {
-            add(new BundleChangeAction(n));
+            bundles.add(new BundleChangeAction(n));
         }
+        add(bundles);
         addSeparator();
 
         // 用法メニュー
@@ -121,10 +123,11 @@ public class StampHolderPopupMenu extends JPopupMenu {
         addSeparator();
 
         // 外用剤の量メニュー
+        JMenu dose = new JMenu("処方量");
         for (int n : DOSES) {
-            add(new DoseChangeAction(n));
+            dose.add(new DoseChangeAction(n));
         }
-
+        add(dose);
         addSeparator();
 
         // 量調整メニュー
@@ -143,7 +146,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * StampHolder に通知.
      *
-     * @param stamp
+     * @param stamp stamp
      */
     public void propertyChanged(ModuleModel stamp) {
         firePropertyChange(StampHolder.STAMP_MODIFIED, null, stamp);
@@ -153,8 +156,8 @@ public class StampHolderPopupMenu extends JPopupMenu {
      * ClaimItem の code から，１日何回投与かを判断して返す.
      * cf. order/AdminMaster.java
      *
-     * @param code
-     * @return
+     * @param code コード
+     * @return 1日何回か
      */
     private int getTimes(String code) {
         if (code.startsWith("0010001")) {
@@ -173,7 +176,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * スタンプを複製して返す. bundle もコピーされる. ただし ClaimItem は空.
      *
-     * @return
+     * @return cloned stamp
      */
     private ModuleModel createModuleModel(ModuleModel src) {
 
@@ -197,8 +200,8 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * BundleMed を複製して返す. ただし ClaimItem は空.
      *
-     * @param src
-     * @return
+     * @param src BundleMed
+     * @return cloned BundleMed
      */
     private BundleMed createBundleMed(BundleMed src) {
         BundleMed dist = new BundleMed();
@@ -218,8 +221,8 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * ClaimItem を複製して返す.
      *
-     * @param src
-     * @return
+     * @param src ClaimItem
+     * @return cloned ClaimItem
      */
     private ClaimItem createClaimItem(ClaimItem src) {
         ClaimItem dist = new ClaimItem();
@@ -237,7 +240,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * オリジナルの ClaimItem[] を複製して返す.
      *
-     * @return
+     * @return array of ClaimItem
      */
     private ClaimItem[] createClaimItemInArray() {
         ClaimItem[] src = ((BundleMed) ctx.getStamp().getModel()).getClaimItem();
@@ -253,7 +256,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * メニューに載せる用法のリスト
      */
-    private static enum Admin {
+    enum Admin {
         once1("001000103", "１日１回朝食後に"),
         once2("001000105", "１日１回昼食後に"),
         once3("001000107", "１日１回夕食後に"),
@@ -264,7 +267,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
 
         public final String code, str;
 
-        private Admin(String code, String str) {
+        Admin(String code, String str) {
             this.code = code;
             this.str = str;
         }
@@ -273,7 +276,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
     /**
      * メニューに載せる外用回数のリスト
      */
-    private static enum Admin2 {
+    enum Admin2 {
         once("001000602", "１日１回外用"),
         twice("001000603", "１日２回外用"),
         thrice("001000604", "１日数回外用"),
@@ -282,7 +285,7 @@ public class StampHolderPopupMenu extends JPopupMenu {
 
         public final String code, str;
 
-        private Admin2(String code, String str) {
+        Admin2(String code, String str) {
             this.code = code;
             this.str = str;
         }
@@ -539,15 +542,13 @@ public class StampHolderPopupMenu extends JPopupMenu {
 
                 // 薬剤コードがあれば，その量を調整
                 if (src.getCode().startsWith("6")) {
-                    double num = Double.valueOf(src.getNumber());
-                    String s;
+                    double num = Double.parseDouble(src.getNumber());
+
                     // 外用剤の場合，最後に ".0" を付けないためのトリック
-                    if (ClaimConst.RECEIPT_CODE_GAIYO.equals(bundle.getClassCode())) {
-                        s = DailyDoseStringTool.doubleToString(num * value, "");
-                    } else {
-                        s = DailyDoseStringTool.doubleToString(num * value, src.getUnit());
-                    }
-                    dist.setNumber(String.valueOf(s));
+                    String s = ClaimConst.RECEIPT_CODE_GAIYO.equals(bundle.getClassCode())
+                        ? DailyDoseStringTool.doubleToString(num * value, "")
+                        : DailyDoseStringTool.doubleToString(num * value, src.getUnit());
+                    dist.setNumber(s);
                 }
 
                 // １日量文字列があれば，その量を調節

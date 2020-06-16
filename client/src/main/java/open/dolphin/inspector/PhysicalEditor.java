@@ -9,7 +9,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PhysicalModel;
 import open.dolphin.infomodel.SimpleDate;
 import open.dolphin.ui.Focuser;
-import open.dolphin.ui.IMEControl;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -47,10 +46,6 @@ public class PhysicalEditor {
         String todayString = sdf.format(date);
         view.getIdentifiedDateFld().setText(todayString);
         view.getIdentifiedDateFld().addMouseListener(new PopupListener());
-
-        IMEControl.setImeOffIfFocused(view.getHeightFld());
-        IMEControl.setImeOffIfFocused(view.getWeightFld());
-        IMEControl.setImeOffIfFocused(view.getIdentifiedDateFld());
 
         addBtn = new JButton("追加");
         addBtn.addActionListener(e -> add());

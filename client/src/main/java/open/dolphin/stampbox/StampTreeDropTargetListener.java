@@ -1,5 +1,8 @@
 package open.dolphin.stampbox;
 
+import open.dolphin.dnd.StampTreeNodeTransferHandler;
+
+import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.dnd.DropTargetDragEvent;
@@ -18,7 +21,7 @@ public class StampTreeDropTargetListener implements DropTargetListener {
     //private static final Color UNLOCKED_COLOR = new Color(0x0A,0x53,0xB6);
     //private static final Color LOCKED_COLOR = Color.lightGray;
     private StampTreeRenderer renderer;
-    private StampTreeTransferHandler handler;
+    private StampTreeNodeTransferHandler handler;
     private TreePath source;
     private TreePath target;
 
@@ -26,7 +29,7 @@ public class StampTreeDropTargetListener implements DropTargetListener {
     public void dragEnter(DropTargetDragEvent dtde) {
         // drag 開始時の path を記録しておく
         tree = (StampTree) dtde.getDropTargetContext().getComponent();
-        handler = (StampTreeTransferHandler) tree.getTransferHandler();
+        handler = (StampTreeNodeTransferHandler) tree.getTransferHandler();
         renderer = (StampTreeRenderer) tree.getCellRenderer();
         source = tree.getSelectionPath();
     }
@@ -42,11 +45,7 @@ public class StampTreeDropTargetListener implements DropTargetListener {
         }
 
         // レンダラで drop 先を表示するのに使う色をセット
-        if (tree.getStampBox().isLocked()) {
-            renderer.setEditable(false);
-        } else {
-            renderer.setEditable(true);
-        }
+        renderer.setEditable(!tree.getStampBox().isLocked());
 
         // drop しようとしている部分が見えるまでスクロール
         Rectangle r = tree.getPathBounds(target);
@@ -80,9 +79,9 @@ public class StampTreeDropTargetListener implements DropTargetListener {
     /**
      * drop 位置の node の上半分にいるか，下半分にいるか.
      *
-     * @param p
-     * @param r
-     * @return
+     * @param p Point
+     * @param r Rectangle
+     * @return TOP or BOTTOM
      */
     private Position topOrBottom(Point p, Rectangle r) {
         int offsetToTop = p.y - r.y;
@@ -96,9 +95,9 @@ public class StampTreeDropTargetListener implements DropTargetListener {
     /**
      * drop 位置の上半分にいるか，下半分にいるか，真ん中にいるか.
      *
-     * @param p
-     * @param r
-     * @return
+     * @param p Point
+     * @param r Rectangle
+     * @return TOP or CENTER or BOTTOM
      */
     private Position topOrBottomOrCenter(Point p, Rectangle r) {
         int offsetToTop = p.y - r.y;
@@ -125,7 +124,7 @@ public class StampTreeDropTargetListener implements DropTargetListener {
         }
         if (parentIsDifferent) {
             renderer.setDrawMode(StampTreeRenderer.UPPER_LINE);
-            handler.setPosition(StampTreeTransferHandler.Insert.BEFORE);
+            handler.setPosition(StampTreeNodeTransferHandler.Insert.BEFORE);
         } else {
             // UnderLine で処理
             target = tree.getPathForRow(row - 1);
@@ -139,12 +138,12 @@ public class StampTreeDropTargetListener implements DropTargetListener {
 
     private void targetWithUnderLine() {
         renderer.setDrawMode(StampTreeRenderer.UNDER_LINE);
-        handler.setPosition(StampTreeTransferHandler.Insert.AFTER);
+        handler.setPosition(StampTreeNodeTransferHandler.Insert.AFTER);
     }
 
     private void targetWithSquare() {
         renderer.setDrawMode(StampTreeRenderer.SQUARE);
-        handler.setPosition(StampTreeTransferHandler.Insert.INTO_FOLDER);
+        handler.setPosition(StampTreeNodeTransferHandler.Insert.INTO_FOLDER);
     }
 
     @Override
@@ -161,8 +160,7 @@ public class StampTreeDropTargetListener implements DropTargetListener {
 
     @Override
     public void drop(DropTargetDropEvent dtde) {
-
-        handler.importData(tree, dtde.getTransferable());
+        handler.importData(new TransferHandler.TransferSupport(tree, dtde.getTransferable()));
         dtde.dropComplete(true); // これをしないとドラッグしてきたアイコンが逃げる
 
         renderer.setTargetNode(null); // あとしまつ
@@ -181,5 +179,5 @@ public class StampTreeDropTargetListener implements DropTargetListener {
         tree.scrollRowToVisible(row);
     }
 
-    private static enum Position {TOP, BOTTOM, CENTER}
+    enum Position {TOP, BOTTOM, CENTER}
 }

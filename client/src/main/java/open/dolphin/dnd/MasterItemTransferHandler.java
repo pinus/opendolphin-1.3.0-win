@@ -1,15 +1,17 @@
-package open.dolphin.order.tablepanel;
+package open.dolphin.dnd;
 
 import open.dolphin.order.MasterItem;
 import open.dolphin.ui.ObjectReflectTableModel;
-import open.dolphin.ui.PNSTransferHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * MasterItemTransferHandler.
@@ -17,10 +19,9 @@ import java.io.IOException;
  * @author Minagawa, Kazushi
  * @author pns
  */
-public class MasterItemTransferHandler extends PNSTransferHandler {
+public class MasterItemTransferHandler extends DolphinTransferHandler {
     private static final long serialVersionUID = 4871088750931696219L;
-
-    private final DataFlavor masterItemFlavor = MasterItemTransferable.masterItemFlavor;
+    private Logger logger = LoggerFactory.getLogger(MasterItemTransferHandler.class);
 
     private JTable sourceTable;
     private boolean shouldRemove;
@@ -59,47 +60,38 @@ public class MasterItemTransferHandler extends PNSTransferHandler {
 
     @Override
     public boolean importData(TransferSupport support) {
-        if (canImport(support)) {
-            try {
-                MasterItem dropItem = (MasterItem) support.getTransferable().getTransferData(masterItemFlavor);
-                JTable dropTable = (JTable) support.getComponent();
-                ObjectReflectTableModel<MasterItem> tableModel = (ObjectReflectTableModel<MasterItem>) dropTable.getModel();
-                JTable.DropLocation dropLocation = (JTable.DropLocation) support.getDropLocation();
+        if (!canImport(support)) { return false; }
 
-                toIndex = dropLocation.getRow();
-                shouldRemove = (dropTable == sourceTable);
+        try {
+            MasterItem dropItem =
+                (MasterItem) support.getTransferable().getTransferData(DolphinDataFlavor.masterItemFlavor);
+            JTable dropTable = (JTable) support.getComponent();
+            ObjectReflectTableModel<MasterItem> tableModel = (ObjectReflectTableModel<MasterItem>) dropTable.getModel();
+            JTable.DropLocation dropLocation = (JTable.DropLocation) support.getDropLocation();
 
-                if (shouldRemove) {
-                    tableModel.moveRow(fromIndex, (toIndex > fromIndex) ? --toIndex : toIndex);
-                } else {
-                    tableModel.addRow(toIndex, dropItem);
-                }
-                sourceTable.getSelectionModel().setSelectionInterval(toIndex, toIndex);
-                return true;
+            toIndex = dropLocation.getRow();
+            shouldRemove = (dropTable == sourceTable);
 
-            } catch (IOException | UnsupportedFlavorException e) {
-                System.out.println("MasterItemTransferHandler.java: " + e);
+            if (shouldRemove) {
+                tableModel.moveRow(fromIndex, (toIndex > fromIndex) ? --toIndex : toIndex);
+            } else {
+                tableModel.addRow(toIndex, dropItem);
             }
-        }
+            sourceTable.getSelectionModel().setSelectionInterval(toIndex, toIndex);
+            return true;
 
+        } catch (IOException | UnsupportedFlavorException ex) {
+            logger.error(ex.getMessage());
+        }
         return false;
     }
 
     @Override
     public boolean canImport(TransferSupport support) {
         JTable dropTable = (JTable) support.getComponent();
-        boolean isDropable = false;
-
-        DataFlavor[] flavors = support.getDataFlavors();
         ObjectReflectTableModel tableModel = (ObjectReflectTableModel) dropTable.getModel();
-        if (tableModel.getObject(dropTable.getSelectedRow()) != null) {
-            for (DataFlavor flavor : flavors) {
-                if (masterItemFlavor.equals(flavor)) {
-                    isDropable = true;
-                    break;
-                }
-            }
-        }
-        return isDropable;
+
+        return Objects.nonNull(tableModel.getObject(dropTable.getSelectedRow()))
+            && Stream.of(support.getDataFlavors()).anyMatch(DolphinDataFlavor.masterItemFlavor::equals);
     }
 }

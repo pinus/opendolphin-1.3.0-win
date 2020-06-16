@@ -1,6 +1,7 @@
 package open.dolphin.order.tablepanel;
 
 import open.dolphin.client.GUIConst;
+import open.dolphin.dnd.MasterItemTransferHandler;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.PNSTriple;
 import open.dolphin.helper.StringTool;
@@ -222,7 +223,6 @@ public class ItemTablePanel extends JPanel {
             TableColumn column = table.getColumnModel().getColumn(i);
 
             JTextField tf = new JTextField();
-            IMEControl.setImeOffIfFocused(tf);
             DefaultCellEditor de = new PNSCellEditor(tf);
             int ccts = Project.getPreferences().getInt("order.table.clickCountToStart", 1);
             de.setClickCountToStart(ccts);
@@ -244,14 +244,12 @@ public class ItemTablePanel extends JPanel {
         // コメントフィールド（メモ）を生成する
         commentField = new JTextField(15);
         commentField.setMaximumSize(new Dimension(10, 22));
-        IMEControl.setImeOnIfFocused(commentField);
 
         // スタンプ名フィールドを生成する
         stampNameField = new JTextField(20);
         stampNameField.setMaximumSize(new Dimension(10, 22));
         // stampNameField.setOpaque(true); opaque にすると，色が枠からはみ出す
         //stampNameField.setBackground(new Color(251, 239, 128));  // TODO
-        IMEControl.setImeOnIfFocused(stampNameField);
 
         // 削除ボタンを生成する
         removeButton = new JButton(REMOVE_BUTTON_IMAGE);
@@ -910,9 +908,8 @@ public class ItemTablePanel extends JPanel {
         ClaimItem[] items = bundle.getClaimItem();
         int count = items.length;
 
-        for (int i = 0; i < count; i++) {
+        for (ClaimItem item : items) {
 
-            ClaimItem item = items[i];
             MasterItem mItem = new MasterItem();
 
             // 手技・材料・薬品のフラグ
@@ -990,7 +987,7 @@ public class ItemTablePanel extends JPanel {
             MasterItem mItem = (MasterItem) i;
 
             // コードが 84xxxxxxx コメントの場合，number にパラメータを入れるので，number チェックしない
-            if (mItem.getCode().substring(0, 2).equals("84")) {
+            if (mItem.getCode().startsWith("84")) {
                 return true;
             }
             //System.out.println("---- code= " + mItem.getCode().substring(0,2));

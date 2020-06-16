@@ -8,6 +8,7 @@ import open.dolphin.ui.sheet.JSheet;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 /**
  * StampTree に PopupMenu を表示する.
@@ -29,13 +30,19 @@ public class StampTreePopupMenu extends JPopupMenu {
     private void buildPopupMenu() {
         MenuActionManager m = new MenuActionManager(this);
 
-        add(m.getMenuItem("createNewFolder", "新規フォルダ", GUIConst.ICON_FOLDER_NEW_16));
-        add(m.getMenuItem("deleteNode", "削　除", GUIConst.ICON_REMOVE_16));
-        add(m.getMenuItem("renameNode", "名前を変更", GUIConst.ICON_EMPTY_16));
+        boolean b = Objects.nonNull(tree.getSelectedNode());
+        addItem(m.getMenuItem("createNewFolder", "新規フォルダ", GUIConst.ICON_FOLDER_NEW_16), b);
+        addItem(m.getMenuItem("deleteNode", "削　除", GUIConst.ICON_REMOVE_16), b);
+        addItem(m.getMenuItem("renameNode", "名前を変更", GUIConst.ICON_EMPTY_16), b);
         addSeparator();
 
-        add(m.getMenuItem("collapseAll", "フォルダを全て閉じる", GUIConst.ICON_TREE_COLLAPSED_16));
-        add(m.getMenuItem("expandAll", "フォルダを全て展開する", GUIConst.ICON_TREE_EXPANDED_16));
+        addItem(m.getMenuItem("collapseAll", "フォルダを全て閉じる", GUIConst.ICON_TREE_COLLAPSED_16), true);
+        addItem(m.getMenuItem("expandAll", "フォルダを全て展開する", GUIConst.ICON_TREE_EXPANDED_16), true);
+    }
+
+    private void addItem(JMenuItem item, boolean enable) {
+        item.setEnabled(enable);
+        add(item);
     }
 
     @MenuAction
@@ -45,11 +52,16 @@ public class StampTreePopupMenu extends JPopupMenu {
 
     @MenuAction
     public void deleteNode() {
-        int ans = JSheet.showConfirmDialog(SwingUtilities.getWindowAncestor(tree),
-                "本当に削除しますか", "スタンプ削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        StampTreeNode node = tree.getSelectedNode();
+        String stampName = node.isLeaf()
+            ? node.getStampInfo().getStampName()
+            : node.getUserObject().toString();
+
+        int ans = JSheet.showConfirmDialog(tree,
+                stampName + "\n本当に削除しますか", "スタンプ削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         if (ans == JOptionPane.OK_OPTION) {
             if (isEditable()) {
-                tree.deleteNode();
+                ((StampTreeModel)tree.getModel()).removeNodeFromParent(node);
             } else {
                 Toolkit.getDefaultToolkit().beep();
             }

@@ -2,6 +2,7 @@ package open.dolphin.stampbox;
 
 import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.StampDelegater;
+import open.dolphin.dnd.StampTreeNodeTransferHandler;
 import open.dolphin.helper.GUIDGenerator;
 import open.dolphin.helper.Task;
 import open.dolphin.infomodel.*;
@@ -19,9 +20,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -348,8 +347,8 @@ public class StampTree extends JTree implements TreeModelListener {
     }
 
     public void addInfoToTree(ModuleInfoBean info, StampTreeNode selected, boolean isReplace) {
-        StampTreeTransferHandler handler = (StampTreeTransferHandler) this.getTransferHandler();
-        StampTreeTransferHandler.Insert insertPosition = handler.getInsertPosition();
+        StampTreeNodeTransferHandler handler = (StampTreeNodeTransferHandler) this.getTransferHandler();
+        StampTreeNodeTransferHandler.Insert insertPosition = handler.getInsertPosition();
 
         // StampInfo から新しい StampTreeNode を生成する
         StampTreeNode node = new StampTreeNode(info);
@@ -372,7 +371,7 @@ public class StampTree extends JTree implements TreeModelListener {
             }
             // replace
             if (isReplace) {
-                deleteNode();
+                model.removeNodeFromParent(getSelectedNode());
             }
 
             // 追加したノードを選択する
@@ -411,7 +410,7 @@ public class StampTree extends JTree implements TreeModelListener {
                             JOptionPane.INFORMATION_MESSAGE);
                 });
             }
-            System.out.println("StampTree.java: dropped Entity= " + info.getEntity() + "  this entity = " + this.getEntity());
+            logger.info("dropped Entity= " + info.getEntity() + "  this entity = " + this.getEntity());
         }
     }
 
@@ -563,10 +562,10 @@ public class StampTree extends JTree implements TreeModelListener {
                         if (target != null) {
                             if (target.isLeaf()) {
                                 // 葉の時は後ろに挿入する
-                                ((StampTreeTransferHandler) getTransferHandler()).setPosition(StampTreeTransferHandler.Insert.AFTER);
+                                ((StampTreeNodeTransferHandler) getTransferHandler()).setPosition(StampTreeNodeTransferHandler.Insert.AFTER);
                             } else {
                                 // フォルダの時は中に挿入する
-                                ((StampTreeTransferHandler) getTransferHandler()).setPosition(StampTreeTransferHandler.Insert.INTO_FOLDER);
+                                ((StampTreeNodeTransferHandler) getTransferHandler()).setPosition(StampTreeNodeTransferHandler.Insert.INTO_FOLDER);
                             }
                         }
                         addInfoToTree(info, target);
@@ -720,12 +719,10 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * ノードを削除する.
      */
-    public void deleteNode() {
+    public void deleteNode(StampTreeNode n) {
         logger.debug("stampTree deleteNode");
 
-        if (!isUserTree()) {
-            return;
-        }
+        if (!isUserTree()) { return; }
 
         // 削除するノードを取得する
         // 右クリックで選択されている
@@ -736,7 +733,7 @@ public class StampTree extends JTree implements TreeModelListener {
 
         // このノードをルートにするサブツリーを前順走査する列挙を生成して返します.
         // 列挙の nextElement() メソッドによって返される最初のノードは，この削除するノードです.
-        Enumeration e = theNode.preorderEnumeration();
+        Enumeration<StampTreeNode> e = theNode.preorderEnumeration();
 
         // このリストのなかに削除するノードとその子を含める
         final List<String> deleteList = new ArrayList<>();
@@ -747,7 +744,7 @@ public class StampTree extends JTree implements TreeModelListener {
         // 列挙する
         while (e.hasMoreElements()) {
             logger.debug("stampTree deleteNode e.hasMoreElements()");
-            StampTreeNode node = (StampTreeNode) e.nextElement();
+            StampTreeNode node = e.nextElement();
 
             if (node.isLeaf()) {
 
@@ -822,9 +819,7 @@ public class StampTree extends JTree implements TreeModelListener {
      * 新規のフォルダを追加する.
      */
     public void createNewFolder() {
-        if (!isUserTree()) {
-            return;
-        }
+        if (!isUserTree()) { return; }
 
         // フォルダノードを生成する
         StampTreeNode folder = new StampTreeNode(NEW_FOLDER_NAME);
@@ -896,40 +891,23 @@ public class StampTree extends JTree implements TreeModelListener {
         return newPreferredSize;
     }
 
-/*
-    // 滑らかに動く tree
-    private Dimension oldSize = new Dimension(0,0);
-
-    @Override
-    public Dimension getPreferredSize() {
-        Dimension newPreferredSize = super.getPreferredSize();
-        Point p = ((JViewport) getParent()).getViewPosition();
-
-        if (p.y != 0 && newPreferredSize.height < oldSize.height) {
-            oldSize.height --;
-            repaint();
-            return oldSize;
-        }
-
-        oldSize = newPreferredSize;
-        return newPreferredSize;
-    }
-*/
-
     @Override
     public void treeNodesChanged(TreeModelEvent e) {
-        // this.setEditable(false);
+        logger.info("tree node changed: " + e);
     }
 
     @Override
     public void treeNodesInserted(TreeModelEvent e) {
+        logger.info("tree node inserted: " + e);
     }
 
     @Override
     public void treeNodesRemoved(TreeModelEvent e) {
+        logger.info("tree node removed: " + e);
     }
 
     @Override
     public void treeStructureChanged(TreeModelEvent e) {
+        logger.info("tree structure changed: " + e);
     }
 }

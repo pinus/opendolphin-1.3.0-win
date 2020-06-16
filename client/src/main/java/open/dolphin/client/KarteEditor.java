@@ -2,6 +2,7 @@ package open.dolphin.client;
 
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
+import open.dolphin.dnd.KartePaneTransferHandler;
 import open.dolphin.event.CompletionListener;
 import open.dolphin.helper.DBTask;
 import open.dolphin.helper.StringTool;
@@ -79,9 +80,16 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         completionListener = listener;
     }
 
+    /**
+     * Save 時ではなくメニューから CLAIM 送信する.
+     * EditorFrame で編集中の場合はここが呼ばれる.
+     */
+    public void sendClaim() {
+        logger.error("sendClaim() in KarteEditor called.");
+    }
+
     public void selectAll() {
-        //KarteEditor.getInputMap().remove(KeyStroke.getKeyStroke('A',java.awt.event.InputEvent.META_MASK));
-        System.out.println("---- selectAll in KarteEditor.java ----");//TODO
+        logger.error("selectAll selected");
     }
 
     /**
@@ -209,7 +217,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         soaPane.setTextPane(kartePanel.getSoaTextPane());
         soaPane.setParent(this);
         soaPane.setRole(ROLE_SOA);
-        soaPane.getTextPane().setTransferHandler(new SOATransferHandler(soaPane));
+        soaPane.getTextPane().setTransferHandler(new KartePaneTransferHandler(soaPane));
         if (Objects.nonNull(getDocument())) {
             // Schema 画像にファイル名を付けるのために必要
             String docId = getDocument().getDocInfo().getDocId();
@@ -221,7 +229,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         pPane.setTextPane(kartePanel.getPTextPane());
         pPane.setParent(this);
         pPane.setRole(ROLE_P);
-        pPane.getTextPane().setTransferHandler(new PTransferHandler(pPane));
+        pPane.getTextPane().setTransferHandler(new KartePaneTransferHandler(pPane));
 
         setUI(kartePanel);
 
@@ -242,7 +250,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         SwingUtilities.invokeLater(() -> {
             // キャレットを先頭にリセット.
             getSOAPane().getTextPane().setCaretPosition(0);
-            getPPane().getTextPane().setCaretPosition(0);
+            //getPPane().getTextPane().setCaretPosition(0); // これを入れると PPane にフォーカス取られる
         });
         enter();
 
@@ -594,7 +602,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         // titleを設定する
         docInfo.setTitle(params.getTitle());
 
-        // デフォルトのアクセス権を設定をする TODO
+        // デフォルトのアクセス権を設定をする
         AccessRightModel ar = new AccessRightModel();
         ar.setPermission(PERMISSION_ALL);
         ar.setLicenseeCode(ACCES_RIGHT_CREATOR);
@@ -813,17 +821,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
                 number++;
             }
         }
-    }
-
-    /**
-     * Save 時ではなくメニューから CLAIM 送信する.
-     * EditorFrame で編集中の場合はここが呼ばれる.
-     */
-    public void sendClaim() {
-        logger.error("sendClaim() in KarteEditor called.");
-        /*
-        ToDO Edit 中の内容が送られるようにしたい
-        */
     }
 
     /**

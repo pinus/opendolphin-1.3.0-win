@@ -41,7 +41,7 @@ public class StampModifier {
 
     /**
      * 重複スタンプがあれば注意を促す.
-     * KartePane，PTransferHandler から呼ばれる.
+     * KartePane，KartePaneTransferHandler から呼ばれる.
      *
      * @param srcStamp
      * @param kartePane

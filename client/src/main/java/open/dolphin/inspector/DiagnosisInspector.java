@@ -1,9 +1,11 @@
 package open.dolphin.inspector;
 
 import open.dolphin.client.*;
+import open.dolphin.dnd.DiagnosisInspectorTransferHandler;
 import open.dolphin.helper.MenuActionManager;
 import open.dolphin.helper.MenuActionManager.MenuAction;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSBorder;
 import open.dolphin.ui.PNSScrollPane;
 import open.dolphin.util.ModelUtils;
@@ -60,7 +62,6 @@ public class DiagnosisInspector implements IInspector {
      * @param parent PatientInspector
      */
     public DiagnosisInspector(PatientInspector parent) {
-
         context = parent.getContext();
         initComponents();
     }
@@ -103,8 +104,8 @@ public class DiagnosisInspector implements IInspector {
             @Override
             public void focusGained(FocusEvent e) {
                 diagList.repaint();
+                IMEControl.off();
             }
-
             @Override
             public void focusLost(FocusEvent e) {
                 diagList.repaint();
@@ -355,9 +356,7 @@ public class DiagnosisInspector implements IInspector {
     }
 
     @MenuAction
-    public void discontinue() {
-        doc.getDiagnosisDocumentPopup().doClickOutcomePopup("中止");
-    }
+    public void discontinue() { doc.getDiagnosisDocumentPopup().doClickOutcomePopup("中止"); }
 
     @MenuAction
     public void renew() {

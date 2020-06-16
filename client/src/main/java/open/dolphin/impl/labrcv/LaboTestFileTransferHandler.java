@@ -6,13 +6,13 @@ import open.dolphin.infomodel.LaboImportSummary;
 
 import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * LaboTestFileTransferHandler.
@@ -39,15 +39,13 @@ class LaboTestFileTransferHandler extends TransferHandler {
     }
 
     @Override
-    public boolean importData(JComponent c, Transferable t) {
+    public boolean importData(TransferSupport support) {
 
-        if (!canImport(c, t.getTransferDataFlavors())) {
-            return false;
-        }
+        if (!canImport(support)) { return false; }
 
         try {
-            if (hasFileFlavor(t.getTransferDataFlavors())) {
-                List<File> files = (List<File>) t.getTransferData(fileFlavor);
+            if (hasFileFlavor(support.getTransferable().getTransferDataFlavors())) {
+                List<File> files = (List<File>) support.getTransferable().getTransferData(fileFlavor);
                 List<File> xmlFiles = new ArrayList<>(files.size());
 
                 files.stream().filter(file -> !file.isDirectory() && file.getName().endsWith(".xml")).forEach(xmlFiles::add);
@@ -65,17 +63,12 @@ class LaboTestFileTransferHandler extends TransferHandler {
     }
 
     @Override
-    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-        return hasFileFlavor(flavors);
+    public boolean canImport(TransferSupport support) {
+        return hasFileFlavor(support.getDataFlavors());
     }
 
     private boolean hasFileFlavor(DataFlavor[] flavors) {
-        for (DataFlavor flavor : flavors) {
-            if (fileFlavor.equals(flavor)) {
-                return true;
-            }
-        }
-        return false;
+        return Stream.of(flavors).anyMatch(fileFlavor::equals);
     }
 
     /**

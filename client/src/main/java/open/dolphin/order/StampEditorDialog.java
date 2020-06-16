@@ -7,6 +7,7 @@ import open.dolphin.helper.ComponentBoundsManager;
 import open.dolphin.order.stampeditor.StampEditor;
 import open.dolphin.ui.HorizontalPanel;
 import open.dolphin.ui.sheet.JSheet;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,6 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -123,7 +123,7 @@ public class StampEditorDialog {
         //ESC で編集内容破棄してクローズ
         InputMap im = dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         im.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
-        dialog.getRootPane().getActionMap().put("cancel", new ProxyAction(cancelButton::doClick));
+        dialog.getRootPane().getActionMap().put("cancel", new ProxyAction(this::escape));
 
         // commnad-w で，保存ダイアログを出してから終了
         im.put(KeyStroke.getKeyStroke("meta W"), "close-window");
@@ -141,57 +141,22 @@ public class StampEditorDialog {
         // Command + ENTER で入力
         im.put(KeyStroke.getKeyStroke("meta ENTER"), "done");
         dialog.getRootPane().getActionMap().put("done", new ProxyAction(okButton::doClick));
-
-        // フォーカス処理: tab で search field -> search panel -> table panel の順番にフォーカス移動する
-        dialog.setFocusTraversalPolicy(new FocusTraversalPolicy() {
-            @Override
-            public Component getComponentAfter(Container aContainer, Component aComponent) {
-                switch (Objects.isNull(aComponent.getName()) ? "" : aComponent.getName()) {
-                    case StampEditor.MASTER_SEARCH_FIELD:
-                        editor.getMasterSearchPanel().requestFocusOnTable();
-                        break;
-
-                    case StampEditor.MASTER_TABLE:
-                        editor.getTablePanel().requestFocusOnTable();
-                        break;
-
-                    default:
-                        editor.enter();
-                        break;
-                }
-                return null;
-            }
-
-            @Override
-            public Component getComponentBefore(Container aContainer, Component aComponent) {
-                switch (Objects.isNull(aComponent.getName()) ? "" : aComponent.getName()) {
-                    case StampEditor.MASTER_SEARCH_FIELD:
-                        editor.getTablePanel().requestFocusOnTable();
-                        break;
-
-                    case StampEditor.ITEM_TABLE:
-                        editor.getMasterSearchPanel().requestFocusOnTable();
-                        break;
-
-                    default:
-                        editor.enter();
-                        break;
-                }
-                return null;
-            }
-
-            @Override
-            public Component getFirstComponent(Container aContainer) { return null; }
-
-            @Override
-            public Component getLastComponent(Container aContainer) { return null; }
-
-            @Override
-            public Component getDefaultComponent(Container aContainer) { return null; }
-        });
-
         dialog.setVisible(true);
         editor.enter(); // フォーカスとる
+    }
+
+    /**
+     * ESCAPE を押したときの動作. キーワード入力があればクリア，無ければダイアログを閉じる.
+     */
+    public void escape() {
+        MasterSearchPanel p = editor.getMasterSearchPanel();
+        JTextField tf = p.getKeywordField();
+        if (StringUtils.isEmpty(tf.getText())) {
+            cancelButton.doClick();
+        } else {
+            tf.setText("");
+            p.requestFocusOnTextField();
+        }
     }
 
     /**

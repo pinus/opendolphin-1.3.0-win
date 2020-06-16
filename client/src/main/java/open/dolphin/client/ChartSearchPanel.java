@@ -5,11 +5,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 /**
  * カルテ検索と病名検索を CardLayout で切り替えて使うパネル.
+ *
+ * @author pns
  */
 public class ChartSearchPanel extends JPanel {
     public enum Card {STAMP, KARTE}
@@ -54,7 +56,7 @@ public class ChartSearchPanel extends JPanel {
                 JPopupMenu popup = chart.getChartMediator().createDiagnosisPopup(pattern, ev -> {
                     JComponent c = chart.getDiagnosisDocument().getDiagnosisTable();
                     TransferHandler handler = c.getTransferHandler();
-                    handler.importData(c, ev.getTransferable());
+                    handler.importData(new TransferHandler.TransferSupport(c, ev.getTransferable()));
                     // transfer 後にキーワードフィールドをクリアする
                     stampSearchField.setText("");
                 });
@@ -92,6 +94,25 @@ public class ChartSearchPanel extends JPanel {
      */
     public void show(Card c) {
         card.show(this, c.name());
+
+        // 間違って入力した場合のフォローとして, 入力済みのテキストを保持する
+        if (c.equals(Card.STAMP)) {
+            setText(stampSearchField, karteSearchField);
+        } else {
+            setText(karteSearchField, stampSearchField);
+        }
+    }
+
+    // 切換時に視覚効果
+    private void setText(JTextField toShow, JTextField toHide) {
+        if (Objects.isNull(toHide.getText()) || "".equals(toHide.getText().trim())) { return; }
+
+        SwingUtilities.invokeLater(() -> {
+            toShow.setText("");
+            try { Thread.sleep(100); } catch (InterruptedException e) {}
+            toShow.setText(toHide.getText());
+            toHide.setText("");
+        });
     }
 
     public CompletableSearchField getStampSearchField() {

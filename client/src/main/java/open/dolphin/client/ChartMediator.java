@@ -23,7 +23,7 @@ import java.util.Objects;
  * メニューをコントロールする {@link open.dolphin.client.KarteComposite KarteComposite#enter/exit} を送る.<br>
  * MenuSupport の chains[0] を KarteComposite レイヤー，chains[1] を ChartDocument レイヤーとして使うために，
  * {@link open.dolphin.client.ChartMediator#addChartDocumentChain addChartDocumentChain} (= addChain2)，
- * {@link  open.dolphin.client.ChartMediator#addKarteCompositeChain addKarteCompositeChain} (= addChain) を作ってある.
+ * {@link open.dolphin.client.ChartMediator#addKarteCompositeChain addKarteCompositeChain} (= addChain) を作ってある.
  * <ul>
  * <li>chains[0] = KaretComposite
  * <li>chains[1] = ChartDocument
@@ -368,10 +368,6 @@ public final class ChartMediator extends MenuSupport {
         } else {
             //
             // TextTree，JTextPane，handler からメニューを構築する
-            // PPane にも落とさなければならない TODO
-            // JComponent comp = kartePane.getTextPane();
-            // TransferHandler handler = comp.getTransferHandler();
-
             // 2007-03-31
             // 直近でフォーカスを得ているコンポーネント(JTextPan）へ挿入する
             //
@@ -456,7 +452,7 @@ public final class ChartMediator extends MenuSupport {
             }
         }
 
-        JMenu myMenu = null;
+        JMenu myMenu;
 
         if (!enabled) {
             myMenu = new JMenu(stampTree.getTreeName());

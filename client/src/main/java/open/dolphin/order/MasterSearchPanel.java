@@ -101,6 +101,14 @@ public class MasterSearchPanel extends JPanel {
     }
 
     /**
+     * キーワード入力テキストフィールドを返す.
+     *
+     * @return CompletableJTextField
+     */
+    public CompletableJTextField getKeywordField() {
+        return keywordField;
+    }
+    /**
      * textfield にフォーカスを取る.
      * StampEditor#enter() から呼ばれる
      */

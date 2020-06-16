@@ -85,7 +85,7 @@ public class KartePanePopupMenu extends JPopupMenu {
             JMenu subjMenu = new JMenu("症状詳記送信");
             // subjMenu に詳記メニューを追加
             SubjectivesCodeMap.entrySet().stream()
-                    .sorted(Comparator.comparing(Map.Entry::getValue))
+                    .sorted(Map.Entry.comparingByValue())
                     .forEach(entry -> subjMenu.add(new JMenuItem(new ProxyAction(entry.getKey(),
                             () -> this.sendSubjectivesDetailRecord("01", entry.getValue(), selectedText)))));
             // 詳記メニュー contextMenu に登録
@@ -137,7 +137,7 @@ public class KartePanePopupMenu extends JPopupMenu {
             if ("01".equals(request)) { // 登録
                 if (result.equals(OrcaDelegater.Result.NO_ERROR)) {
                     message = "病状詳記を ORCA に送信しました";
-                    messageType = JOptionPane.PLAIN_MESSAGE;
+                    messageType = JOptionPane.INFORMATION_MESSAGE;
                 } else {
                     message = "病状詳記を送信できませんでした";
                     messageType = JOptionPane.ERROR_MESSAGE;
@@ -145,7 +145,7 @@ public class KartePanePopupMenu extends JPopupMenu {
             } else { // 削除
                 if (result.equals(OrcaDelegater.Result.NO_ERROR)) {
                     message = "病状詳記を削除しました";
-                    messageType = JOptionPane.PLAIN_MESSAGE;
+                    messageType = JOptionPane.INFORMATION_MESSAGE;
                 } else {
                     message = "病状詳記を削除できませんでした";
                     messageType = JOptionPane.ERROR_MESSAGE;
