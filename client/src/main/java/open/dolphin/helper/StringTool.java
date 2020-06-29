@@ -47,7 +47,7 @@ public final class StringTool {
     }
 
     /**
-     * 文字 c がカタカナかどうか.
+     * 文字 c がカタカナかどうか. 長音記号はカタカナに含む.
      *
      * @param c 文字
      * @return true if カタカナ
@@ -56,7 +56,7 @@ public final class StringTool {
         // ア 12449 (12353 半角)
         // ン 12531　ヴ 12532
         Character test = c;
-        return (test.compareTo(KATAKANA[0]) >= 0 && test.compareTo(KATAKANA[1]) <= 0);
+        return (test.compareTo(KATAKANA[0]) >= 0 && test.compareTo(KATAKANA[1]) <= 0) || c == '-' || c == '−' || c == 'ー';
     }
 
     /**

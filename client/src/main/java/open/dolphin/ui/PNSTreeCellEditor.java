@@ -42,7 +42,8 @@ public final class PNSTreeCellEditor extends DefaultTreeCellEditor {
             }
         };
 
-        undoManager = TextComponentUndoManager.getManager(textField);
+        undoManager = TextComponentUndoManager.createManager(textField);
+        textField.getDocument().addUndoableEditListener(undoManager);
 
         // 勝手に cut,copy,past の popup を作らせない
         textField.putClientProperty("Quaqua.TextComponent.showPopup", false);

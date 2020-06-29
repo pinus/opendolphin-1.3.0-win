@@ -34,6 +34,7 @@ import java.util.prefs.Preferences;
  * @author Minagawa, Kazushi
  */
 public class KarteDocumentViewer extends AbstractChartDocument {
+    private final Logger logger = LoggerFactory.getLogger(KarteDocumentViewer.class);
 
     // Busy プロパティ名
     public static final String BUSY_PROP = "busyProp";
@@ -41,8 +42,7 @@ public class KarteDocumentViewer extends AbstractChartDocument {
     private static final String TITLE_UPDATE = "更新";
     private static final String TITLE = "参 照";
     // 検索用
-    private final FindAndView findAndView = new FindAndView();
-    private final Logger logger = LoggerFactory.getLogger(KarteDocumentViewer.class);
+    private FindAndView findAndView;
     // このアプリケーションは文書履歴を複数選択することができる
     // このリストはそれに対応した KarteViewer(2号カルテ)を保持している
     // このリストの内容（KarteViewer)が一枚のパネルに並べて表示される
@@ -103,6 +103,7 @@ public class KarteDocumentViewer extends AbstractChartDocument {
         // カルテ検索のためのパラメータセット
         ChartImpl chart = (ChartImpl) ctx;
         ChartSearchPanel panel = chart.getChartSearchPanel();
+        findAndView = new FindAndView(chart);
         panel.setParams(findAndView, scrollerPanel);
     }
 
@@ -117,20 +118,6 @@ public class KarteDocumentViewer extends AbstractChartDocument {
         CompletableSearchField searchField = panel.getKarteSearchField();
         searchField.setText("");
         Focuser.requestFocus(searchField);
- /*
-        // すでに JSheet が出ている場合は，toFront してリターン
-        Frame parent = getContext().getFrame();
-        if (JSheet.isAlreadyShown(parent)) {
-            parent.toFront();
-            return;
-        }
-        FindDialog sheet = new FindDialog(parent);
-        sheet.start();
-        String searchText = sheet.getSearchText();
-        if (searchText != null && !searchText.equals("")) {
-            findAndView.showFirst(searchText, sheet.isSoaBoxOn(), sheet.isPBoxOn(), scrollerPanel);
-        }
-*/
     }
 
     public void findNext() {
@@ -848,8 +835,8 @@ public class KarteDocumentViewer extends AbstractChartDocument {
             getContext().enabledAction(GUIConst.ACTION_SHOW_MODIFIED, true);     // 修正履歴表示
 
             getContext().enabledAction(GUIConst.ACTION_FIND_FIRST, true);
-            getContext().enabledAction(GUIConst.ACTION_FIND_NEXT, true);
-            getContext().enabledAction(GUIConst.ACTION_FIND_PREVIOUS, true);
+            getContext().enabledAction(GUIConst.ACTION_FIND_NEXT, false);
+            getContext().enabledAction(GUIConst.ACTION_FIND_PREVIOUS, false);
             getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, true);
         }
     }

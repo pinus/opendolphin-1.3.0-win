@@ -19,20 +19,20 @@ import java.util.Objects;
  */
 public class CompositeArea extends JTextArea implements KarteComposite<JTextArea>, CaretListener {
     private static final long serialVersionUID = 1L;
-    private final TextComponentUndoManager undoManager;
+    private TextComponentUndoManager undoManager;
     private boolean hasSelection;
     private ActionMap map;
 
     public CompositeArea(int row, int col) {
         super(row, col);
-        undoManager = new TextComponentUndoManager();
         initComponents();
     }
 
     private void initComponents() {
-        getDocument().addUndoableEditListener(undoManager::listener);
         putClientProperty("Quaqua.TextComponent.showPopup ", false);
         addCaretListener(this);
+        undoManager = new TextComponentUndoManager(this);
+        getDocument().addUndoableEditListener(undoManager);
     }
 
     public TextComponentUndoManager getUndoManager() {
@@ -44,9 +44,8 @@ public class CompositeArea extends JTextArea implements KarteComposite<JTextArea
         this.map = map;
         map.get(GUIConst.ACTION_PASTE).setEnabled(canPaste());
 
-        // undo / redo
-        undoManager.setUndoAction(map.get(GUIConst.ACTION_UNDO));
-        undoManager.setRedoAction(map.get(GUIConst.ACTION_REDO));
+        // undo / redo の enable/disabel を設定してもらう
+        undoManager.setActions(map.get(GUIConst.ACTION_UNDO), map.get(GUIConst.ACTION_REDO));
 
         JPopupMenu menu = new JPopupMenu();
         menu.add(map.get(GUIConst.ACTION_COPY));
@@ -82,7 +81,7 @@ public class CompositeArea extends JTextArea implements KarteComposite<JTextArea
         return t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor);
     }
 
-    /**
+    /*
      * ChartMediator で addChain されて呼ばれる.
      */
     public void undo() {

@@ -51,17 +51,15 @@ import java.util.prefs.Preferences;
  * @author Kazushi Minagawa, Digital Globe, inc.
  * @author pns
  */
-public class KartePane implements DocumentListener, MouseListener, CaretListener, PropertyChangeListener, KarteComposite<JTextPane> {
+public class KartePane implements KarteComposite<JTextPane>, DocumentListener, MouseListener, CaretListener, PropertyChangeListener {
+    private final Logger logger = LoggerFactory.getLogger(KartePane.class);
 
     // 編集不可時の背景色
     protected static final Color UNEDITABLE_COLOR = new Color(227, 250, 207);
     // 文書に付けるタイトルを自動で取得する時の長さ
     private static final int TITLE_LENGTH = 15;
-    // KartePane の UndoManager
-    private final TextComponentUndoManager undoManager;
-    private final UndoableEditListener undoListener;
-    // ロガー
-    private final Logger logger = LoggerFactory.getLogger(KartePane.class);
+
+    // NONE, SOA, SOA_TEXT, SCHEMA, P, P_TEXT, STAMP
     private State curState;
     // JTextPane
     private JTextPane textPane;
@@ -87,15 +85,14 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     private String docId;
     // 保存後及びブラウズ時の編集不可を表すカラー
     private Color uneditableColor = UNEDITABLE_COLOR;
+    // KartePane の UndoManager
+    private TextComponentUndoManager undoManager;
     // このペインからDragg及びDroppされたスタンプの情報
     private ComponentHolder<?>[] draggedStamp;
     private int draggedCount;
     private int droppedCount;
 
-    public KartePane() {
-        undoManager = new TextComponentUndoManager();
-        undoListener = undoManager::listener;
-    }
+    public KartePane() { }
 
     /**
      * このPaneのオーナを返す.
@@ -294,10 +291,10 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
      * @param chartMediator チャートメディエータ（メニューサポート）
      */
     public void init(boolean editable, ChartMediator chartMediator) {
-
+        // undo manager
+        undoManager = new TextComponentUndoManager(getTextPane());
         // Mediatorを保存する
         mediator = chartMediator;
-
         // 入れておかないと最初に focus 取る前に Drop したときヌルポが出る
         enter(mediator.getActions());
 
@@ -308,7 +305,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         getTextPane().addMouseListener(this);
         getTextPane().addCaretListener(this);
         getTextPane().getDocument().addDocumentListener(this);
-        getTextPane().getDocument().addUndoableEditListener(undoListener);
+        getTextPane().getDocument().addUndoableEditListener(undoManager);
 
         getTextPane().setEditable(editable);
         // ChartImpl で DocumentHistory が focus を取れないことがあるのの workaround
@@ -348,7 +345,6 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     public void changedUpdate(DocumentEvent e) {
     }
 
-    private int dotBefore = 0;
     @Override
     public void caretUpdate(CaretEvent e) {
         boolean newSelection = e.getDot() != e.getMark();
@@ -382,7 +378,7 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         }
 
         pane.getDocument().removeDocumentListener(this);
-        pane.getDocument().removeUndoableEditListener(undoListener);
+        pane.getDocument().removeUndoableEditListener(undoManager);
         pane.removeMouseListener(this);
         pane.removeCaretListener(this);
 
@@ -443,8 +439,8 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
     public void enter(ActionMap map) {
         curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? State.SOA : State.P;
 
-        undoManager.setUndoAction(map.get(GUIConst.ACTION_UNDO));
-        undoManager.setRedoAction(map.get(GUIConst.ACTION_REDO));
+        // UndoManager 内で enable/disable してもらうために登録
+        undoManager.setActions(map.get(GUIConst.ACTION_UNDO), map.get(GUIConst.ACTION_REDO));
 
         controlMenus(map);
     }
@@ -1105,16 +1101,12 @@ public class KartePane implements DocumentListener, MouseListener, CaretListener
         }
     }
 
-    /**
+    /*
      * ChartMediator で addChain されてここが呼ばれる.
      */
-    public void undo() {
-        undoManager.undo();
-    }
+    public void undo() { undoManager.undo(); }
 
-    public void redo() {
-        undoManager.redo();
-    }
+    public void redo() { undoManager.redo(); }
 
     // KartePane の状態　(_TEXT はテキストが選択された状態)
     private enum State {

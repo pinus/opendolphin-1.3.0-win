@@ -11,6 +11,7 @@ import open.dolphin.order.tablepanel.DiagnosisTablePanel;
 import open.dolphin.order.tablepanel.ItemTablePanel;
 import open.dolphin.order.tablepanel.RadiologyTablePanel;
 import open.dolphin.order.tablepanel.RecipeTablePanel;
+import open.dolphin.ui.IMEControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +112,7 @@ public class StampEditor extends JPanel implements IStampEditor {
                 tablePanel = new ItemTablePanel(this);
                 break;
         }
+        IMEControl.off(tablePanel.getTable());
 
         // MasterSearchPanel 作成
         masterSearchPanel = new MasterSearchPanel(entity);

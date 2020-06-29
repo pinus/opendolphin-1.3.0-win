@@ -55,8 +55,10 @@ public final class TextStampEditor extends JPanel implements IStampEditor<Module
         headerField.setOpaque(false);
 
         // Undo
-        paneUndoManager = TextComponentUndoManager.getManager(textPane);
-        fieldUndoManager = TextComponentUndoManager.getManager(headerField);
+        paneUndoManager = TextComponentUndoManager.createManager(textPane);
+        textPane.getDocument().addUndoableEditListener(paneUndoManager);
+        fieldUndoManager = TextComponentUndoManager.createManager(headerField);
+        headerField.getDocument().addUndoableEditListener(fieldUndoManager);
 
         HorizontalPanel headerPanel = new HorizontalPanel();
         headerPanel.setPreferredSize(new Dimension(10, 30));
@@ -160,12 +162,11 @@ public final class TextStampEditor extends JPanel implements IStampEditor<Module
     /**
      * 編集するテキストを設定する.
      *
-     * @param val ModuleModel
+     * @param model ModuleModel
      */
     @Override
-    public void setValue(ModuleModel val) {
+    public void setValue(ModuleModel model) {
         // set text
-        ModuleModel model = val;
         TextStampModel stamp = (TextStampModel) model.getModel();
         textPane.setText(stamp.getText());
         headerField.setText(model.getModuleInfo().getStampName());

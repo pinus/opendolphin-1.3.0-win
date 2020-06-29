@@ -16,7 +16,7 @@ import java.awt.event.KeyEvent;
  * <li>ver 2: InputContext.selectInputMethod バージョン: 調子よかったが，1.6.0_29 で使えなくなる
  * <li>ver 3: Robot version 切り替わったかどうか判定するために event queue システム導入
  * <li>ver 4: enableInputMethod(true/false) バージョン: short-cut が効かなくなったり不安定
- * <li>ver 5: Robot version 復活. かな／英数キーではなく ATOK short-cut を使ってみる
+ * <li>ver 5: Robot version 復活. 物理キーが押されていると誤動作するのでキー入力でフォーカスが当たるところには使えない
  * </ul>
  *
  * @author pns

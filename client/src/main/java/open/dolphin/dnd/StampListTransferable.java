@@ -72,6 +72,7 @@ public final class StampListTransferable extends DolphinTransferable<OrderList> 
             text = StringTool.toHankakuNumber(text);
             text = StringTool.toHankakuUpperLower(text);
             text = text.replaceAll("　", " ");
+            text = text.replaceAll("．", ".");
             text = text.replace("\n", " ");
 
             return text;

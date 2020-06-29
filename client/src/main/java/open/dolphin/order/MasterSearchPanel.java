@@ -1,5 +1,6 @@
 package open.dolphin.order;
 
+import javassist.compiler.ast.Keyword;
 import open.dolphin.client.GUIConst;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.dto.OrcaEntry;
@@ -211,6 +212,7 @@ public class MasterSearchPanel extends JPanel {
                 }
             }
         });
+        IMEControl.on(keywordField);
 
         partialMatchBox = new JCheckBox("部分一致");
         partialMatchBox.addActionListener(listener);

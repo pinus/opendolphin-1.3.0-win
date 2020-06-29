@@ -151,14 +151,14 @@ public class KartePaneDumper_2 {
                         if (attObject instanceof StampHolder) {
                             // スタンプの場合
                             StampHolder sh = (StampHolder) attObject;
-                            moduleList.add(sh.getStamp());
+                            moduleList.add(sh.getModel());
                             String value = String.valueOf(moduleList.size() - 1); // ペインに出現する順番をこの属性の値とする
                             retBuffer.append(addQuote(value));
 
                         } else if (attObject instanceof SchemaHolder) {
                             // シュェーマの場合
                             SchemaHolder ch = (SchemaHolder) attObject;
-                            schemaList.add(ch.getSchema());
+                            schemaList.add(ch.getModel());
                             String value = String.valueOf(schemaList.size() - 1); // ペインに出現する順番をこの属性の値とする
                             retBuffer.append(addQuote(value));
 

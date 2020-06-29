@@ -9,13 +9,14 @@ import open.dolphin.infomodel.*;
 import open.dolphin.orca.ClaimConst;
 import open.dolphin.project.Project;
 import open.dolphin.stampbox.StampTreeNode;
+import open.dolphin.ui.Focuser;
+import open.dolphin.ui.sheet.JSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
@@ -46,7 +47,7 @@ public class StampListTransferHandler extends DolphinTransferHandler {
         KartePane kartePane = source.getKartePane();
         kartePane.setDraggedStamp(new ComponentHolder[]{source});
         kartePane.setDraggedCount(1);
-        ModuleModel stamp = source.getStamp();
+        ModuleModel stamp = source.getModel();
         OrderList list = new OrderList(new ModuleModel[]{stamp});
 
         return new StampListTransferable(list);
@@ -73,7 +74,7 @@ public class StampListTransferHandler extends DolphinTransferHandler {
                 if (module.getModel() instanceof BundleMed) {
                     // 内服薬同士で置き換えの場合，bundle number を保存する
                     BundleMed bundle = (BundleMed) module.getModel();
-                    BundleMed orgBundle = (BundleMed) target.getStamp().getModel();
+                    BundleMed orgBundle = (BundleMed) target.getModel().getModel();
                     if ((ClaimConst.RECEIPT_CODE_NAIYO.equals(bundle.getClassCode()) &&
                             ClaimConst.RECEIPT_CODE_NAIYO.equals(orgBundle.getClassCode())) ||
                             (ClaimConst.RECEIPT_CODE_TONYO.equals(bundle.getClassCode()) &&
@@ -123,30 +124,10 @@ public class StampListTransferHandler extends DolphinTransferHandler {
                         }
                     }
                 }
-                target.importStamp(module);
+                target.updateModel(module);
             });
         });
         t.start();
-    }
-
-    private void confirmReplace(StampHolder target, ModuleInfoBean stampInfo) {
-
-        Window w = SwingUtilities.getWindowAncestor(target);
-        String replace = "置き換える";
-        String cancel = "取消し";
-
-        int option = JOptionPane.showOptionDialog(
-                w,
-                "スタンプを置き換えますか?",
-                "スタンプ Drag and Drop",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                new String[]{replace, cancel}, replace);
-
-        if (option == 0) {
-            replaceStamp(target, stampInfo);
-        }
     }
 
     @Override
@@ -167,11 +148,14 @@ public class StampListTransferHandler extends DolphinTransferHandler {
             // Role P しか扱わない
             if (!role.equals(IInfoModel.ROLE_P)) { return false; }
 
-            if (Project.getPreferences().getBoolean("replaceStamp", false)) {
-                replaceStamp(target, stampInfo);
-            } else {
-                SwingUtilities.invokeLater(() -> confirmReplace(target, stampInfo));
+            // replace stamp が false の場合は確認ダイアログを出す
+            if (!Project.getPreferences().getBoolean("replaceStamp", false)) {
+                int opt = JSheet.showConfirmDialog(
+                    SwingUtilities.getWindowAncestor(target),"スタンプを置き換えますか?", "Drag and Drop",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (opt != 0) { return false; }
             }
+            replaceStamp(target, stampInfo);
             return true;
 
         } catch (UnsupportedFlavorException | IOException ex) {
@@ -203,6 +187,8 @@ public class StampListTransferHandler extends DolphinTransferHandler {
     public boolean canImport(TransferSupport support) {
         StampHolder test = (StampHolder) support.getComponent();
         JTextPane tc = test.getKartePane().getTextPane();
+        Focuser.requestFocus(test);
+
         return tc.isEditable()
             && Stream.of(support.getDataFlavors()).
             anyMatch(DolphinDataFlavor.stampTreeNodeFlavor::equals);

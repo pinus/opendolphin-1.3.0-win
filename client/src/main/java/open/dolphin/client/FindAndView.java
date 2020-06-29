@@ -21,9 +21,11 @@ public class FindAndView {
     private static final Color FOUND_COLOR = new Color(243, 255, 15); //黄色っぽい色
     private static final String FOUND_COLOR_HEX = "#F3FF0F";
     //private static final Color SELECTED_BORDER = new Color(255, 0, 153); //stampHolder の選択色
+
     private final SimpleAttributeSet foundAttr = new SimpleAttributeSet(); // 見つかった
     private final SimpleAttributeSet onCursorAttr = new SimpleAttributeSet(); // 現在いるところ
     private final SimpleAttributeSet defaultAttr = new SimpleAttributeSet(); // もともとの背景色（panelに応じて変化）
+
     // StampHolder にマークするためのタグ
     private final String FONT_END = "</font>";
     private final String FONT_FOUND = "<font style=\"background-color:" + FOUND_COLOR_HEX + "\">";
@@ -33,8 +35,10 @@ public class FindAndView {
     private FoundDataList foundDataList;
     private int row; // 現在の row
 
+    private Chart chart;
 
-    public FindAndView() {
+    public FindAndView(Chart context) {
+        chart = context;
         foundAttr.addAttribute(StyleConstants.Background, FOUND_COLOR);
         onCursorAttr.addAttribute(StyleConstants.Background, SELECTED_COLOR);
     }
@@ -137,8 +141,15 @@ public class FindAndView {
             }
             scrollToCenter(panel, foundDataList.getPane(row), foundDataList.getPos(row));
 
+            // enable findNext action
+            chart.enabledAction(GUIConst.ACTION_FIND_NEXT, true);
+            chart.enabledAction(GUIConst.ACTION_FIND_PREVIOUS, true);
+
         } else {
             showNotFoundDialog("検索", "はみつかりませんでした");
+            // disable findNext action
+            chart.enabledAction(GUIConst.ACTION_FIND_NEXT, false);
+            chart.enabledAction(GUIConst.ACTION_FIND_PREVIOUS, false);
         }
     }
 

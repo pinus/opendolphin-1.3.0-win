@@ -5,6 +5,7 @@ import open.dolphin.helper.ImageHelper;
 import open.dolphin.impl.scheam.SchemaEditorImpl;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.ui.PNSBorderFactory;
+import open.dolphin.util.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ import java.util.Objects;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  * @author pns
  */
-public final class SchemaHolder extends AbstractComponentHolder {
+public final class SchemaHolder extends AbstractComponentHolder<SchemaModel> {
     private static final long serialVersionUID = 1777560751402251092L;
     private static final Dimension INITIAL_SIZE = new Dimension(192, 192);
     private static final Border MY_SELECTED_BORDER = PNSBorderFactory.createSelectedBorder();
@@ -155,7 +156,8 @@ public final class SchemaHolder extends AbstractComponentHolder {
         return kartePane;
     }
 
-    public SchemaModel getSchema() {
+    @Override
+    public SchemaModel getModel() {
         return schema;
     }
 
@@ -176,6 +178,7 @@ public final class SchemaHolder extends AbstractComponentHolder {
 
     @Override
     public void enter(ActionMap map) {
+        super.enter(map);
         map.get(GUIConst.ACTION_COPY).setEnabled(true);
         map.get(GUIConst.ACTION_CUT).setEnabled(kartePane.getTextPane().isEditable());
         map.get(GUIConst.ACTION_PASTE).setEnabled(false);
@@ -214,7 +217,8 @@ public final class SchemaHolder extends AbstractComponentHolder {
             // JavaFX thread
             Platform.runLater(() -> {
                 SchemaEditor editor = new SchemaEditorImpl();
-                editor.setSchema(schema);
+                SchemaModel toEdit = ModelUtils.clone(schema);
+                editor.setSchema(toEdit);
                 editor.setEditable(kartePane.getTextPane().isEditable());
                 editor.addPropertyChangeListener(SchemaHolder.this);
                 editor.start();
@@ -233,7 +237,12 @@ public final class SchemaHolder extends AbstractComponentHolder {
         this.setEditable(true);
 
         SchemaModel newSchema = (SchemaModel) e.getNewValue();
-        if (newSchema == null) { return; }
+        if (newSchema != null) { updateModel(newSchema); }
+    }
+
+    @Override
+    public void updateModel(SchemaModel newSchema) {
+        super.updateModel(newSchema);
 
         byte[] newBytes = ImageHelper.imageToByteArray(newSchema.getIcon().getImage());
         byte[] oldBytes = schema.getJpegByte();
@@ -246,8 +255,9 @@ public final class SchemaHolder extends AbstractComponentHolder {
             size = extractImageSize(newBytes);
         }
 
+        schema = newSchema;
         schema.setJpegByte(newBytes);
-        icon = newSchema.getIcon();
+        icon = schema.getIcon();
         setIcon(ImageHelper.adjustImageSize(icon, size));
 
         // dirty セット

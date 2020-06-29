@@ -8,10 +8,10 @@ import open.dolphin.helper.GridBagBuilder;
 import open.dolphin.helper.PNSPair;
 import open.dolphin.helper.StringTool;
 import open.dolphin.inspector.InspectorCategory;
-import open.dolphin.project.Project;
 import open.dolphin.project.ProjectStub;
 import open.dolphin.ui.ComboBoxFactory;
 import open.dolphin.ui.PNSTabbedPane;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +19,6 @@ import java.awt.event.ItemEvent;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 /**
  * KarteSettingPanel.
@@ -28,48 +27,30 @@ import java.util.prefs.Preferences;
  * @author pns
  */
 public class KarteSettingPanel extends AbstractSettingPanel {
-
     private static final String ID = "karteSetting";
     private static final String TITLE = "　カルテ　";
     private static final ImageIcon ICON = GUIConst.ICON_KARTE_EDIT_32;
     private static final int INSPECTOR_COMBO_COUNT = 5;
 
-    private Preferences prefs;
-
     // デフォルト値
-    private boolean defaultLocator;
-    private boolean defaultAsc;
-    private boolean defaultShowModified;
-    private int defaultFetchCount;
-    private int minFetchCount;
-    private int maxFetchCount;
-    private int stepFetchCount;
-    private boolean defaultScDirection;
-    private int defaultPeriod;
-    private boolean defaultDiagnosisAsc;
-    private int defaultDiagnosisPeriod;
-    private boolean defaultAutoOutcomeInput;
-    private int defaultOffsetOutcomeDate;
-    private int defaultLaboTestPeriod;
+    private boolean defaultLocator, defaultAsc, defaultShowModified, defaultScDirection,
+        defaultDiagnosisAsc, defaultAutoOutcomeInput;
+    private int defaultFetchCount, minFetchCount, maxFetchCount, stepFetchCount,
+        defaultPeriod, defaultDiagnosisPeriod, defaultOffsetOutcomeDate, defaultLaboTestPeriod;
 
     // インスペクタ選択 Combo
     private JComboBox<InspectorCategory>[] inspectorCombo;
     private JLabel infoLabel;
-    private JRadioButton pltform;
-    private JRadioButton prefLoc;
+    private JRadioButton pltform, prefLoc;
 
     // カルテ文書関係
-    private JRadioButton asc;
-    private JRadioButton desc;
+    private JRadioButton asc, desc, vSc, hSc;
     private JCheckBox showModifiedCB;
     private JSpinner spinner;
     private JComboBox<PNSPair<String, Integer>> periodCombo;
-    private JRadioButton vSc;
-    private JRadioButton hSc;
 
     // 病名関係
-    private JRadioButton diagnosisAsc;
-    private JRadioButton diagnosisDesc;
+    private JRadioButton diagnosisAsc, diagnosisDesc;
     private JComboBox<PNSPair<String, Integer>> diagnosisPeriodCombo;
     private JCheckBox autoOutcomeInput;
     private JSpinner outcomeSpinner;
@@ -81,37 +62,19 @@ public class KarteSettingPanel extends AbstractSettingPanel {
     private JButton restoreDefaultBtn;
 
     // Stamp
-    private JRadioButton replaceStamp;
-    private JRadioButton showAlert;
-    private JCheckBox stampSpace;
-    private JCheckBox laboFold;
-    private JTextField defaultZyozaiNum;
-    private JTextField defaultMizuyakuNum;
-    private JTextField defaultSanyakuNum;
-    private JTextField defaultRpNum;
+    private JRadioButton replaceStamp, showAlert;
+    private JCheckBox stampSpace, laboFold;
+    private JTextField defaultZyozaiNum, defaultMizuyakuNum, defaultSanyakuNum, defaultRpNum;
 
     // CLAIM 送信関係
-    private JRadioButton sendAtTmp;
-    private JRadioButton noSendAtTmp;
-    private JRadioButton sendAtSave;
-    private JRadioButton noSendAtSave;
-    private JRadioButton sendAtModify;
-    private JRadioButton noSendAtModify;
-    private JRadioButton sendDiagnosis;
-    private JRadioButton noSendDiagnosis;
+    private JRadioButton sendAtTmp, noSendAtTmp, sendAtSave, noSendAtSave,
+        sendAtModify, noSendAtModify, sendDiagnosis, noSendDiagnosis;
     private JCheckBox useTop15AsTitle;
     private JTextField defaultKarteTitle;
 
     // 確認ダイアログ関係
-    private JCheckBox noConfirmAtNew;
-    private JRadioButton copyNew;
-    private JRadioButton applyRp;
-    private JRadioButton emptyNew;
-    private JRadioButton placeWindow;
-    private JRadioButton palceTabbedPane;
-    private JCheckBox noConfirmAtSave;
-    private JRadioButton save;
-    private JRadioButton saveTmp;
+    private JCheckBox noConfirmAtNew, noConfirmAtSave;
+    private JRadioButton copyNew, applyRp, emptyNew, placeWindow, palceTabbedPane, save, saveTmp;
     private JFormattedTextField printCount;
 
     private JTextField pdfStore;
@@ -135,8 +98,6 @@ public class KarteSettingPanel extends AbstractSettingPanel {
      */
     @Override
     public void start() {
-
-        prefs = Project.getPreferences();
 
         // モデルを生成し初期化する
         model = new KarteModel();
@@ -255,14 +216,12 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         saveTmp = new JRadioButton("仮保存");
 
         // 自動文書取得数の Spinner
-        int currentFetchCount = prefs.getInt(Project.DOC_HISTORY_FETCHCOUNT, defaultFetchCount);
-        SpinnerModel fetchModel = new SpinnerNumberModel(currentFetchCount, minFetchCount, maxFetchCount, stepFetchCount);
+        SpinnerModel fetchModel = new SpinnerNumberModel(1, minFetchCount, maxFetchCount, stepFetchCount);
         spinner = new JSpinner(fetchModel);
         spinner.setEditor(new JSpinner.NumberEditor(spinner, "#"));
 
         //転帰入力時に日付を入力する場合のオフセット値
-        int currentOffsetOutcomeDate = prefs.getInt(Project.OFFSET_OUTCOME_DATE, defaultOffsetOutcomeDate);
-        SpinnerModel outcomeModel = new SpinnerNumberModel(currentOffsetOutcomeDate, -31, 0, 1);
+        SpinnerModel outcomeModel = new SpinnerNumberModel(-7, -31, 0, 1);
         outcomeSpinner = new JSpinner(outcomeModel);
         outcomeSpinner.setEditor(new JSpinner.NumberEditor(outcomeSpinner, "#"));
 
@@ -716,8 +675,9 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 
         // 転帰のオフセット
         autoOutcomeInput.setSelected(model.isAutoOutcomeInput());
-        outcomeSpinner.setEnabled(autoOutcomeInput.isSelected());
         autoOutcomeInput.addActionListener(e -> outcomeSpinner.setEnabled(autoOutcomeInput.isSelected()));
+        outcomeSpinner.setEnabled(autoOutcomeInput.isSelected());
+        outcomeSpinner.setValue(model.getDiagnosisOutcomeOffset());
 
         // ラボテストの抽出期間
         int currentLaboTestPeriod = model.getLabotestExtractionPeriod();
@@ -890,7 +850,7 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         // 転帰入力時の終了日オフセット
         model.setAutoOutcomeInput(autoOutcomeInput.isSelected());
         String val = outcomeSpinner.getValue().toString();
-        prefs.putInt(Project.OFFSET_OUTCOME_DATE, Integer.parseInt(val));
+        model.setDiagnosisOutcomeOffset(Integer.parseInt(val));
 
         // ラボテストの抽出期間
         index = laboTestPeriodCombo.getSelectedIndex();
@@ -947,7 +907,6 @@ public class KarteSettingPanel extends AbstractSettingPanel {
     }
 
     public void restoreDefault() {
-
         pltform.setSelected(defaultLocator);
         prefLoc.setSelected(!defaultLocator);
 
@@ -990,498 +949,333 @@ public class KarteSettingPanel extends AbstractSettingPanel {
      * 画面モデルクラス.
      */
     private class KarteModel {
-
         // インスペクタ
-        private String topInspector;
-        private String secondInspector;
-        private String thirdInspector;
-        private String forthInspector;
-        private String fifthInspector;
-        private String pdfStore;
-
+        private String topInspector, secondInspector, thirdInspector;
+        private String forthInspector, fifthInspector, pdfStore;
         // インスペクタ画面のロケータ
         private boolean locateByPlatform;
         // カルテ文書関係
-        private int fetchKarteCount;
-        private boolean ascendingKarte;
-        private boolean showModifiedKarte;
-        private boolean scrollKarteV;
-        private int karteExtractionPeriod;
+        private int fetchKarteCount, karteExtractionPeriod;
+        private boolean ascendingKarte, showModifiedKarte, scrollKarteV;
         // 病名関係
-        private boolean ascendingDiagnosis;
-        private int diagnosisExtractionPeriod;
-        private boolean autoOutcomeInput;
+        private boolean ascendingDiagnosis, autoOutcomeInput;
+        private int diagnosisExtractionPeriod, diagnosisOutcomeOffset;
         // 検体検査
         private int labotestExtractionPeriod;
         // スタンプ動作
-        private boolean replaceStamp;
-        private boolean stampSpace;
-        private boolean laboFold;
-        private String defaultZyozaiNum;
-        private String defaultMizuyakuNum;
-        private String defaultSanyakuNum;
-        private String defaultRpNum;
+        private boolean replaceStamp, stampSpace, laboFold;
+        private String defaultZyozaiNum, defaultMizuyakuNum, defaultSanyakuNum, defaultRpNum;
         // CLAIM 送信関係
-        private boolean sendClaimTmp;
-        private boolean sendClaimSave;
-        private boolean sendClaimModify;
-        private boolean sendDiagnosis;
+        private boolean sendClaimTmp, sendClaimSave, sendClaimModify, sendDiagnosis;
         private String defaultKarteTitle;
         private boolean useTop15AsTitle;
         // 確認ダイアログ関係
-        private boolean confirmAtNew;
-        private int createKarteMode;
-        private boolean placeKarteMode;
-        private boolean confirmAtSave;
-        private int saveKarteMode;
-        private int printKarteCount;
+        private boolean confirmAtNew, confirmAtSave, placeKarteMode;
+        private int createKarteMode, saveKarteMode, printKarteCount;
 
         /**
          * ProjectStub から populate する.
          */
         public void populate(ProjectStub stub) {
-
+            // インスペクタ
             setTopInspector(stub.getTopInspector());
-
             setSecondInspector(stub.getSecondInspector());
-
             setThirdInspector(stub.getThirdInspector());
-
             setForthInspector(stub.getForthInspector());
-
             setFifthInspector(stub.getFifthInspector());
-
-            setLocateByPlatform(stub.getLocateByPlatform());
-
             setPdfStore(stub.getPDFStore());
-
+            // インスペクタ画面のロケータ
+            setLocateByPlatform(stub.getLocateByPlatform());
+            // カルテ文書関係
             setFetchKarteCount(stub.getFetchKarteCount());
-
-            setScrollKarteV(stub.getScrollKarteV());
-
-            setAscendingKarte(stub.getAscendingKarte());
-            //System.out.println("populate asc = " + stub.getAscendingKarte());
-
             setKarteExtractionPeriod(stub.getKarteExtractionPeriod());
-
+            setAscendingKarte(stub.getAscendingKarte());
             setShowModifiedKarte(stub.getShowModifiedKarte());
-
+            setScrollKarteV(stub.getScrollKarteV());
+            // 病名関係
             setAscendingDiagnosis(stub.getAscendingDiagnosis());
-
-            setDiagnosisExtractionPeriod(stub.getDiagnosisExtractionPeriod());
-
             setAutoOutcomeInput(stub.isAutoOutcomeInput());
-
+            setDiagnosisExtractionPeriod(stub.getDiagnosisExtractionPeriod());
+            setDiagnosisOutcomeOffset(stub.getDiagnosisOutcomeOffset());
+            // 検体検査
             setLabotestExtractionPeriod(stub.getLabotestExtractionPeriod());
-
+            // スタンプ動作
             setReplaceStamp(stub.isReplaceStamp());
-
             setStampSpace(stub.isStampSpace());
-
             setLaboFold(stub.isLaboFold());
-
             setDefaultZyozaiNum(stub.getDefaultZyozaiNum());
-
             setDefaultMizuyakuNum(stub.getDefaultMizuyakuNum());
-
             setDefaultSanyakuNum(stub.getDefaultSanyakuNum());
-
             setDefaultRpNum(stub.getDefaultRpNum());
-
+            // CLAIM 送信関係
             setSendClaimTmp(stub.getSendClaimTmp());
-
             setSendClaimSave(stub.getSendClaimSave());
-
             setSendClaimModify(stub.getSendClaimModify());
-
-            setUseTop15AsTitle(stub.isUseTop15AsTitle());
-
-            setDefaultKarteTitle(stub.getDefaultKarteTitle());
-
             setSendDiagnosis(stub.getSendDiagnosis());
-
+            setDefaultKarteTitle(stub.getDefaultKarteTitle());
+            setUseTop15AsTitle(stub.isUseTop15AsTitle());
+            // 確認ダイアログ関係
             setConfirmAtNew(stub.getConfirmAtNew());
-
-            setCreateKarteMode(stub.getCreateKarteMode());
-
-            setPlaceKarteMode(stub.getPlaceKarteMode());
-
             setConfirmAtSave(stub.getConfirmAtSave());
-
-            setPrintKarteCount(stub.getPrintKarteCount());
-
+            setPlaceKarteMode(stub.getPlaceKarteMode());
+            setCreateKarteMode(stub.getCreateKarteMode());
             setSaveKarteMode(stub.getSaveKarteMode());
-
+            setPrintKarteCount(stub.getPrintKarteCount());
         }
 
+        /**
+         * ProjectStub に restore する.
+         *
+         * @param stub ProjectStub
+         */
         public void restore(ProjectStub stub) {
-
             stub.setTopInspector(getTopInspector());
-
             stub.setSecondInspector(getSecondInspector());
-
             stub.setThirdInspector(getThirdInspector());
-
             stub.setForthInspector(getForthInspector());
-
             stub.setFifthInspector(getFifthInspector());
-
             stub.setLocateByPlatform(isLocateByPlatform());
-
             String pdfDir = getPdfStore();
-            if (pdfDir != null && (!pdfDir.equals(""))) {
-                stub.setPDFStore(pdfDir);
-            }
-
+            if (!StringUtils.isEmpty(pdfDir)) { stub.setPDFStore(pdfDir); }
             stub.setFetchKarteCount(getFetchKarteCount());
-
             stub.setScrollKarteV(isScrollKarteV());
-
             stub.setAscendingKarte(isAscendingKarte());
-
             stub.setKarteExtractionPeriod(getKarteExtractionPeriod());
-
             stub.setShowModifiedKarte(isShowModifiedKarte());
-
             stub.setAscendingDiagnosis(isAscendingDiagnosis());
-
             stub.setDiagnosisExtractionPeriod(getDiagnosisExtractionPeriod());
-
+            stub.setDiagnosisOutcomeOffset(getDiagnosisOutcomeOffset());
             stub.setAutoOutcomeInput(isAutoOutcomeInput());
-
             stub.setLabotestExtractionPeriod(getLabotestExtractionPeriod());
-
             stub.setReplaceStamp(isReplaceStamp());
-
             stub.setStampSpace(isStampSpace());
-
             stub.setLaboFold(isLaboFold());
-
             String test = testNumber(getDefaultZyozaiNum());
-            if (test != null) {
-                stub.setDefaultZyozaiNum(test);
-            }
-
+            if (test != null) { stub.setDefaultZyozaiNum(test); }
             test = testNumber(getDefaultMizuyakuNum());
-            if (test != null) {
-                stub.setDefaultMizuyakuNum(test);
-            }
-
+            if (test != null) { stub.setDefaultMizuyakuNum(test); }
             test = testNumber(getDefaultSanyakuNum());
-            if (test != null) {
-                stub.setDefaultSanyakuNum(test);
-            }
-
+            if (test != null) { stub.setDefaultSanyakuNum(test); }
             test = testNumber(getDefaultRpNum());
-            if (test != null) {
-                stub.setDefaultRpNum(test);
-            }
-
+            if (test != null) { stub.setDefaultRpNum(test); }
             stub.setSendClaimTmp(isSendClaimTmp());
-
             stub.setSendClaimSave(isSendClaimSave());
-
             stub.setSendClaimModify(isSendClaimModify());
-
             stub.setUseTop15AsTitle(isUseTop15AsTitle());
-
             test = getDefaultKarteTitle();
-            if (test != null && (!test.equals(""))) {
-                stub.setDefaultKarteTitle(test);
-            }
-
+            if (!StringUtils.isEmpty(test)) { stub.setDefaultKarteTitle(test); }
             stub.setSendDiagnosis(isSendDiagnosis());
-
             stub.setConfirmAtNew(isConfirmAtNew());
-
             stub.setCreateKarteMode(getCreateKarteMode());
-
             stub.setPlaceKarteMode(isPlaceKarteMode());
-
             stub.setConfirmAtSave(isConfirmAtSave());
-
             stub.setPrintKarteCount(getPrintKarteCount());
-
             stub.setSaveKarteMode(getSaveKarteMode());
-
         }
 
         public boolean isLocateByPlatform() {
             return locateByPlatform;
         }
-
         public void setLocateByPlatform(boolean locateByPlatform) {
             this.locateByPlatform = locateByPlatform;
         }
-
         public int getFetchKarteCount() {
             return fetchKarteCount;
         }
-
         public void setFetchKarteCount(int fetchKarteCount) {
             this.fetchKarteCount = fetchKarteCount;
         }
-
         public boolean isAscendingKarte() {
             return ascendingKarte;
         }
-
         public void setAscendingKarte(boolean ascendingKarte) {
             this.ascendingKarte = ascendingKarte;
         }
-
         public boolean isShowModifiedKarte() {
             return showModifiedKarte;
         }
-
         public void setShowModifiedKarte(boolean showModifiedKarte) {
             this.showModifiedKarte = showModifiedKarte;
         }
-
         public boolean isScrollKarteV() {
             return scrollKarteV;
         }
-
         public void setScrollKarteV(boolean scrollKarteV) {
             this.scrollKarteV = scrollKarteV;
         }
-
         public int getKarteExtractionPeriod() {
             return karteExtractionPeriod;
         }
-
-        public void setKarteExtractionPeriod(int karteExtractionPeriod) {
-            this.karteExtractionPeriod = karteExtractionPeriod;
-        }
-
+        public void setKarteExtractionPeriod(int karteExtractionPeriod) { this.karteExtractionPeriod = karteExtractionPeriod; }
         public boolean isAscendingDiagnosis() {
             return ascendingDiagnosis;
         }
-
         public void setAscendingDiagnosis(boolean ascendingDiagnosis) {
             this.ascendingDiagnosis = ascendingDiagnosis;
         }
-
         public int getDiagnosisExtractionPeriod() {
             return diagnosisExtractionPeriod;
         }
-
-        public void setDiagnosisExtractionPeriod(int diagnosisExtractionPeriod) {
-            this.diagnosisExtractionPeriod = diagnosisExtractionPeriod;
-        }
-
+        public void setDiagnosisOutcomeOffset(int outcomeOffset) { this.diagnosisOutcomeOffset = outcomeOffset; }
+        public int getDiagnosisOutcomeOffset() { return diagnosisOutcomeOffset; }
+        public void setDiagnosisExtractionPeriod(int period) { this.diagnosisExtractionPeriod = period; }
         public boolean isAutoOutcomeInput() {
             return autoOutcomeInput;
         }
-
         public void setAutoOutcomeInput(boolean b) {
             autoOutcomeInput = b;
         }
-
         public int getLabotestExtractionPeriod() {
             return labotestExtractionPeriod;
         }
-
-        public void setLabotestExtractionPeriod(int laboTestExtractionPeriod) {
-            this.labotestExtractionPeriod = laboTestExtractionPeriod;
-        }
-
+        public void setLabotestExtractionPeriod(int period) { this.labotestExtractionPeriod = period; }
         public boolean isSendClaimTmp() {
             return sendClaimTmp;
         }
-
         public void setSendClaimTmp(boolean sendClaimTmp) {
             this.sendClaimTmp = sendClaimTmp;
         }
-
         public boolean isSendClaimSave() {
             return sendClaimSave;
         }
-
         public void setSendClaimSave(boolean sendClaimSave) {
             this.sendClaimSave = sendClaimSave;
         }
-
         public boolean isSendClaimModify() {
             return sendClaimModify;
         }
-
         public void setSendClaimModify(boolean sendClaimModify) {
             this.sendClaimModify = sendClaimModify;
         }
-
         public boolean isSendDiagnosis() {
             return sendDiagnosis;
         }
-
         public void setSendDiagnosis(boolean sendDiagnosis) {
             this.sendDiagnosis = sendDiagnosis;
         }
-
         public boolean isConfirmAtNew() {
             return confirmAtNew;
         }
-
         public void setConfirmAtNew(boolean confirmAtNew) {
             this.confirmAtNew = confirmAtNew;
         }
-
         public int getCreateKarteMode() {
             return createKarteMode;
         }
-
         public void setCreateKarteMode(int createKarteMode) {
             this.createKarteMode = createKarteMode;
         }
-
         public boolean isPlaceKarteMode() {
             return placeKarteMode;
         }
-
         public void setPlaceKarteMode(boolean placeKarteMode) {
             this.placeKarteMode = placeKarteMode;
         }
-
         public boolean isConfirmAtSave() {
             return confirmAtSave;
         }
-
         public void setConfirmAtSave(boolean confirmAtSave) {
             this.confirmAtSave = confirmAtSave;
         }
-
         public int getSaveKarteMode() {
             return saveKarteMode;
         }
-
         public void setSaveKarteMode(int saveKarteMode) {
             this.saveKarteMode = saveKarteMode;
         }
-
         public int getPrintKarteCount() {
             return printKarteCount;
         }
-
         public void setPrintKarteCount(int printKarteCount) {
             this.printKarteCount = printKarteCount;
         }
-
         public boolean isReplaceStamp() {
             return replaceStamp;
         }
-
         public void setReplaceStamp(boolean replaceStamp) {
             this.replaceStamp = replaceStamp;
         }
-
         public boolean isStampSpace() {
             return stampSpace;
         }
-
         public void setStampSpace(boolean stampSpace) {
             this.stampSpace = stampSpace;
         }
-
         public boolean isLaboFold() {
             return laboFold;
         }
-
         public void setLaboFold(boolean laboFold) {
             this.laboFold = laboFold;
         }
-
         public String getTopInspector() {
             return topInspector;
         }
-
         public void setTopInspector(String topInspector) {
             this.topInspector = topInspector;
         }
-
         public String getSecondInspector() {
             return secondInspector;
         }
-
         public void setSecondInspector(String secondInspector) {
             this.secondInspector = secondInspector;
         }
-
         public String getThirdInspector() {
             return thirdInspector;
         }
-
         public void setThirdInspector(String thirdInspector) {
             this.thirdInspector = thirdInspector;
         }
-
         public String getForthInspector() {
             return forthInspector;
         }
-
         public void setForthInspector(String forthInspector) {
             this.forthInspector = forthInspector;
         }
-
         public String getFifthInspector() {
             return fifthInspector;
         }
-
         public void setFifthInspector(String fifthInspector) {
             this.fifthInspector = fifthInspector;
         }
-
         public String getDefaultZyozaiNum() {
             return defaultZyozaiNum;
         }
-
         public void setDefaultZyozaiNum(String defaultZyozaiNum) {
             this.defaultZyozaiNum = defaultZyozaiNum;
         }
-
         public String getDefaultMizuyakuNum() {
             return defaultMizuyakuNum;
         }
-
         public void setDefaultMizuyakuNum(String defaultMizuyakuNum) {
             this.defaultMizuyakuNum = defaultMizuyakuNum;
         }
-
         public String getDefaultSanyakuNum() {
             return defaultSanyakuNum;
         }
-
         public void setDefaultSanyakuNum(String defaultSanyakuNum) {
             this.defaultSanyakuNum = defaultSanyakuNum;
         }
-
         public String getDefaultRpNum() {
             return defaultRpNum;
         }
-
         public void setDefaultRpNum(String defaultRpNum) {
             this.defaultRpNum = defaultRpNum;
         }
-
         public String getDefaultKarteTitle() {
             return defaultKarteTitle;
         }
-
         public void setDefaultKarteTitle(String defaultKarteTitle) {
             this.defaultKarteTitle = defaultKarteTitle;
         }
-
         public boolean isUseTop15AsTitle() {
             return useTop15AsTitle;
         }
-
         public void setUseTop15AsTitle(boolean useTop15AsTitle) {
             this.useTop15AsTitle = useTop15AsTitle;
         }
-
         public String getPdfStore() {
             return pdfStore;
         }
-
         public void setPdfStore(String pdfStore) {
             this.pdfStore = pdfStore;
         }

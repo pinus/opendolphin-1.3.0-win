@@ -518,6 +518,118 @@ public class ModelUtils {
         return singles;
     }
 
+    /**
+     * スタンプを複製して返す. bundle もコピーされる. ただし ClaimItem は空.
+     *
+     * @param src source stamp
+     * @return cloned stamp
+     */
+    public static ModuleModel clone(ModuleModel src) {
+
+        ModuleInfoBean srcModuleInfo = src.getModuleInfo();
+        BundleMed srcBundle = (BundleMed) src.getModel();
+
+        // 複製
+        ModuleModel dist = new ModuleModel();
+
+        BundleMed distBundle = clone(srcBundle);
+        dist.setModel(distBundle);
+
+        ModuleInfoBean distModuleInfo = dist.getModuleInfo();
+        distModuleInfo.setEntity(srcModuleInfo.getEntity());
+        distModuleInfo.setStampRole(srcModuleInfo.getStampRole());
+        distModuleInfo.setStampName(srcModuleInfo.getStampName());
+
+        return dist;
+    }
+
+    /**
+     * BundleMed を複製して返す. ただし ClaimItem は空.
+     *
+     * @param src source BundleMed
+     * @return cloned BundleMed
+     */
+    public static BundleMed clone(BundleMed src) {
+        BundleMed dist = new BundleMed();
+        dist.setAdmin(src.getAdmin());
+        dist.setAdminCode(src.getAdminCode());
+        dist.setAdminCodeSystem(src.getAdminCodeSystem());
+        dist.setAdminMemo(src.getAdminMemo());
+        dist.setBundleNumber(src.getBundleNumber());
+        dist.setClassCode(src.getClassCode());
+        dist.setClassCodeSystem(src.getClassCodeSystem());
+        dist.setClassName(src.getClassName());
+        dist.setMemo(src.getMemo());
+        dist.setOrderName(src.getOrderName());
+        return dist;
+    }
+
+    /**
+     * ClaimItem を複製して返す.
+     *
+     * @param src ClaimItem
+     * @return cloned ClaimItem
+     */
+    public static ClaimItem clone(ClaimItem src) {
+        ClaimItem dist = new ClaimItem();
+        dist.setClassCode(src.getClassCode());
+        dist.setClassCodeSystem(src.getClassCodeSystem());
+        dist.setCode(src.getCode());
+        dist.setName(src.getName());
+        dist.setNumber(src.getNumber());
+        dist.setNumberCode(src.getNumberCode());
+        dist.setNumberCodeSystem(src.getNumberCodeSystem());
+        dist.setUnit(src.getUnit());
+        return dist;
+    }
+
+    /**
+     * ClaimItem[] を複製して返す.
+     *
+     * @param src source array of ClaimItem
+     * @return array of ClaimItem
+     */
+    public static ClaimItem[] clone(ClaimItem[] src) {
+        ClaimItem[] dist = new ClaimItem[src.length];
+        for (int i=0; i<src.length; i++) {
+            dist[i] = clone(src[i]);
+        }
+        return dist;
+    }
+
+    /**
+     * スタンプを複製して返す. Bundle, ClaimItem も複製する.
+     *
+     * @param src source stamp
+     * @return cloned stamp
+     */
+    public static ModuleModel deepClone(ModuleModel src) {
+        BundleMed srcBundle = (BundleMed) src.getModel();
+        ClaimItem[] srcItems = srcBundle.getClaimItem();
+
+        ModuleModel dist = clone(src);
+        BundleMed distBundle = (BundleMed) dist.getModel();
+        distBundle.setClaimItem(clone(srcItems));
+        return dist;
+    }
+
+    /**
+     * SchemaModel を複製して返す.
+     *
+     * @param src source SchemaModel
+     * @return cloned SchemaModel
+     */
+    public static SchemaModel clone(SchemaModel src) {
+        SchemaModel dist = new SchemaModel();
+        dist.setExtRef(src.getExtRef());
+        dist.setJpegByte(src.getJpegByte());
+        dist.setDocument(src.getDocument());
+        dist.setFileName(src.getFileName());
+        dist.setIcon(src.getIcon());
+        dist.setImageNumber(src.getImageNumber());
+        return dist;
+    }
+
     public static void main(String[] argv) {
         System.out.println(orcaDateToGengo("3300101"));
         System.out.println(orcaDateToGengo("4300430"));

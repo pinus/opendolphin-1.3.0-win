@@ -24,7 +24,7 @@ public class SchemaHolderTransferHandler extends DolphinTransferHandler {
         KartePane kartePane = source.getKartePane();
         kartePane.setDraggedStamp(new ComponentHolder[]{source});
         kartePane.setDraggedCount(1);
-        SchemaModel schema = source.getSchema();
+        SchemaModel schema = source.getModel();
         SchemaList list = new SchemaList();
         list.setSchemaList(new SchemaModel[]{schema});
 

@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 import open.dolphin.inspector.IInspector;
+import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSScrollPane;
 
 import javax.swing.*;

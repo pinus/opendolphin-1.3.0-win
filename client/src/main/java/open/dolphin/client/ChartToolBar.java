@@ -4,6 +4,7 @@ import open.dolphin.event.ProxyDocumentListener;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.ui.CompletableSearchField;
 import open.dolphin.ui.Focuser;
+import open.dolphin.ui.IMEControl;
 import open.dolphin.ui.PNSToggleButton;
 
 import javax.swing.*;
@@ -385,6 +386,7 @@ public class ChartToolBar extends JToolBar {
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
         stampSearchField = new CompletableSearchField(30);
+        IMEControl.on(stampSearchField);
         stampSearchField.setLabel("スタンプ検索");
         stampSearchField.setPreferences(prefs);
         stampSearchField.putClientProperty("Quaqua.TextField.style", "search");

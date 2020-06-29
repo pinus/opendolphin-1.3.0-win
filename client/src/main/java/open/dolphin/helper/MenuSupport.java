@@ -207,9 +207,8 @@ public class MenuSupport implements MenuListener {
                     break;
 
                 } catch (IllegalAccessException | IllegalArgumentException | SecurityException ex) {
-                    System.out.println("MenuSupport.java: " + ex);
+                    logger.error(ex.getMessage());
                 } catch (InvocationTargetException ex) {
-                    System.out.println("MenuSupport.java: " + ex);
                     ex.printStackTrace(System.err);
 
                     // この target では実行できない. NoSuchMethodException が出るのは問題なし.

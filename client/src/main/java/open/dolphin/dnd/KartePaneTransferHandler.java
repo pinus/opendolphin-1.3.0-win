@@ -30,7 +30,7 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
     private boolean shouldRemove;
 
     // Document 編集に伴って自動的に動く
-    private Position p0 = null, p1 = null;
+    private Position srcP0 = null, srcP1 = null;
 
     public KartePaneTransferHandler(KartePane kp) {
         kartePane = kp;
@@ -53,8 +53,8 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
         }
         try {
             // この Posision は Document 編集に伴って自動的に動く
-            p0 = doc.createPosition(start);
-            p1 = doc.createPosition(end);
+            srcP0 = doc.createPosition(start);
+            srcP1 = doc.createPosition(end);
         } catch (BadLocationException e) {
             logger.error(e.getMessage());
         }
@@ -66,14 +66,12 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
     public boolean importData(TransferSupport support) {
         if (!canImport(support)) { return false; }
 
-        JTextPane textPane = (JTextPane) support.getComponent();
-        // 元の選択を消去するかどうか
-        shouldRemove = false;
+        JTextPane target = (JTextPane) support.getComponent();
 
         // 選択した文字列を選択した範囲内にドロップした場合は何もしない
-        if (textPane.equals(source)
-            && (textPane.getCaretPosition() >= p0.getOffset())
-            && (textPane.getCaretPosition() <= p1.getOffset())) {
+        if (target.equals(source)
+            && (target.getCaretPosition() >= srcP0.getOffset())
+            && (target.getCaretPosition() <= srcP1.getOffset())) {
             return true;
         }
 
@@ -103,8 +101,8 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
             } else if (tr.isDataFlavorSupported(DolphinDataFlavor.stringFlavor)) {
                 // 文字列 Drop は同一 JTextPane なら移動なので shouldRemove = true にする
                 String str = (String) tr.getTransferData(DolphinDataFlavor.stringFlavor);
-                textPane.replaceSelection(str);
-                shouldRemove = (textPane == source);
+                target.replaceSelection(str);
+                shouldRemove = (target == source);
                 return true;
             }
         } catch (UnsupportedFlavorException | IOException ex) {
@@ -126,23 +124,23 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
      * However, we do not allow dropping on top of the selected text,
      * so in that case do nothing.
      *
-     * @param c JTextPane
+     * @param c source JTextPane
      * @param data Transferable
      * @param action COPY or MOVE
      */
     @Override
     protected void exportDone(JComponent c, Transferable data, int action) {
+        // ここに入ってくるデータは text のみ
         JTextComponent tc = (JTextComponent) c;
         if (tc.isEditable() && shouldRemove && (action == MOVE)) {
-            if ((p0 != null) && (p1 != null) && (p0.getOffset() != p1.getOffset())) {
+            if (srcP0 != null && srcP1 != null && srcP0.getOffset() != srcP1.getOffset()) {
                 try {
-                    tc.getDocument().remove(p0.getOffset(), p1.getOffset() - p0.getOffset());
+                    tc.getDocument().remove(srcP0.getOffset(), srcP1.getOffset() - srcP0.getOffset());
                 } catch (BadLocationException ex) {
                     logger.error(ex.getMessage());
                 }
             }
         }
-        shouldRemove = false;
         source = null;
     }
 

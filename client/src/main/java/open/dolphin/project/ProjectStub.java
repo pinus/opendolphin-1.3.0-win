@@ -4,6 +4,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.inspector.InspectorCategory;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -420,6 +421,10 @@ public class ProjectStub implements java.io.Serializable {
         prefs.putInt(Project.DIAGNOSIS_PERIOD, period);
     }
 
+    public int getDiagnosisOutcomeOffset() { return prefs.getInt(Project.OFFSET_OUTCOME_DATE, -7); }
+
+    public void setDiagnosisOutcomeOffset(int offset) { prefs.putInt(Project.OFFSET_OUTCOME_DATE, offset); }
+
     public boolean isAutoOutcomeInput() {
         return prefs.getBoolean("autoOutcomeInput", false);
     }
@@ -686,28 +691,24 @@ public class ProjectStub implements java.io.Serializable {
      * @return encrypted password
      */
     public String encryptPassword(String key, String pass) {
-        try {
+        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+
+        try (OutputStream outputStream = MimeUtility.encode(bo, "base64")) {
             SecretKeySpec spec = new SecretKeySpec(key.getBytes(), "Blowfish");
             Cipher cipher = Cipher.getInstance("Blowfish");
             cipher.init(Cipher.ENCRYPT_MODE, spec);
 
-            ByteArrayOutputStream bo = new ByteArrayOutputStream();
-            try (OutputStream outputStream = MimeUtility.encode(bo, "base64")) {
-                outputStream.write(cipher.doFinal(pass.getBytes()));
-            } catch (MessagingException ex) {
-                System.out.println("ProjectStub.java:" + ex);
-            }
+            outputStream.write(cipher.doFinal(pass.getBytes()));
 
-            //System.out.println("input password: " + pass);
-            //System.out.println("encrypted password: " + bo.toString());
-
-            return bo.toString();
-
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | BadPaddingException ex) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
+            | IOException | IllegalBlockSizeException | BadPaddingException | MessagingException ex) {
             System.out.println("ProjectStub.java:" + ex);
         }
 
-        return "";
+        //System.out.println("input password: " + pass);
+        //System.out.println("encrypted password: " + bo.toString());
+
+        return bo.toString();
     }
 
     /**
@@ -718,16 +719,10 @@ public class ProjectStub implements java.io.Serializable {
      * @return decorded password
      */
     public String decryptPassword(String key, String pass) {
-        if (key == null || key.equals("")) {
-            return "";
-        }
+        if (StringUtils.isEmpty(key)) { return ""; }
 
-        InputStream inputStream = null;
-
-        try {
-            inputStream = MimeUtility.decode(new ByteArrayInputStream(pass.getBytes()), "base64");
-
-            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+        try (InputStream inputStream = MimeUtility.decode(new ByteArrayInputStream(pass.getBytes()), "base64");
+             ByteArrayOutputStream bo = new ByteArrayOutputStream()) {
 
             byte[] buf = new byte[1024];
             int len = inputStream.read(buf);
@@ -747,15 +742,9 @@ public class ProjectStub implements java.io.Serializable {
 
             return decoded;
 
-        } catch (MessagingException | IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
-            System.out.println("ProjectStub.java:" + ex);
-
-        } finally {
-            try {
-                inputStream.close();
-            } catch (IOException ex) {
-                System.out.println("ProjectStub.java:" + ex);
-            }
+        } catch (MessagingException | IOException | NoSuchAlgorithmException | NoSuchPaddingException
+            | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
+            ex.printStackTrace(System.err);
         }
         return "";
     }

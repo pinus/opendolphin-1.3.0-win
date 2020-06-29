@@ -1,7 +1,6 @@
 package open.dolphin.client;
 
 import open.dolphin.project.Project;
-import open.dolphin.project.ProjectStub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
     private static final long serialVersionUID = 1L;
     private static final String STAMP_STYLE = "stampHolder";
     private static final String SCHEMA_STYLE = "schemaHolder";
-    private Logger logger = LoggerFactory.getLogger(KarteStyledDocument.class);
+    private Logger logger;
 
     // スタンプの先頭を改行する
     private boolean putTopCr;
@@ -26,6 +25,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
     private KartePane kartePane;
 
     public KarteStyledDocument() {
+        logger = LoggerFactory.getLogger(KarteStyledDocument.class);
         putTopCr = Project.getProjectStub().isStampSpace();
     }
 
@@ -34,7 +34,6 @@ public class KarteStyledDocument extends DefaultStyledDocument {
     }
 
     public void makeParagraph() {
-        logger.info("--- paragraph ---");
         try {
             insertString(getLength(), "\n", null);
         } catch (BadLocationException ex) {
@@ -209,7 +208,8 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             int endPos = getLength() - 1;
             String last = getText(endPos, 1);
             if ("\n".equals(last)) { remove(endPos, 1); }
-        } catch (BadLocationException ex) {}
+
+        } catch (BadLocationException ex) { logger.error(ex.getMessage()); }
     }
 
     /**

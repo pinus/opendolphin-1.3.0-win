@@ -60,7 +60,7 @@ public class StampModifier {
         for (ClaimItem srcItem : srcItems) {
 
             for (StampHolder distHolder : distStamps) {
-                BundleDolphin distModel = (BundleDolphin) distHolder.getStamp().getModel();
+                BundleDolphin distModel = (BundleDolphin) distHolder.getModel().getModel();
 
                 // classCode が一致した場合に重複チェック
                 if (classCode.equals(distModel.getClassCode())) {

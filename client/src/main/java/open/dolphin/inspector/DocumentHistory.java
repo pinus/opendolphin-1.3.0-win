@@ -179,26 +179,14 @@ public class DocumentHistory implements IInspector {
         im.remove(KeyStroke.getKeyStroke("meta A"));
 
         // ENTER で cell edit 開始
-        im.put(KeyStroke.getKeyStroke("ENTER"), "startEditing");
-        view.getTable().addFocusListener(new FocusAdapter() {
+        im.put(KeyStroke.getKeyStroke("ENTER"), "startEditing2");
+        am.put("startEditing2", new AbstractAction() {
             @Override
-            public void focusGained(FocusEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 int[] row = view.getTable().getSelectedRows();
-                if (row.length == 1) {
+                if (row.length > 0) {
                     view.getTable().changeSelection(row[0], 1, false, false);
-                }
-            }
-        });
-
-        // column 0 をクリックした場合は column 1 を選択
-        view.getTable().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                Point p = e.getPoint();
-                int col = view.getTable().columnAtPoint(p);
-                if (col == 0) {
-                    int row = view.getTable().rowAtPoint(p);
-                    view.getTable().changeSelection(row, 1, false, false);
+                    am.get("startEditing").actionPerformed(e);
                 }
             }
         });

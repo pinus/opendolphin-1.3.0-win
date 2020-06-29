@@ -9,6 +9,7 @@ import javax.swing.FocusManager;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.text.Position;
+import javax.swing.undo.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -18,23 +19,28 @@ import java.awt.event.*;
  * キャレットが Component 位置にきたときにフォーカスを取る. フォーカスを取ると
  * {@link open.dolphin.client.KarteComposite#enter(ActionMap) enter(ActionMap)} が呼ばれる.
  *
+ * @param <T> ComponentHolder の扱うデータ型 (StampHolder = ModuleModel, SchemaHolder = SchemaModel)
+ *
  * @author Kazushi Minagawa
  * @author pns
  */
-public abstract class AbstractComponentHolder extends JLabel
+public abstract class AbstractComponentHolder<T> extends JLabel
     implements ComponentHolder<JLabel>, MouseListener, MouseMotionListener, KeyListener {
     private static final long serialVersionUID = 1L;
     private Logger logger = LoggerFactory.getLogger(AbstractComponentHolder.class);
 
     // 親の KartePane
     private KartePane kartePane;
-
     // JTextPane 内での開始と終了ポジション. 自動更新される.
     private Position start;
     private Position end;
-
     // エディタの二重起動を防ぐためのフラグ
     private boolean isEditable = true;
+    // ActionMap
+    private ActionMap actionMap;
+    // UndoSupport
+    private UndoManager undoManager;
+    private boolean undoing = false;
 
     public AbstractComponentHolder(KartePane kartePane) {
         this.kartePane = kartePane;
@@ -53,6 +59,8 @@ public abstract class AbstractComponentHolder extends JLabel
         am.put(TransferHandler.getCutAction().getValue(Action.NAME), TransferHandler.getCutAction());
         am.put(TransferHandler.getCopyAction().getValue(Action.NAME), TransferHandler.getCopyAction());
         am.put(TransferHandler.getPasteAction().getValue(Action.NAME), TransferHandler.getPasteAction());
+
+        undoManager = new UndoManager();
     }
 
     public boolean isEditable() {
@@ -61,6 +69,12 @@ public abstract class AbstractComponentHolder extends JLabel
 
     public void setEditable(boolean b) {
         isEditable = b;
+    }
+
+    @Override
+    public void enter(ActionMap map) {
+        actionMap = map;
+        updateMenuState();
     }
 
     @Override
@@ -83,7 +97,14 @@ public abstract class AbstractComponentHolder extends JLabel
             // SPACE で編集
             edit();
 
-        } else if (!e.isMetaDown() && !e.isShiftDown() && !e.isAltDown()){
+        } else if (KeyStroke.getKeyStroke("ctrl ENTER").equals(key)) {
+            // ctrl-ENTER でポップアップ表示
+            Point p = getLocationOnScreen();
+            MouseEvent me = new MouseEvent(this, 0, 0, 0,
+                10, this.getHeight(), 0, true, 0);
+            maybeShowPopup(me);
+
+        } else if (!e.isControlDown() && !e.isMetaDown() && !e.isShiftDown() && !e.isAltDown()){
             // その他のキーは親の JTextPane に丸投げ
             JTextPane pane = kartePane.getTextPane();
             pane.requestFocusInWindow();
@@ -171,5 +192,81 @@ public abstract class AbstractComponentHolder extends JLabel
     @Override
     public abstract void edit();
 
+    /**
+     * この ComponentHolder が扱うモデルを返す.
+     *
+     * @return ModuleModel or SchemaModel
+     */
+    public abstract T getModel();
+
     public abstract void maybeShowPopup(MouseEvent e);
+
+    public void undo() {
+        if (undoManager.canUndo()) {
+            undoManager.undo();
+            updateMenuState();
+        } else {
+            kartePane.undo();
+        }
+    }
+
+    public void redo() {
+        if (undoManager.canRedo()) {
+            undoManager.redo();
+            updateMenuState();
+        } else {
+            kartePane.redo();
+        }
+    }
+
+    /**
+     * Undo / Redo 関連のメニューを update する.
+     */
+    public void updateMenuState() {
+        actionMap.get(GUIConst.ACTION_UNDO).setEnabled(undoManager.canUndo());
+        actionMap.get(GUIConst.ACTION_REDO).setEnabled(undoManager.canRedo());
+    }
+
+    /**
+     * この ComponentHolder のモデルを update する. その際，UndoableEdit も登録する.
+     * ただし undo, redo の操作の場合は UndoableEdit は作らない.
+     *
+     * @param newValue ModuleModel or SchemaModel
+     */
+    public void updateModel(T newValue) {
+        if (!undoing) {
+            UndoableEdit edit = new UndoableEdit(getModel(), newValue);
+            undoManager.addEdit(edit);
+            updateMenuState();
+        }
+        undoing = false;
+    }
+
+    private class UndoableEdit extends AbstractUndoableEdit {
+        private T oldValue;
+        private T newValue;
+
+        public UndoableEdit(T oldValue, T newValue) {
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        @Override
+        public void undo() throws CannotUndoException {
+            super.undo();
+            undoing = true;
+            updateModel(oldValue);
+        }
+        @Override
+        public void redo() throws CannotRedoException {
+            super.redo();
+            undoing = true;
+            updateModel(newValue);
+        }
+        @Override
+        public void die() {
+            super.die();
+            oldValue = newValue = null;
+        }
+    }
 }
