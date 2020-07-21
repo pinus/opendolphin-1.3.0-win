@@ -29,6 +29,8 @@ public class ObjectReflectTableModel<T> extends AbstractTableModel {
     private String[] methodNames;
     // データオブジェクトリスト
     private List<T> objectList = new ArrayList<>();
+    // 最後に削除されたオブジェクト
+    private T lastDeleted;
 
     /**
      * {@code PNSTriple<columnName,columnClass,methodName>} から TableModel を生成する.
@@ -127,7 +129,7 @@ public class ObjectReflectTableModel<T> extends AbstractTableModel {
     }
 
     /**
-     * Method 名を帰す
+     * Method 名を返す.
      *
      * @param index インデックス
      * @return そのインデックスのメソッド名
@@ -179,7 +181,7 @@ public class ObjectReflectTableModel<T> extends AbstractTableModel {
      * @param otherList データリスト
      */
     public void setObjectList(List<T> otherList) {
-        objectList = otherList; // 参照しているのみ
+        this.objectList = otherList; // 参照しているのみ
         fireTableDataChanged();
     }
 
@@ -260,6 +262,8 @@ public class ObjectReflectTableModel<T> extends AbstractTableModel {
 
     public void deleteRow(int index) {
         if (index > -1 && index < objectList.size()) {
+            // 削除行の保存
+            lastDeleted = objectList.get(index);
             objectList.remove(index);
             fireTableRowsDeleted(index, index);
         }
@@ -297,6 +301,8 @@ public class ObjectReflectTableModel<T> extends AbstractTableModel {
         }
         return found ? index : -1;
     }
+
+    public T getLastDeleted() { return lastDeleted; }
 
     public boolean isValidRow(int row) {
         return ((objectList != null) && (row > -1) && (row < objectList.size()));

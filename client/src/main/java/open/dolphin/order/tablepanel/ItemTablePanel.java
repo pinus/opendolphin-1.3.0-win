@@ -5,6 +5,7 @@ import open.dolphin.dnd.MasterItemTransferHandler;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.PNSTriple;
 import open.dolphin.helper.StringTool;
+import open.dolphin.ui.UndoableObjectReflectTableModel;
 import open.dolphin.infomodel.*;
 import open.dolphin.orca.ClaimConst;
 import open.dolphin.order.IStampEditor;
@@ -13,6 +14,8 @@ import open.dolphin.order.stampeditor.StampEditor;
 import open.dolphin.project.Project;
 import open.dolphin.ui.*;
 import open.dolphin.ui.sheet.JSheet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.FocusManager;
 import javax.swing.*;
@@ -49,6 +52,8 @@ import java.util.stream.Stream;
  * @author pns
  */
 public class ItemTablePanel extends JPanel {
+    private Logger logger = LoggerFactory.getLogger(ItemTablePanel.class);
+
     public static final String DEFAULT_STAMP_NAME = "新規スタンプ";
     public static final String FROM_EDITOR_STAMP_NAME = "エディタから";
     public static final String DEFAULT_NUMBER = "1";
@@ -74,7 +79,7 @@ public class ItemTablePanel extends JPanel {
     public final ImageIcon CLEAR_BUTTON_IMAGE = GUIConst.ICON_ERASER_16;
     // GUI コンポーネント
     private JTable table;
-    private ObjectReflectTableModel<MasterItem> tableModel;
+    private UndoableObjectReflectTableModel<MasterItem> tableModel;
     private int[] tableColumnWidth;
     private JTextField stampNameField;
     private JTextField commentField;
@@ -105,6 +110,7 @@ public class ItemTablePanel extends JPanel {
 
         // テーブルモデル作成
         tableModel = createTableModel();
+        tableModel.addTableModelListener(e -> checkState());
         // 共通コンポネント作成
         createCommonComponents();
         // テーブル部分（RadItemTablePanel では，RadiologyMethod が加わる
@@ -124,7 +130,7 @@ public class ItemTablePanel extends JPanel {
      *
      * @return {@code ObjectReflectTableModel<MasterItem>}
      */
-    public ObjectReflectTableModel<MasterItem> createTableModel() {
+    public UndoableObjectReflectTableModel<MasterItem> createTableModel() {
         // セットテーブルのモデルを生成する
         List<PNSTriple<String, Class<?>, String>> reflectList = Arrays.asList(
                 new PNSTriple<>(" コード", String.class, "getCode"),
@@ -134,7 +140,7 @@ public class ItemTablePanel extends JPanel {
         );
         setTableColumnWidth(new int[]{90, 200, 60, 60});
 
-        return new ObjectReflectTableModel<MasterItem>(reflectList) {
+        return new UndoableObjectReflectTableModel<MasterItem>(reflectList) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -147,21 +153,28 @@ public class ItemTablePanel extends JPanel {
 
             @Override
             public void setValueAt(Object o, int row, int col) {
-                //if (o == null || ((String) o).trim().equals("")) return;
+                super.setValueAt(o, row, col); // undo 情報保存
+                updateTable(o, row, col);
+            }
+
+            @Override
+            public void undoSetValueAt(Object o, int row, int col) {
+                // undo ではこちらが呼ばれる
+                updateTable(o, row, col);
+            }
+
+            private void updateTable(Object o, int row, int col) {
                 // MasterItem に数量を設定する
                 MasterItem mItem = getObject(row);
 
                 if (col == 2 && mItem != null) {
                     mItem.setNumber((String) o);
-                    // 状態をチェックして，ボタン制御＋parent に伝える
-                    checkState();
                 }
                 // MasterItem に診療内容（入力したコメント）を設定する
                 if (col == 1 && mItem != null) {
                     mItem.setName((String) o);
-                    // 状態をチェックして，ボタン制御＋parent に伝える
-                    checkState();
                 }
+                fireTableCellUpdated(row, col);
             }
         };
     }
@@ -248,8 +261,6 @@ public class ItemTablePanel extends JPanel {
         // スタンプ名フィールドを生成する
         stampNameField = new JTextField(20);
         stampNameField.setMaximumSize(new Dimension(10, 22));
-        // stampNameField.setOpaque(true); opaque にすると，色が枠からはみ出す
-        //stampNameField.setBackground(new Color(251, 239, 128));  // TODO
 
         // 削除ボタンを生成する
         removeButton = new JButton(REMOVE_BUTTON_IMAGE);
@@ -312,8 +323,10 @@ public class ItemTablePanel extends JPanel {
             if (row <= 0) { return; }
             // 上の項目と入れ替えて，選択を1つあげる
             MasterItem target = tableModel.getObject(row);
-            tableModel.deleteRow(row);
-            tableModel.addRow(row - 1, target);
+            // undo 処理挿入
+            tableModel.undoableDeleteRow(row);
+            tableModel.undoableInsertRow(row - 1, target);
+
             table.getSelectionModel().setSelectionInterval(row - 1, row - 1);
         }));
 
@@ -323,8 +336,9 @@ public class ItemTablePanel extends JPanel {
             if (row < 0 || row >= table.getRowCount() - 1) { return; }
             // 下の項目と入れ替えて，選択を1つさげる
             MasterItem target = tableModel.getObject(row);
-            tableModel.deleteRow(row);
-            tableModel.addRow(row + 1, target);
+            // undo 処理挿入
+            tableModel.undoableDeleteRow(row);
+            tableModel.undoableInsertRow(row + 1, target);
 
             table.getSelectionModel().setSelectionInterval(row + 1, row + 1);
         }));
@@ -336,13 +350,30 @@ public class ItemTablePanel extends JPanel {
             int ans = JSheet.showOptionDialog(SwingUtilities.getWindowAncestor(table), "クリアしますか？", "",
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
                     new String[]{"はい", "いいえ", "キャンセル"}, "はい");
-
-            if (ans == 0) {
-                tableModel.clear();
-            }
+            if (ans == 0) { clear(); }
         });
         clearButton.setToolTipText(TOOLTIP_CLEAR_TEXT);
     }
+
+    /**
+     * Undo. StampEditorDialog から呼ばれる.
+     */
+    public void undo() {
+        tableModel.undo();
+        scrollRectToVisible();
+    }
+
+    /**
+     * Redo. StampEditorDialog から呼ばれる.
+     */
+    public void redo() {
+        tableModel.redo();
+        scrollRectToVisible();
+    }
+
+    public boolean canUndo() { return tableModel.canUndo(); }
+
+    public boolean canRedo() { return tableModel.canRedo(); }
 
     /**
      * テーブルを含むパネルを作成.
@@ -441,7 +472,7 @@ public class ItemTablePanel extends JPanel {
      *
      * @return ObjectTableModel
      */
-    public ObjectReflectTableModel<MasterItem> getTableModel() {
+    public UndoableObjectReflectTableModel<MasterItem> getTableModel() {
         return tableModel;
     }
 
@@ -450,7 +481,7 @@ public class ItemTablePanel extends JPanel {
      *
      * @param tableModel ObjectReflectTableModel
      */
-    public void setTableModel(ObjectReflectTableModel<MasterItem> tableModel) {
+    public void setTableModel(UndoableObjectReflectTableModel<MasterItem> tableModel) {
         this.tableModel = tableModel;
     }
 
@@ -650,9 +681,9 @@ public class ItemTablePanel extends JPanel {
      * テーブルをクリアする.
      */
     public void clear() {
-        tableModel.clear();
-        // 状態をチェックして，ボタン制御＋parent に伝える
-        checkState();
+        // undo 処理後にクリア
+        int row = tableModel.getRowCount();
+        while (row-- > 0) { tableModel.undoableDeleteRow(row); }
     }
 
     /**
@@ -666,9 +697,8 @@ public class ItemTablePanel extends JPanel {
             if (ce != null) {
                 ce.cancelCellEditing();
             }
-            tableModel.deleteRow(row);
-            // 状態をチェックして，ボタン制御＋parent に伝える
-            checkState();
+            // undo 処理
+            tableModel.undoableDeleteRow(row);
         }
     }
 
@@ -740,9 +770,9 @@ public class ItemTablePanel extends JPanel {
                 break;
         }
 
-        tableModel.addRow(item);
-        // 状態をチェックして，ボタン制御＋parent に伝える
-        checkState();
+        // undo 処理
+        tableModel.undoableAddRow(item);
+        scrollRectToVisible();
     }
 
     /**
@@ -869,14 +899,11 @@ public class ItemTablePanel extends JPanel {
     public void setValue(Object theStamp) {
 
         // 連続して編集される場合があるのでテーブル内容等をクリアする
-        clear();
+        tableModel.clear();
+        tableModel.discardAllUndoableEdits();
 
         // null であればリターンする
-        if (theStamp == null) {
-            // 状態をチェックして，ボタン制御＋parent に伝える
-            checkState();
-            return;
-        }
+        if (theStamp == null) { return; }
 
         // 引数で渡された Stamp をキャストする
         ModuleModel target = (ModuleModel) theStamp;
@@ -949,9 +976,6 @@ public class ItemTablePanel extends JPanel {
             number = StringTool.toHankakuNumber(number);
             numberCombo.setSelectedItem(number);
         }
-
-        // 状態をチェックするして，parent に伝える
-        checkState();
     }
 
     /**
@@ -976,6 +1000,13 @@ public class ItemTablePanel extends JPanel {
         }
     }
 
+    /**
+     * table を editing row まで scroll する.
+     */
+    public void scrollRectToVisible() {
+        table.scrollRectToVisible(table.getCellRect(tableModel.editingRow(), 0, false));
+    }
+
     // 手技を含んでいる必要がある
     private boolean hasSyugi() {
         return tableModel.getObjectList().stream().anyMatch(mItem -> (mItem.getClassCode() == ClaimConst.SYUGI));
@@ -986,8 +1017,8 @@ public class ItemTablePanel extends JPanel {
         for (Object i : tableModel.getObjectList()) {
             MasterItem mItem = (MasterItem) i;
 
-            // コードが 84xxxxxxx コメントの場合，number にパラメータを入れるので，number チェックしない
-            if (mItem.getCode().startsWith("84")) {
+            // コードが 84xxxxxxx, 85xxxxxxx コメントの場合，number にパラメータを入れるので，number チェックしない
+            if (mItem.getCode().startsWith("84") || mItem.getCode().startsWith("85")) {
                 return true;
             }
             //System.out.println("---- code= " + mItem.getCode().substring(0,2));

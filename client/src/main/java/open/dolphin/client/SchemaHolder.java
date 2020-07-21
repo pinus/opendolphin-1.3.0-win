@@ -237,12 +237,11 @@ public final class SchemaHolder extends AbstractComponentHolder<SchemaModel> {
         this.setEditable(true);
 
         SchemaModel newSchema = (SchemaModel) e.getNewValue();
-        if (newSchema != null) { updateModel(newSchema); }
+        if (newSchema != null) { undoableUpdateModel(newSchema); }
     }
 
     @Override
     public void updateModel(SchemaModel newSchema) {
-        super.updateModel(newSchema);
 
         byte[] newBytes = ImageHelper.imageToByteArray(newSchema.getIcon().getImage());
         byte[] oldBytes = schema.getJpegByte();
@@ -262,5 +261,6 @@ public final class SchemaHolder extends AbstractComponentHolder<SchemaModel> {
 
         // dirty セット
         kartePane.setDirty(true);
+        updateMenuState();
     }
 }

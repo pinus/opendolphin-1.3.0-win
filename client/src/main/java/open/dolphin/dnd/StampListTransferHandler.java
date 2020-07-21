@@ -180,6 +180,7 @@ public class StampListTransferHandler extends DolphinTransferHandler {
             kartePane.setDraggedStamp(null);
             kartePane.setDraggedCount(0);
             kartePane.setDroppedCount(0);
+            Focuser.requestFocus(test);
         }
     }
 
@@ -187,7 +188,6 @@ public class StampListTransferHandler extends DolphinTransferHandler {
     public boolean canImport(TransferSupport support) {
         StampHolder test = (StampHolder) support.getComponent();
         JTextPane tc = test.getKartePane().getTextPane();
-        Focuser.requestFocus(test);
 
         return tc.isEditable()
             && Stream.of(support.getDataFlavors()).

@@ -29,6 +29,11 @@ public abstract class AbstractComponentHolder<T> extends JLabel
     private static final long serialVersionUID = 1L;
     private Logger logger = LoggerFactory.getLogger(AbstractComponentHolder.class);
 
+    private static final KeyStroke TAB = KeyStroke.getKeyStroke("TAB");
+    private static final KeyStroke SHIFT_TAB = KeyStroke.getKeyStroke("shift TAB");
+    private static final KeyStroke CTRL_ENTER = KeyStroke.getKeyStroke("ctrl ENTER");
+    private static final KeyStroke SPACE = KeyStroke.getKeyStroke("SPACE");
+
     // 親の KartePane
     private KartePane kartePane;
     // JTextPane 内での開始と終了ポジション. 自動更新される.
@@ -40,7 +45,6 @@ public abstract class AbstractComponentHolder<T> extends JLabel
     private ActionMap actionMap;
     // UndoSupport
     private UndoManager undoManager;
-    private boolean undoing = false;
 
     public AbstractComponentHolder(KartePane kartePane) {
         this.kartePane = kartePane;
@@ -81,23 +85,23 @@ public abstract class AbstractComponentHolder<T> extends JLabel
     public void keyPressed(KeyEvent e) {
         KeyStroke key = KeyStroke.getKeyStrokeForEvent(e);
 
-        if (KeyStroke.getKeyStroke("TAB").equals(key)) {
+        if (TAB.equals(key)) {
             // TAB キーでフォーカス次移動
             if (!kartePane.getTextPane().isEditable()) {
                 SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusNextComponent);
             }
 
-        } else if (KeyStroke.getKeyStroke("shift TAB").equals(key)) {
+        } else if (SHIFT_TAB.equals(key)) {
             // shift TAB キーでフォーカス前移動
             if (!kartePane.getTextPane().isEditable()) {
                 SwingUtilities.invokeLater(FocusManager.getCurrentManager()::focusPreviousComponent);
             }
 
-        } else if (KeyStroke.getKeyStroke("SPACE").equals(key)) {
+        } else if (SPACE.equals(key)) {
             // SPACE で編集
             edit();
 
-        } else if (KeyStroke.getKeyStroke("ctrl ENTER").equals(key)) {
+        } else if (CTRL_ENTER.equals(key)) {
             // ctrl-ENTER でポップアップ表示
             Point p = getLocationOnScreen();
             MouseEvent me = new MouseEvent(this, 0, 0, 0,
@@ -228,19 +232,22 @@ public abstract class AbstractComponentHolder<T> extends JLabel
     }
 
     /**
-     * この ComponentHolder のモデルを update する. その際，UndoableEdit も登録する.
-     * ただし undo, redo の操作の場合は UndoableEdit は作らない.
+     * Undoable updateModel.
+     *
+     * @param newValue ModuleModel (Stamp) or SchemaModel
+     */
+    public void undoableUpdateModel(T newValue) {
+        UndoableEdit edit = new UndoableEdit(getModel(), newValue);
+        undoManager.addEdit(edit);
+        updateModel(newValue);
+    }
+
+    /**
+     * この ComponentHolder のモデルを update する.
      *
      * @param newValue ModuleModel or SchemaModel
      */
-    public void updateModel(T newValue) {
-        if (!undoing) {
-            UndoableEdit edit = new UndoableEdit(getModel(), newValue);
-            undoManager.addEdit(edit);
-            updateMenuState();
-        }
-        undoing = false;
-    }
+    public abstract void updateModel(T newValue);
 
     private class UndoableEdit extends AbstractUndoableEdit {
         private T oldValue;
@@ -254,13 +261,11 @@ public abstract class AbstractComponentHolder<T> extends JLabel
         @Override
         public void undo() throws CannotUndoException {
             super.undo();
-            undoing = true;
             updateModel(oldValue);
         }
         @Override
         public void redo() throws CannotRedoException {
             super.redo();
-            undoing = true;
             updateModel(newValue);
         }
         @Override

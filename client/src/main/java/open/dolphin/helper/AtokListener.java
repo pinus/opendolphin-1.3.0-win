@@ -62,13 +62,13 @@ public class AtokListener implements KeyListener, InputMethodListener {
 
         // 確定アンドゥは commit されたら終了
         if (isInKakuteiUndo && event.getCommittedCharacterCount() > 0) {
-            logger.info("Kakutei-undo done: " + event.getCommittedCharacterCount());
+            logger.debug("Kakutei-undo done: " + event.getCommittedCharacterCount());
             isInKakuteiUndo = false;
         }
 
         // 確定アンドゥ 1回目
         if (ctrlBackspace) {
-            logger.info("Kakutei-undo start");
+            logger.debug("Kakutei-undo start");
             undoManager.undo();
             ctrlBackspace = false;
             isInKakuteiUndo = true;
@@ -76,7 +76,7 @@ public class AtokListener implements KeyListener, InputMethodListener {
         } else if (isInKakuteiUndo && timeFromImeTextChange < 10) {
             // 2回目以降の ctrl-backspace キーは ATOK に取られて検出できないが，
             // timeFromTextChange が非常に短く入ってくるので検出できる
-            logger.info("Kakutei-undo cont'd: " + timeFromImeTextChange);
+            logger.debug("Kakutei-undo cont'd: " + timeFromImeTextChange);
             undoManager.undo();
         }
 
@@ -119,12 +119,12 @@ public class AtokListener implements KeyListener, InputMethodListener {
                 int pos = textComponent.getCaretPosition();
                 int end = pos - textInProcess.length();
 
-                // end から逆にたどって, alphanumeric 以外の文字が出てくるところを検出
+                // end から逆にたどって, alphanumeric or - 以外の文字が出てくるところを検出
                 int start = end;
                 while (start-- > 0) {
                     char c = textComponent.getText(start, 1).charAt(0);
-                    logger.info(start + ": " + c);
-                    if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c)) {
+                    logger.debug(start + ": " + c);
+                    if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c) && c != '-') {
                         break;
                     }
                 }
@@ -137,7 +137,7 @@ public class AtokListener implements KeyListener, InputMethodListener {
             // (1) は何もしなくていい (textCommitted != textInProcess)
             // (2) は確定終了, 未 flush の状態になっている
             else if (doubleEisu) {
-                logger.error("double eisu detected: " + textCommitted + "/"+ textInProcess);
+                logger.debug("double eisu detected: " + textCommitted + "/"+ textInProcess);
                 if (textCommitted.equals(textInProcess)) {
                     // flush すると "tうぃってrtwitter" の状態になる
                     undoManager.flush();

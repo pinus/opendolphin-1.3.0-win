@@ -5,6 +5,7 @@ import open.dolphin.client.GUIConst;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.ComponentBoundsManager;
 import open.dolphin.order.stampeditor.StampEditor;
+import open.dolphin.order.tablepanel.ItemTablePanel;
 import open.dolphin.ui.HorizontalPanel;
 import open.dolphin.ui.sheet.JSheet;
 import org.apache.commons.lang3.StringUtils;
@@ -141,6 +142,14 @@ public class StampEditorDialog {
         // Command + ENTER で入力
         im.put(KeyStroke.getKeyStroke("meta ENTER"), "done");
         dialog.getRootPane().getActionMap().put("done", new ProxyAction(okButton::doClick));
+
+        // Undo/Redo
+        ItemTablePanel tablePanel = editor.getTablePanel();
+        im.put(KeyStroke.getKeyStroke("meta Z"), "undo");
+        dialog.getRootPane().getActionMap().put("undo", new ProxyAction(tablePanel::undo));
+        im.put(KeyStroke.getKeyStroke("shift meta Z"), "redo");
+        dialog.getRootPane().getActionMap().put("redo", new ProxyAction(tablePanel::redo));
+
         dialog.setVisible(true);
         editor.enter(); // フォーカスとる
     }

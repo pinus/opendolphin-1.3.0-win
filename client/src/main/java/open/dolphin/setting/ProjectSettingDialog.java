@@ -2,6 +2,7 @@ package open.dolphin.setting;
 
 import open.dolphin.client.ClientContext;
 import open.dolphin.event.ValidListener;
+import open.dolphin.helper.ImageHelper;
 import open.dolphin.project.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,7 +199,7 @@ public final class ProjectSettingDialog {
         dialog.getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
 
         // Container の background が黒になってしまうので直す
-        if (ClientContext.isMac()) { setContainerBackground(dialog); }
+        if (ClientContext.isMac()) { ImageHelper.setContainerTransparent(dialog); }
 
         dialog.setResizable(false);
         dialog.setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
@@ -294,7 +295,7 @@ public final class ProjectSettingDialog {
 
             SwingUtilities.invokeLater(() -> {
                 // Container のバックグランドを直す
-                setContainerBackground(sp.getUI());
+                ImageHelper.setContainerTransparent(sp.getUI());
 
                 cardPanel.add(sp.getUI(), sp.getTitle());
                 cardLayout.show(cardPanel, sp.getTitle());
@@ -306,22 +307,6 @@ public final class ProjectSettingDialog {
 
         t.setPriority(Thread.NORM_PRIORITY);
         t.start();
-    }
-
-    /**
-     * "apple.awt.brushMetalLook" の Container のバックグランドが黒くなるのを直す.
-     *
-     * @param component 修正する Component
-     */
-    private void setContainerBackground(Component component) {
-        if (component instanceof Container) {
-            if (component instanceof JComponent) {
-                ((JComponent)component).setOpaque(false);
-            }
-            for (Component c : ((Container) component).getComponents()) {
-                setContainerBackground(c);
-            }
-        }
     }
 
     /**

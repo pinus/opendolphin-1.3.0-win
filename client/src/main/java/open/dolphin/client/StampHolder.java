@@ -24,6 +24,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * KartePane に Component　として挿入されるスタンプを保持するクラス.
@@ -81,10 +82,16 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
      */
     private class MyHierarchyBoundsListener extends HierarchyBoundsAdapter {
         public void repaintStamp() {
-            int width = kartePane.getTextPane().getWidth();
-            if (width > 1) {
-                hints.setWidth(Math.max(320, width - MARGIN));
-                setMyText();
+            JTextPane tp = kartePane.getTextPane();
+            if (Objects.nonNull(tp)) {
+                int width = tp.getParent() instanceof JViewport
+                    ? tp.getParent().getWidth()
+                    : tp.getWidth();
+
+                if (width > 1) {
+                    hints.setWidth(Math.max(320, width - MARGIN));
+                    setMyText();
+                }
             }
         }
         @Override
@@ -152,7 +159,7 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
                             ModuleModel distModel = ModelUtils.deepClone(stamp);
                             BundleMed distBundle = (BundleMed) distModel.getModel();
                             distBundle.setBundleNumber(num);
-                            updateModel(distModel);
+                            undoableUpdateModel(distModel);
                             kartePane.setDirty(true);
                             logger.info("bundle number changed to " + num);
                         }
@@ -171,7 +178,7 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
                             }
                         }
                         if (dirty) {
-                            updateModel(distModel);
+                            undoableUpdateModel(distModel);
                             kartePane.setDirty(true);
                             logger.info("item number changed to " + num);
                         }
@@ -378,7 +385,7 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
             ModuleModel newStamp = (ModuleModel) e.getNewValue();
             if (newStamp != null) {
                 // スタンプを置き換える
-                updateModel(newStamp);
+                undoableUpdateModel(newStamp);
             }
         }
     }
@@ -390,7 +397,6 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
      */
     @Override
     public void updateModel(ModuleModel newStamp) {
-        super.updateModel(newStamp);
 
         // 「月　日」の自動挿入：replace の場合はここに入る
         // replace でない場合は，KartePane でセット
@@ -402,6 +408,7 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
         kartePane.getTextPane().validate();
         kartePane.getTextPane().repaint();
         Focuser.requestFocus(this);
+        updateMenuState();
     }
 
     /**

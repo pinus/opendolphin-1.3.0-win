@@ -8,7 +8,9 @@ import open.dolphin.orca.ClaimConst;
 import open.dolphin.order.IStampEditor;
 import open.dolphin.order.MasterItem;
 import open.dolphin.project.Project;
-import open.dolphin.ui.ObjectReflectTableModel;
+import open.dolphin.ui.UndoableObjectReflectTableModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -22,6 +24,7 @@ import java.util.List;
  */
 public class RecipeTablePanel extends ItemTablePanel {
     private static final long serialVersionUID = 1L;
+    Logger logger = LoggerFactory.getLogger(RecipeTablePanel.class);
 
     private static final ImageIcon INFO_BUTTON_IMAGE = GUIConst.ICON_INFORMATION_16;
     private static final String ADMIN_MARK = "[用法] ";
@@ -41,7 +44,7 @@ public class RecipeTablePanel extends ItemTablePanel {
     private JLabel stateLabel;
     // 親からの値のコピー
     private JTable table;
-    private ObjectReflectTableModel<MasterItem> tableModel;
+    private UndoableObjectReflectTableModel<MasterItem> tableModel;
     private JTextField stampNameField;
     private JButton removeButton;
     private JButton clearButton;
@@ -63,7 +66,7 @@ public class RecipeTablePanel extends ItemTablePanel {
      * @return
      */
     @Override
-    public ObjectReflectTableModel<MasterItem> createTableModel() {
+    public UndoableObjectReflectTableModel<MasterItem> createTableModel() {
         List<PNSTriple<String, Class<?>, String>> reflectList = Arrays.asList(
                 new PNSTriple<>(" コード", String.class, "getCode"),
                 new PNSTriple<>("　診療内容", String.class, "getName"),
@@ -74,7 +77,7 @@ public class RecipeTablePanel extends ItemTablePanel {
         );
         setTableColumnWidth(new int[]{90, 200, 50, 80, 30, 50});
 
-        return new ObjectReflectTableModel<MasterItem>(reflectList) {
+        return new UndoableObjectReflectTableModel<MasterItem>(reflectList) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -86,14 +89,22 @@ public class RecipeTablePanel extends ItemTablePanel {
 
             @Override
             public void setValueAt(Object o, int row, int col) {
+                super.setValueAt(o, row, col); // undo 登録
+                updateTable(o, row, col);
+            }
+
+            @Override
+            public void undoSetValueAt(Object o, int row, int col) {
+                updateTable(o, row, col);
+            }
+
+            private void updateTable(Object o, int row, int col) {
                 if (o == null || ((String) o).trim().equals("")) {
                     return;
                 }
                 // tableModel のオブジェクトは MasterItem
                 MasterItem mItem = getObject(row);
-                if (mItem == null) {
-                    return;
-                }
+                if (mItem == null) { return; }
 
                 if (col == 2) {
                     mItem.setNumber((String) o);
@@ -105,7 +116,7 @@ public class RecipeTablePanel extends ItemTablePanel {
                     mItem.setName((String) o);
                 }// 入力したコメントは name に入れる
 
-                checkState();
+                fireTableCellUpdated(row, col);
             }
         };
     }
@@ -205,9 +216,9 @@ public class RecipeTablePanel extends ItemTablePanel {
 
                 // １つ上のアイテムが[用法]ならば，その上に挿入する
                 if (isAdmin) {
-                    tableModel.insertRow(oCount - 1, item);
+                    tableModel.undoableInsertRow(oCount - 1, item);
                 } else {
-                    tableModel.addRow(item);
+                    tableModel.undoableAddRow(item);
                 }
                 break;
 
@@ -215,18 +226,18 @@ public class RecipeTablePanel extends ItemTablePanel {
                 item.setNumber(DEFAULT_NUMBER);
                 // １つ上のアイテムが[用法]ならば，その上に挿入する
                 if (isAdmin) {
-                    tableModel.insertRow(oCount - 1, item);
+                    tableModel.undoableInsertRow(oCount - 1, item);
                 } else {
-                    tableModel.addRow(item);
+                    tableModel.undoableAddRow(item);
                 }
                 break;
 
             case ClaimConst.SYUGI:
                 // １つ上のアイテムが[用法]ならば，その上に挿入する
                 if (isAdmin) {
-                    tableModel.insertRow(oCount - 1, item);
+                    tableModel.undoableInsertRow(oCount - 1, item);
                 } else {
-                    tableModel.addRow(item);
+                    tableModel.undoableAddRow(item);
                 }
                 break;
 
@@ -247,9 +258,9 @@ public class RecipeTablePanel extends ItemTablePanel {
                     item.setBundleNumber("1");
                 }   //もし，一つ上が用法だったら，それは消す
                 if (isAdmin) {
-                    tableModel.deleteRow(oCount - 1);
+                    tableModel.undoableDeleteRow(oCount - 1);
                 }
-                tableModel.addRow(item);
+                tableModel.undoableAddRow(item);
                 break;
 
             default:
@@ -287,10 +298,8 @@ public class RecipeTablePanel extends ItemTablePanel {
                 defaultAdmin.setName(ADMIN_MARK + "１日２回外用");
                 defaultAdmin.setBundleNumber("1");
             }
-            tableModel.addRow(defaultAdmin);
+            tableModel.undoableAddRow(defaultAdmin);
         }
-
-        checkState();
     }
 
     /**
@@ -473,12 +482,10 @@ public class RecipeTablePanel extends ItemTablePanel {
     public void setValue(Object theStamp) {
 
         // 連続して編集される場合があるのでテーブル内容等をクリアする
-        clear();
+        tableModel.clear();
+        tableModel.discardAllUndoableEdits();
 
-        if (theStamp == null) {
-            checkState();
-            return;
-        }
+        if (theStamp == null) { return; }
 
         // 引数で渡された Stamp をキャストする
         ModuleModel target = (ModuleModel) theStamp;
@@ -550,8 +557,6 @@ public class RecipeTablePanel extends ItemTablePanel {
         } else {
             outMedButton.setSelected(true);
         }
-
-        checkState();
     }
 
     /**

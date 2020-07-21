@@ -7,6 +7,7 @@ import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.dto.DocumentSearchSpec;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.DBTask;
+import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.helper.PNSPair;
 import open.dolphin.helper.PNSTriple;
 import open.dolphin.infomodel.DocInfoModel;

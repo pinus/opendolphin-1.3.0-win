@@ -8,6 +8,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
+import open.dolphin.order.IStampEditor;
 import open.dolphin.order.StampEditorProxyPanel;
 import open.dolphin.ui.HorizontalPanel;
 
@@ -90,6 +91,15 @@ public class StampMakerPanel extends JPanel {
      */
     public void show(String entity) {
         editorPanel.show(entity);
+    }
+
+    /**
+     * 現在選択されている StampEditor を返す.
+     *
+     * @return active Editor
+     */
+    public IStampEditor getEditor() {
+        return editorPanel.getEditor();
     }
 
     /**

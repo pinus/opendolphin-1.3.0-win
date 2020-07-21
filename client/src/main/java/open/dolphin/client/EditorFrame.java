@@ -414,6 +414,8 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      * 初期化する.
      */
     private void initialize() {
+        // Command-M 連打で連続して open された場合, windowOpened の処理では間に合わない
+        allEditorFrames.add(0, EditorFrame.this);
 
         // Frame を生成する
         // Frame のタイトルを
@@ -522,7 +524,8 @@ public class EditorFrame extends AbstractMainTool implements Chart {
 
             @Override
             public void windowOpened(WindowEvent e) {
-                allEditorFrames.add(0, EditorFrame.this);
+                // 連続して open した場合, 間に合わないことがあるので initialize() 先頭で処理
+                //allEditorFrames.add(0, EditorFrame.this);
             }
 
             @Override

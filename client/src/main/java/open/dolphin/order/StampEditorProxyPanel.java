@@ -93,6 +93,14 @@ public class StampEditorProxyPanel extends JPanel {
     }
 
     /**
+     * 現在選択されている Editor を返す.
+     * @return active StampEditor
+     */
+    public IStampEditor getEditor() {
+        return curEditor;
+    }
+
+    /**
      * StampEditor をロードするための loader.
      */
     private class StampEditorLoader {

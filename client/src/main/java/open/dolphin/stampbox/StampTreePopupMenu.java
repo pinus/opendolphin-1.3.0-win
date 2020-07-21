@@ -61,7 +61,7 @@ public class StampTreePopupMenu extends JPopupMenu {
                 stampName + "\n本当に削除しますか", "スタンプ削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         if (ans == JOptionPane.OK_OPTION) {
             if (isEditable()) {
-                ((StampTreeModel)tree.getModel()).removeNodeFromParent(node);
+                ((StampTreeModel)tree.getModel()).undoableRemoveNodeFromParent(node);
             } else {
                 Toolkit.getDefaultToolkit().beep();
             }

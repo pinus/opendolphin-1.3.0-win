@@ -57,11 +57,13 @@ public class FindAndView {
         foundDataList = new FoundDataList(); // 検索結果を入れるためのテーブル
         searchText = text;
         scrollerPanel = panel;
-        defaultAttr.addAttribute(StyleConstants.Background,
-                ((KartePanel) panel.getComponent(0)).getSoaTextPane().getBackground());
 
         int kpCount = panel.getComponentCount(); // panel に組み込まれている kartePanel の数
+        if (kpCount == 0) { return; }
+
         int kpHeight = 0; // 後でソートするために，scrollerPanel 上の y 座標を記録するとき使う
+        defaultAttr.addAttribute(StyleConstants.Background,
+                ((KartePanel) panel.getComponent(0)).getSoaTextPane().getBackground());
 
         // 前回検索のマーキング全部クリアする
         clearMarking(panel);

@@ -8,6 +8,7 @@ import open.dolphin.helper.DBTask;
 import open.dolphin.helper.StringTool;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
+import open.dolphin.ui.Focuser;
 import open.dolphin.util.DateUtils;
 import open.dolphin.util.ModelUtils;
 import org.slf4j.Logger;
@@ -16,6 +17,9 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.print.PageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -231,6 +235,20 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
         pPane.setRole(ROLE_P);
         pPane.getTextPane().setTransferHandler(new KartePaneTransferHandler(pPane));
 
+        // ctrl-¥ で soaPane, PPane 間を移動する
+        KeyListener l = new KeyAdapter() {
+            KeyStroke CTRL_YEN = KeyStroke.getKeyStroke("ctrl BACK_SLASH");
+            JTextPane SOA = kartePanel.getSoaTextPane(), P = kartePanel.getPTextPane();
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (KeyStroke.getKeyStrokeForEvent(e).equals(CTRL_YEN)) {
+                    Focuser.requestFocus(e.getSource() == SOA ? P : SOA);
+                }
+            }
+        };
+        kartePanel.getSoaTextPane().addKeyListener(l);
+        kartePanel.getPTextPane().addKeyListener(l);
+
         setUI(kartePanel);
 
         // 初期化の前にモデルがセットしてある.
@@ -249,8 +267,9 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
 
         SwingUtilities.invokeLater(() -> {
             // キャレットを先頭にリセット.
+            getPPane().getTextPane().setCaretPosition(0);
             getSOAPane().getTextPane().setCaretPosition(0);
-            //getPPane().getTextPane().setCaretPosition(0); // これを入れると PPane にフォーカス取られる
+            Focuser.requestFocus(getSOAPane().getTextPane());
         });
         enter();
 

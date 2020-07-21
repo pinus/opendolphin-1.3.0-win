@@ -3,6 +3,7 @@ package open.dolphin.stampbox;
 import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.StampDelegater;
 import open.dolphin.dnd.StampTreeNodeTransferHandler;
+import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.GUIDGenerator;
 import open.dolphin.helper.Task;
 import open.dolphin.infomodel.*;
@@ -35,32 +36,38 @@ import java.util.List;
  * @author pns
  */
 public class StampTree extends JTree implements TreeModelListener {
-    public static final String SELECTED_NODE_PROP = "selectedNodeProp";
     private static final long serialVersionUID = -4651151848166376384L;
+
+    private final Logger logger = LoggerFactory.getLogger(StampTree.class);
+    public static final String SELECTED_NODE_PROP = "selectedNodeProp";
     private static final int TOOLTIP_LENGTH = 300;
     private static final String NEW_FOLDER_NAME = "新規フォルダ";
     private static final String STAMP_SAVE_TASK_NAME = "スタンプ保存";
-    // Logger, Application
-    private final Logger logger;
+
+    // StampTreeModel
+    private StampTreeModel treeModel;
+
     // 個人用Treeかどうかのフラグ
-    private boolean userTree;
+    private boolean isUserTree;
+
     // StampBox
     private StampBoxPlugin stampBox;
+
     // 飛ばない getPreferredSize 用変数 by pns
     private Dimension oldPreferredSize = new Dimension(0, 0);
 
     /**
      * StampTreeオブジェクトを生成する.
      *
-     * @param model TreeModel
+     * @param model StampTreeModel
      */
     public StampTree(TreeModel model) {
         super(model);
-        logger = LoggerFactory.getLogger(StampTree.class);
-        init(model);
+        treeModel = (StampTreeModel) model;
+        init();
     }
 
-    private void init(TreeModel model) {
+    private void init() {
         putClientProperty("JTree.lineStyle", "Angled"); // 水平及び垂直線を使用する
 
         // setEditable(false); // ノード名を編集不可にする
@@ -107,10 +114,14 @@ public class StampTree extends JTree implements TreeModelListener {
         setCellEditor(new PNSTreeCellEditor(this, renderer));
 
         // Listens TreeModelEvent
-        model.addTreeModelListener(this);
+        treeModel.addTreeModelListener(this);
 
         // Enable ToolTips
         enableToolTips(true);
+
+        // ENTER で cell editing
+        getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "start-editing");
+        getActionMap().put("start-editing", new ProxyAction(() -> startEditingAtPath(getSelectionPath())));
     }
 
     /**
@@ -187,7 +198,7 @@ public class StampTree extends JTree implements TreeModelListener {
      * @return UserTreeの時true
      */
     public boolean isUserTree() {
-        return userTree;
+        return isUserTree;
     }
 
     /**
@@ -196,7 +207,7 @@ public class StampTree extends JTree implements TreeModelListener {
      * @param userTree UserTreeの時true
      */
     public void setUserTree(boolean userTree) {
-        this.userTree = userTree;
+        this.isUserTree = userTree;
         this.setEditable(userTree);
     }
 
@@ -217,6 +228,11 @@ public class StampTree extends JTree implements TreeModelListener {
         }
     }
 
+    /**
+     * Return StampBox reference.
+     *
+     * @return stamp box
+     */
     public StampBoxPlugin getStampBox() {
         return stampBox;
     }
@@ -253,7 +269,7 @@ public class StampTree extends JTree implements TreeModelListener {
     }
 
     /**
-     * このStampTreeにenter()する.
+     * この StampTree に enter() する.
      */
     public void enter() {
         //experimental---
@@ -263,7 +279,6 @@ public class StampTree extends JTree implements TreeModelListener {
 
     /**
      * KartePaneから drop されたスタンプをツリーに加える.
-     * replace 対応 by pns
      *
      * @param droppedStamp dropped ModuleModel
      * @param selected selected StampTreeNode
@@ -273,16 +288,27 @@ public class StampTree extends JTree implements TreeModelListener {
         return addStamp(droppedStamp, selected, false);
     }
 
+    /**
+     * KartePaneから drop されたスタンプをツリーのスタンプと置き換える.
+     *
+     * @param droppedStamp dropped ModuleModel
+     * @param selected selected StampTreeNode
+     * @return true if succeeded
+     */
     public boolean replaceStamp(ModuleModel droppedStamp, StampTreeNode selected) {
         return addStamp(droppedStamp, selected, true);
     }
 
-    public boolean addStamp(ModuleModel droppedStamp, final StampTreeNode selected, final boolean isReplace) {
-
-        boolean ret = false;
-        if (droppedStamp == null) {
-            return ret;
-        }
+    /**
+     * KartePaneから drop されたスタンプをツリーに加える.
+     *
+     * @param droppedStamp dropped ModuleModel
+     * @param selected selected StampTreeNode
+     * @param toReplace true if to replace
+     * @return true if succeeded
+     */
+    public boolean addStamp(ModuleModel droppedStamp, final StampTreeNode selected, final boolean toReplace) {
+        if (droppedStamp == null) { return false; }
 
         // Drop された Stamp の ModuleInfoを得る
         ModuleInfoBean droppedInfo = droppedStamp.getModuleInfo();
@@ -323,7 +349,7 @@ public class StampTree extends JTree implements TreeModelListener {
                 logger.debug("addStamp succeeded");
                 if (sdl.isNoError() && result.equals(stampId)) {
                     // replace 対応
-                    addInfoToTree(info, selected, isReplace);
+                    addInfoToTree(info, selected, toReplace);
                 } else {
                     logger.warn(sdl.getErrorMessage());
                 }
@@ -337,7 +363,6 @@ public class StampTree extends JTree implements TreeModelListener {
 
     /**
      * StampTree に新しいノードを加える.
-     * replace 対応 by pns
      *
      * @param info     追加するノードの情報
      * @param selected カーソルの下にあるノード(Drop 位置のノード）
@@ -346,7 +371,14 @@ public class StampTree extends JTree implements TreeModelListener {
         addInfoToTree(info, selected, false);
     }
 
-    public void addInfoToTree(ModuleInfoBean info, StampTreeNode selected, boolean isReplace) {
+    /**
+     * StampTree に新しいノードを加える.
+     *
+     * @param info     追加するノードの情報
+     * @param selected カーソルの下にあるノード(Drop 位置のノード）
+     * @param toReplace true to replace
+     */
+    public void addInfoToTree(ModuleInfoBean info, StampTreeNode selected, boolean toReplace) {
         StampTreeNodeTransferHandler handler = (StampTreeNodeTransferHandler) this.getTransferHandler();
         StampTreeNodeTransferHandler.Insert insertPosition = handler.getInsertPosition();
 
@@ -357,25 +389,24 @@ public class StampTree extends JTree implements TreeModelListener {
         if (selected != null) {
             StampTreeNode newParent = (StampTreeNode) selected.getParent();
             int index = newParent.getIndex(selected);
-            DefaultTreeModel model = (DefaultTreeModel) this.getModel();
 
             switch (insertPosition) {
                 case BEFORE:
-                    model.insertNodeInto(node, newParent, index);
+                    treeModel.undoableInsertNodeInto(node, newParent, index);
                     break;
                 case AFTER:
-                    model.insertNodeInto(node, newParent, index + 1);
+                    treeModel.undoableInsertNodeInto(node, newParent, index + 1);
                     break;
                 default: // INTO_FOLDER
-                    model.insertNodeInto(node, selected, selected.getChildCount());
+                    treeModel.undoableInsertNodeInto(node, selected, selected.getChildCount());
             }
             // replace
-            if (isReplace) {
-                model.removeNodeFromParent(getSelectedNode());
+            if (toReplace) {
+                treeModel.undoableRemoveNodeFromParent(getSelectedNode());
             }
 
             // 追加したノードを選択する
-            TreeNode[] path = model.getPathToRoot(node);
+            TreeNode[] path = treeModel.getPathToRoot(node);
             this.setSelectionPath(new TreePath(path));
 
         } else {
@@ -390,13 +421,12 @@ public class StampTree extends JTree implements TreeModelListener {
             StampTree another = stampBox.getStampTree(info.getEntity());
             boolean myTree = (another == this);
             final String treeName = another.getTreeName();
-            DefaultTreeModel model = (DefaultTreeModel) another.getModel();
-            StampTreeNode root = (StampTreeNode) model.getRoot();
+            StampTreeNode root = (StampTreeNode) treeModel.getRoot();
             root.add(node);
-            model.reload(root);
+            treeModel.reload(root);
 
             // 追加したノードを選択する
-            TreeNode[] path = model.getPathToRoot(node);
+            TreeNode[] path = treeModel.getPathToRoot(node);
             this.setSelectionPath(new TreePath(path));
 
             // メッセージを表示する
@@ -422,10 +452,8 @@ public class StampTree extends JTree implements TreeModelListener {
      * @return true if succeeded
      */
     public boolean addDiagnosis(RegisteredDiagnosisModel rd, final StampTreeNode selected) {
+        if (rd == null) { return false; }
 
-        if (rd == null) {
-            return false;
-        }
         RegisteredDiagnosisModel add = new RegisteredDiagnosisModel();
         add.setDiagnosis(rd.getDiagnosis());
         add.setDiagnosisCode(rd.getDiagnosisCode());
@@ -495,10 +523,7 @@ public class StampTree extends JTree implements TreeModelListener {
      * @param list list of RegisteredDiagnosis
      */
     public void addDiagnosis(List<RegisteredDiagnosisModel> list) {
-
-        if (list == null || list.isEmpty()) {
-            return;
-        }
+        if (list == null || list.isEmpty()) { return; }
 
         final List<StampModel> stampList = new ArrayList<>();
         final List<ModuleInfoBean> infoList = new ArrayList<>();
@@ -587,10 +612,7 @@ public class StampTree extends JTree implements TreeModelListener {
      * @return true if succeeded
      */
     public boolean addTextStamp(String text, final StampTreeNode selected) {
-
-        if (text == null || text.length() == 0) {
-            return false;
-        }
+        if (text == null || text.length() == 0) { return false; }
 
         TextStampModel module = new TextStampModel();
         module.setText(text);
@@ -697,16 +719,12 @@ public class StampTree extends JTree implements TreeModelListener {
      * ノードの名前を変更する.
      */
     public void renameNode() {
-
-        if (!isUserTree()) {
-            return;
-        }
+        if (!isUserTree()) { return; }
 
         // Root へのパスを取得する
         StampTreeNode node = getSelectedNode();
-        if (node == null) {
-            return;
-        }
+        if (node == null) { return; }
+
         TreeNode[] nodes = node.getPath();
         TreePath path = new TreePath(nodes);
 
@@ -727,9 +745,7 @@ public class StampTree extends JTree implements TreeModelListener {
         // 削除するノードを取得する
         // 右クリックで選択されている
         final StampTreeNode theNode = getSelectedNode();
-        if (theNode == null) {
-            return;
-        }
+        if (theNode == null) { return; }
 
         // このノードをルートにするサブツリーを前順走査する列挙を生成して返します.
         // 列挙の nextElement() メソッドによって返される最初のノードは，この削除するノードです.
@@ -772,7 +788,7 @@ public class StampTree extends JTree implements TreeModelListener {
             String msg1 = "場合は Drag & Drop で移動後、再度実行してください。";
             String taskTitle = ClientContext.getString("stamptree.title");
             JOptionPane.showMessageDialog(
-                    (Component) null,
+                    null,
                     new Object[]{msg0, msg1},
                     ClientContext.getFrameTitle(taskTitle),
                     JOptionPane.INFORMATION_MESSAGE
@@ -783,8 +799,7 @@ public class StampTree extends JTree implements TreeModelListener {
         // 削除するフォルダが空の場合は削除してリターンする
         // リストのサイズがゼロかつ theNode が葉でない時
         if (deleteList.isEmpty() && (!theNode.isLeaf())) {
-            DefaultTreeModel model = (DefaultTreeModel) (StampTree.this).getModel();
-            model.removeNodeFromParent(theNode);
+            treeModel.undoableRemoveNodeFromParent(theNode);
             return;
         }
 
@@ -807,8 +822,7 @@ public class StampTree extends JTree implements TreeModelListener {
             @Override
             protected void succeeded(Void result) {
                 logger.debug("deleteNode succeeded");
-                DefaultTreeModel model = (DefaultTreeModel) (StampTree.this).getModel();
-                model.removeNodeFromParent(theNode);
+                treeModel.undoableRemoveNodeFromParent(theNode);
             }
         };
         //task.setMillisToPopup(200);
@@ -826,22 +840,21 @@ public class StampTree extends JTree implements TreeModelListener {
 
         // 生成位置となる選択されたノードを得る
         StampTreeNode selected = getSelectedNode();
-        DefaultTreeModel model = (DefaultTreeModel) this.getModel();
         TreePath selectedPath = getSelectionModel().getSelectionPath();
 
         if (selected == null) {
             // 選択されていなかったら，ルートの一番下に挿入
-            model.insertNodeInto(folder, (MutableTreeNode) model.getRoot(), ((TreeNode) model.getRoot()).getChildCount());
+            treeModel.undoableInsertNodeInto(folder, (MutableTreeNode) treeModel.getRoot(), ((TreeNode) treeModel.getRoot()).getChildCount());
 
         } else if (selected.isLeaf()) {
             // 選択位置のノードが葉の場合，その前に挿入する
             StampTreeNode newParent = (StampTreeNode) selected.getParent();
             int index = newParent.getIndex(selected);
-            model.insertNodeInto(folder, newParent, index);
+            treeModel.undoableInsertNodeInto(folder, newParent, index);
 
         } else {
             // 選択位置のノードが子を持つ時，最後の子として挿入する
-            model.insertNodeInto(folder, selected, selected.getChildCount());
+            treeModel.undoableInsertNodeInto(folder, selected, selected.getChildCount());
             expandPath(selectedPath);
         }
         //TreePath parentPath = new TreePath(parent.getPath());
@@ -853,10 +866,7 @@ public class StampTree extends JTree implements TreeModelListener {
      */
     public void expandAll() {
         int row = 0;
-        while (row < getRowCount()) {
-            expandRow(row);
-            row++;
-        }
+        while (row < getRowCount()) { expandRow(row++); }
     }
 
     /**
@@ -864,11 +874,8 @@ public class StampTree extends JTree implements TreeModelListener {
      */
     public void collapseAll() {
         oldPreferredSize.height = 0;
-        int row = getRowCount() - 1;
-        while (row >= 0) {
-            collapseRow(row);
-            row--;
-        }
+        int row = getRowCount();
+        while (row > 0) { collapseRow(--row); }
     }
 
     /**
@@ -893,21 +900,21 @@ public class StampTree extends JTree implements TreeModelListener {
 
     @Override
     public void treeNodesChanged(TreeModelEvent e) {
-        logger.info("tree node changed: " + e);
+        //logger.info("tree node changed: " + e);
     }
 
     @Override
     public void treeNodesInserted(TreeModelEvent e) {
-        logger.info("tree node inserted: " + e);
+        //logger.info("tree node inserted: " + e);
     }
 
     @Override
     public void treeNodesRemoved(TreeModelEvent e) {
-        logger.info("tree node removed: " + e);
+        //logger.info("tree node removed: " + e);
     }
 
     @Override
     public void treeStructureChanged(TreeModelEvent e) {
-        logger.info("tree structure changed: " + e);
+        //logger.info("tree structure changed: " + e);
     }
 }

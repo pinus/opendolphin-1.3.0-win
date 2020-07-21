@@ -7,8 +7,12 @@ import open.dolphin.helper.ComponentBoundsManager;
 import open.dolphin.helper.MenuSupport;
 import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.*;
+import open.dolphin.order.stampeditor.StampEditor;
 import open.dolphin.project.Project;
-import open.dolphin.ui.*;
+import open.dolphin.ui.Focuser;
+import open.dolphin.ui.MainFrame;
+import open.dolphin.ui.PNSSafeToggleButton;
+import open.dolphin.ui.PNSTabbedPane;
 import open.dolphin.ui.sheet.JSheet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -27,6 +31,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
 
@@ -298,10 +303,12 @@ public class StampBoxPlugin extends AbstractMainTool {
             mediator.registerActions(appMenu.getActionMap());
             mediator.disableAllMenus();
             String[] enables = new String[]{
-                    GUIConst.ACTION_SHOW_SCHEMABOX,
-                    GUIConst.ACTION_SET_KARTE_ENVIROMENT,
-                    GUIConst.ACTION_SHOW_WAITING_LIST,
-                    GUIConst.ACTION_SHOW_PATIENT_SEARCH
+                GUIConst.ACTION_SHOW_SCHEMABOX,
+                GUIConst.ACTION_SET_KARTE_ENVIROMENT,
+                GUIConst.ACTION_SHOW_WAITING_LIST,
+                GUIConst.ACTION_SHOW_PATIENT_SEARCH,
+                GUIConst.ACTION_UNDO,
+                GUIConst.ACTION_REDO
             };
             mediator.enableMenus(enables);
 
@@ -856,6 +863,38 @@ public class StampBoxPlugin extends AbstractMainTool {
      */
     public List<ModuleInfoBean> getAllStamps(String entity) {
         return getCurrentBox().getAllStamps(entity);
+    }
+
+    /**
+     * StampTree 編集の undo.
+     * StampMaker が起動しているときは StampMaker の undo.
+     */
+    public void undo() {
+        if (Objects.nonNull(stampMaker)
+            && stampMaker.getEditor() instanceof StampEditor
+            && ((StampEditor) stampMaker.getEditor()).getTablePanel().canUndo()) {
+                ((StampEditor) stampMaker.getEditor()).getTablePanel().undo();
+        } else {
+            int index = userBox.getSelectedIndex();
+            StampTree tree = userBox.getStampTree(index);
+            ((StampTreeModel) tree.getModel()).undo();
+        }
+    }
+
+    /**
+     * StampTree 編集の redo.
+     * StampMaker が起動しているときは StampMaker の redo.
+     */
+    public void redo() {
+        if (Objects.nonNull(stampMaker)
+            && stampMaker.getEditor() instanceof StampEditor
+            && ((StampEditor) stampMaker.getEditor()).getTablePanel().canRedo()) {
+                ((StampEditor) stampMaker.getEditor()).getTablePanel().redo();
+        } else {
+            int index = userBox.getSelectedIndex();
+            StampTree tree = userBox.getStampTree(index);
+            ((StampTreeModel) tree.getModel()).redo();
+        }
     }
 
     /**

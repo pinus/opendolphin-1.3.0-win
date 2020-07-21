@@ -5,6 +5,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.stampbox.StampTree;
+import open.dolphin.stampbox.StampTreeModel;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.stampbox.StampTreeRenderer;
 import open.dolphin.ui.sheet.JSheet;
@@ -120,8 +121,8 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
 
         try {
             // Dropを受けるStampTreeを取得する
-            StampTree tree = (StampTree) support.getComponent();
-            String targetEntity = tree.getEntity();
+            StampTree dropTree = (StampTree) support.getComponent();
+            String targetEntity = dropTree.getEntity();
 
             // Drop位置のノードを取得する
             StampTreeNode targetNode = (StampTreeNode) targetPath.getLastPathComponent();
@@ -133,15 +134,15 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
                 // ソースのノードを取得する
                 // transferHandler からとると root が入ってこない
                 //StampTreeNode sourceNode = (StampTreeNode) tr.getTransferData(DolphinDataFlavor.stampTreeNodeFlavor);
-                StampTreeNode sourceNode = tree.getSelectedNode();
+                StampTreeNode sourceNode = dropTree.getSelectedNode();
 
                 // Drop 位置の親
                 StampTreeNode newParent = (StampTreeNode) targetNode.getParent();
 
                 // root までの親のパスのなかに自分がいるかどうかを判定する
                 // Drop 先が DragNode の子である時は DnD できない i.e 親が自分の子になることはできない
-                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-                TreeNode[] parents = model.getPathToRoot(targetNode);
+                StampTreeModel treeModel = (StampTreeModel) dropTree.getModel();
+                TreeNode[] parents = treeModel.getPathToRoot(targetNode);
                 boolean exist = false;
                 for (TreeNode parent : parents) {
                     if (parent == sourceNode) {
@@ -162,8 +163,8 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
 
                     // 同じ親の場合，下に移動した場合 index が変わる
                     if (sourceNode.getParent() == newParent && insertPosition != Insert.INTO_FOLDER) {
-                        int sourceRow = tree.getRowForPath(new TreePath(sourceNode.getPath()));
-                        int targetRow = tree.getRowForPath(targetPath);
+                        int sourceRow = dropTree.getRowForPath(new TreePath(sourceNode.getPath()));
+                        int targetRow = dropTree.getRowForPath(targetPath);
                         if (sourceRow < targetRow) {
                             index--;
                         }
@@ -171,19 +172,19 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
 
                     switch (insertPosition) {
                         case BEFORE:
-                            model.removeNodeFromParent(sourceNode);
-                            model.insertNodeInto(sourceNode, newParent, index);
+                            treeModel.undoableRemoveNodeFromParent(sourceNode);
+                            treeModel.undoableInsertNodeInto(sourceNode, newParent, index);
                             break;
                         case AFTER:
-                            model.removeNodeFromParent(sourceNode);
-                            model.insertNodeInto(sourceNode, newParent, index + 1);
+                            treeModel.undoableRemoveNodeFromParent(sourceNode);
+                            treeModel.undoableInsertNodeInto(sourceNode, newParent, index + 1);
                             break;
                         case INTO_FOLDER: //最後の子として挿入
-                            model.removeNodeFromParent(sourceNode);
-                            model.insertNodeInto(sourceNode, targetNode, targetNode.getChildCount());
+                            treeModel.undoableRemoveNodeFromParent(sourceNode);
+                            treeModel.undoableInsertNodeInto(sourceNode, targetNode, targetNode.getChildCount());
                     }
-                    TreeNode[] path = model.getPathToRoot(sourceNode);
-                    tree.setSelectionPath(new TreePath(path));
+                    TreeNode[] path = treeModel.getPathToRoot(sourceNode);
+                    dropTree.setSelectionPath(new TreePath(path));
                 }
                 return true;
 
@@ -195,18 +196,18 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
 
                 // 同一エンティティの場合，選択は必ず起っている
                 if (droppedStamp.getModuleInfo().getEntity().equals(targetEntity)) {
-                    return tree.addStamp(droppedStamp, targetNode);
+                    return dropTree.addStamp(droppedStamp, targetNode);
 
                     // パス Tree の場合
                 } else if (targetEntity.equals(IInfoModel.ENTITY_PATH)) {
                     if (targetNode == null) {
-                        targetNode = (StampTreeNode) tree.getModel().getRoot();
+                        targetNode = (StampTreeNode) dropTree.getModel().getRoot();
                     }
-                    return tree.addStamp(droppedStamp, targetNode);
+                    return dropTree.addStamp(droppedStamp, targetNode);
 
                 } else {
                     // Rootの最後に追加する
-                    return tree.addStamp(droppedStamp, null);
+                    return dropTree.addStamp(droppedStamp, null);
                 }
 
                 // KartePaneからDropされたテキストをインポートする
@@ -214,9 +215,9 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
 
                 String text = (String) tr.getTransferData(DataFlavor.stringFlavor);
                 if (targetEntity.equals(IInfoModel.ENTITY_TEXT)) {
-                    return tree.addTextStamp(text, targetNode);
+                    return dropTree.addTextStamp(text, targetNode);
                 } else {
-                    return tree.addTextStamp(text, null);
+                    return dropTree.addTextStamp(text, null);
                 }
 
                 // DiagnosisEditorからDropされた病名をインポートする
@@ -225,9 +226,9 @@ public class StampTreeNodeTransferHandler extends DolphinTransferHandler {
                 RegisteredDiagnosisModel rd =
                     (RegisteredDiagnosisModel) tr.getTransferData(DolphinDataFlavor.diagnosisFlavor);
                 if (targetEntity.equals(IInfoModel.ENTITY_DIAGNOSIS)) {
-                    return tree.addDiagnosis(rd, targetNode);
+                    return dropTree.addDiagnosis(rd, targetNode);
                 } else {
-                    return tree.addDiagnosis(rd, null);
+                    return dropTree.addDiagnosis(rd, null);
                 }
             } else {
                 return false;

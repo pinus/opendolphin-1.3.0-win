@@ -8,6 +8,8 @@ import open.dolphin.orca.ClaimConst;
 import open.dolphin.ui.Focuser;
 import open.dolphin.ui.IMEControl;
 import open.dolphin.util.ModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,6 +24,8 @@ import java.util.List;
  */
 public class StampHolderPopupMenu extends JPopupMenu {
     private static final long serialVersionUID = 1L;
+    private Logger logger = LoggerFactory.getLogger(StampHolderPopupMenu.class);
+
     /**
      * メニューに載せる処方日数のリスト
      */
@@ -210,6 +214,33 @@ public class StampHolderPopupMenu extends JPopupMenu {
             this.code = code;
             this.str = str;
         }
+    }
+
+    /**
+     * ClaimItem[] が変更されたかどうか判定.
+     *
+     * @param src ClaimItem[]
+     * @param dist List of ClaimItem
+     * @return changed
+     */
+    private boolean isClaimItemChanged(ClaimItem[] src, List<ClaimItem> dist) {
+        // 変更があったかどうか
+        boolean changed = false;
+
+        if (src.length != dist.size()) {
+            // サイズが違えば変更されている
+            changed = true;
+
+        } else {
+            // サイズが同じ場合は項目名で比較
+            for (int i = 0; i < src.length; i++) {
+                if (!src[i].getName().equals(dist.get(i).getName())) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        return changed;
     }
 
     /**
@@ -424,11 +455,12 @@ public class StampHolderPopupMenu extends JPopupMenu {
             // 部位 ClaimItem は dialog からデータを取り込む
             list.addAll(dialog.getValue());
 
-            // できた list を srcBundle に登録
-            bundle.setClaimItem(list.toArray(new ClaimItem[0]));
-
+            // 変更があれば list を srcBundle に登録
+            if (isClaimItemChanged(srcBundle.getClaimItem(), list)) {
+                bundle.setClaimItem(list.toArray(new ClaimItem[0]));
+                propertyChanged(stamp);
+            }
             dialog.dispose();
-            propertyChanged(stamp);
         }
     }
 
@@ -530,6 +562,8 @@ public class StampHolderPopupMenu extends JPopupMenu {
             if (!options[0].equals(ans) && !options[1].equals(ans)) {
                 return;
             }
+            // 入力無ければそのまま帰る
+            if (tf.getText().trim().equals("")) { return; }
 
             // 新たなスタンプ作成
             BundleMed srcBundle = (BundleMed) ctx.getModel().getModel();
@@ -554,16 +588,15 @@ public class StampHolderPopupMenu extends JPopupMenu {
             newComment.setNumberCode(ClaimConst.YAKUZAI_TOYORYO); // = "10"
             newComment.setNumberCodeSystem("Claim004");
 
-            // コメントを登録，ただしコメントに何も入力されていなければリストに追加しない
-            if (!tf.getText().trim().equals("")) {
-                list.add(newComment);
+            // コメントを登録
+            list.add(newComment);
+
+            // 変更あれば list を srcBundle に登録
+            if (isClaimItemChanged(srcBundle.getClaimItem(), list)) {
+                bundle.setClaimItem(list.toArray(new ClaimItem[0]));
+                propertyChanged(stamp);
             }
-
-            // できた list を srcBundle に登録
-            bundle.setClaimItem(list.toArray(new ClaimItem[0]));
-
             dialog.dispose();
-            propertyChanged(stamp);
         }
     }
 
@@ -603,15 +636,17 @@ public class StampHolderPopupMenu extends JPopupMenu {
                 if (src.getCode().startsWith("6")) {
                     // 次の項目に一般名処方が入っていなかったら入れる
                     if (i == srcBundle.getClaimItem().length - 1
-                        || !srcBundle.getClaimItem()[i+1].getName().equals("一般名記載")) {
+                        || !srcBundle.getClaimItem()[i+1].getName().equals(generic.getName())) {
                         list.add(generic);
                     }
                 }
             }
 
-            // できた list を srcBundle に登録
-            bundle.setClaimItem(list.toArray(new ClaimItem[0]));
-            propertyChanged(stamp);
+            // 変更あれば list を srcBundle に登録
+            if (isClaimItemChanged(srcBundle.getClaimItem(), list)) {
+                bundle.setClaimItem(list.toArray(new ClaimItem[0]));
+                propertyChanged(stamp);
+            }
         }
     }
 }

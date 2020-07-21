@@ -226,6 +226,7 @@ public class MemoInspector implements IInspector {
         patientMemoModel = context.getKarte().getPatientMemo();
         if (patientMemoModel != null) {
             memoArea.setText(patientMemoModel.getMemo());
+            memoArea.setCaretPosition(memoArea.getDocument().getLength());
             oldText = memoArea.getText();
 
             // 注意事項がある場合，赤い枠で注意を促す

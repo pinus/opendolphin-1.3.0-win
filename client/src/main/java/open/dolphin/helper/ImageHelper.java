@@ -4,7 +4,6 @@ import org.w3c.dom.NodeList;
 
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
@@ -16,7 +15,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.stream.Stream;
 
 /**
  * ImageHelper.
@@ -290,6 +288,22 @@ public class ImageHelper {
         if (len > 0) {
             for (int i=0; i<len; i++) {
                 showNode((IIOMetadataNode) node.getChildNodes().item(i));
+            }
+        }
+    }
+
+    /**
+     * "apple.awt.brushMetalLook" の Container のバックグランドが黒くなるのを直す.
+     *
+     * @param component 修正する Component
+     */
+    public static void setContainerTransparent(Component component) {
+        if (component instanceof Container) {
+            if (component instanceof JComponent) {
+                ((JComponent)component).setOpaque(false);
+            }
+            for (Component c : ((Container) component).getComponents()) {
+                setContainerTransparent(c);
             }
         }
     }

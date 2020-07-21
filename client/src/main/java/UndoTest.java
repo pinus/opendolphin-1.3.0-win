@@ -4,34 +4,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.UndoableEditEvent;
-import javax.swing.text.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.StyledEditorKit;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.reflect.Field;
 import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public class UndoTest {
     private Logger logger = LoggerFactory.getLogger(UndoTest.class);
     private static KeyStroke CTRL_BACKSPACE = KeyStroke.getKeyStroke("ctrl pressed BACK_SPACE");
     private static KeyStroke KANA = KeyStroke.getKeyStroke("released KATAKANA");
     private static KeyStroke EISU = KeyStroke.getKeyStroke("released ALPHANUMERIC");
+    private static Pattern ALPHABET = Pattern.compile("^[a-z,A-Z]*$");
 
     public class TextComponentUndoManager extends UndoManager {
 
         private JTextComponent textComponent;
         private Action undoAction;
         private Action redoAction;
-        private CompoundEdit current = new CompoundEdit();
+        private TextComponentUndoableEdit current = new TextComponentUndoableEdit();
         private Timer timer;
-        private boolean isAlphanumeric = false;
+        private int delay = 30;
 
         public TextComponentUndoManager(JTextComponent c) {
             textComponent = c;
-            timer = new Timer(100, e -> flush());
+            timer = new Timer(delay, e -> flush());
             AtokListener listener = new AtokListener();
             c.addInputMethodListener(listener);
             c.addKeyListener(listener);
@@ -167,7 +176,7 @@ public class UndoTest {
                 KeyStroke key = KeyStroke.getKeyStrokeForEvent(e);
                 //logger.info("keyevent = " + key);
 
-                if (key.equals(KeyStroke.getKeyStroke("ctrl pressed BACK_SPACE"))) {
+                if (key.equals(CTRL_BACKSPACE)) {
                     logger.info("CTRL BACK_SPACE PRESSED ================");
                     ctrlBackspace = true;
                 }
@@ -231,8 +240,18 @@ public class UndoTest {
 //                String text = event.getDocument().getText(start, len);
 //                logger.info("edit text = " + text);
 //
-//            } catch (BadLocationException e1) {
-//                e1.printStackTrace();
+//            } catch (BadLocationException ex) {
+//                logger.error(ex.getMessage());
+//            }
+//            try {
+//                Field field = current.getClass().getSuperclass().getDeclaredField("inProgress");
+//                field.setAccessible(true);
+//                logger.info("inProgress1 = " + field.get(current));
+//                //field.set(this, true);
+//
+//
+//            } catch (NoSuchFieldException | IllegalAccessException ex) {
+//                ex.printStackTrace();
 //            }
 
             timer.restart();
@@ -246,8 +265,83 @@ public class UndoTest {
             timer.stop();
             current.end();
             addEdit(current);
-            current = new CompoundEdit();
+            current = new TextComponentUndoableEdit();
             updateActionStatus();
+        }
+
+        /**
+         * While timer is running,
+         * stop timer, discard current, and then discardAllEdits.
+         */
+        @Override
+        public void discardAllEdits() {
+            logger.info("timer running: " + timer.isRunning());
+            if (timer.isRunning()) {
+                timer.stop();
+                current = new TextComponentUndoableEdit();
+            }
+            super.discardAllEdits();
+        }
+
+        /**
+         * 指定した UndoableEdit を前の UndoableEdit に merge するかどうか.
+         *
+         * @param cur TextComponentUndoableEdit contains current DocumentEvent
+         * @param last TextComponentUndoableEdit contains last DocumentEvent
+         * @return true to merge
+         */
+        private boolean toMergeEdit(UndoableEdit cur, UndoableEdit last) {
+            // last が canUndo でなければ merge しない
+            logger.info("last undoable? " + (last ==null? "null" : last.canUndo()));
+            if (last == null || !last.canUndo()) { return false; }
+
+            // 両方とも TextComponentUndoableEdit でなければ merge しない
+            if (!(cur instanceof TextComponentUndoableEdit)
+                || !(last instanceof TextComponentUndoableEdit)) { return false; }
+
+            UndoableEdit curEdit = ((TextComponentUndoableEdit) cur).lastEdit();
+            UndoableEdit lastEdit = ((TextComponentUndoableEdit) last).lastEdit();
+
+            // 内容が　DefaultDocumentEvent でなければ merge しない
+            if (!(curEdit instanceof AbstractDocument.DefaultDocumentEvent)
+                || !(lastEdit instanceof AbstractDocument.DefaultDocumentEvent)) { return false; }
+
+            AbstractDocument.DefaultDocumentEvent curEvent = (AbstractDocument.DefaultDocumentEvent) curEdit;
+            AbstractDocument.DefaultDocumentEvent lastEvent = (AbstractDocument.DefaultDocumentEvent) lastEdit;
+
+            try {
+                if (curEvent.getType() == DocumentEvent.EventType.REMOVE) {
+                    logger.info("curEvent = REMOVE, " + " lastEvent = " + lastEvent.getType());
+                    // REMOVE が続いている場合はまとめる
+                    if (lastEvent.getType() == DocumentEvent.EventType.REMOVE) { return true; }
+
+                } else {
+                    if (lastEvent.getType() == DocumentEvent.EventType.INSERT) {
+                        // Alphabet 入力が続いていたらまとめる
+                        String curText = curEvent.getDocument().getText(curEvent.getOffset(), curEvent.getLength());
+                        String lastText = lastEvent.getDocument().getText(lastEvent.getOffset(), lastEvent.getLength());
+                        logger.info("curText = " + curText + " match " + ALPHABET.matcher(curText).matches()
+                            + ", lastText = " + lastText + " match " + ALPHABET.matcher(lastText).matches()
+                        );
+                        if (ALPHABET.matcher(curText).matches() && ALPHABET.matcher(lastText).matches()) { return true; }
+                    }
+                }
+            } catch (BadLocationException ex) {
+                logger.error(ex.getMessage());
+            }
+            return false;
+        }
+
+        @Override
+        public boolean addEdit(UndoableEdit e) {
+            if (toMergeEdit(e, lastEdit())) {
+                TextComponentUndoableEdit last = (TextComponentUndoableEdit) lastEdit();
+                TextComponentUndoableEdit toMerge = (TextComponentUndoableEdit) e;
+                return last.mergeEdit(toMerge.lastEdit());
+
+            } else {
+                return super.addEdit(e);
+            }
         }
 
         @Override
@@ -267,6 +361,49 @@ public class UndoTest {
             if (Objects.isNull(undoAction) || Objects.isNull(redoAction)) { return; }
             undoAction.setEnabled(canUndo());
             redoAction.setEnabled(canRedo());
+        }
+    }
+
+    /**
+     * TextComponentUndoManager 用の UndoableEdit.
+     */
+    private class TextComponentUndoableEdit extends CompoundEdit {
+        @Override
+        public UndoableEdit lastEdit() {
+            return super.lastEdit();
+        }
+
+        public int size() {
+            return super.edits.size();
+        }
+
+        /**
+         * この UndoableEdit が保持する DocumentEvent に edit を merge する.
+         *
+         * @param edit
+         * @return
+         */
+        public boolean mergeEdit(UndoableEdit edit) {
+            setInProgress(true);
+            boolean ret = addEdit(edit);
+            end();
+            return ret;
+        }
+
+        /**
+         * package-private field の inProgress を書き換える.
+         *
+         * @param inProgress inProgress to set
+         */
+        public void setInProgress(boolean inProgress) {
+            try {
+                Field field = getClass().getSuperclass().getDeclaredField("inProgress");
+                field.setAccessible(true);
+                field.set(this, inProgress);
+
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -312,9 +449,13 @@ public class UndoTest {
         tb.add(redoBtn);
         frame.getContentPane().add(tb, BorderLayout.NORTH);
 
-        frame.setSize(400, 600);
+        frame.setSize(400, 300);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        //pane.setText("初期文字列");
+        //pane.setCaretPosition(pane.getDocument().getLength());
+        undoManager.discardAllEdits();
     }
 
     public static void main(String[] arg) {
