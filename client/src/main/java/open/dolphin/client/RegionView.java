@@ -2,10 +2,11 @@ package open.dolphin.client;
 
 import open.dolphin.event.ProxyAction;
 import open.dolphin.infomodel.ClaimItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,137 +18,139 @@ import java.util.List;
  */
 public class RegionView extends javax.swing.JDialog {
     private static final long serialVersionUID = 1L;
+    private Logger logger = LoggerFactory.getLogger(RegionView.class);
+
     /**
      * ORCA 自作マスタの部位部分 001000800 - 001000999
      * getValue() で返す ClaimItem[] はこの順番にソートされる
      */
     private static String[] MASTER = {
-            "001000001", "混合",
-            "001000801", "部位",
-            // 頭頚部
-            "001000802", "頭",
-            "001000803", "",
-            "001000804", "",
-            "001000805", "顔",
-            "001000806", "額",
-            "001000807", "眉毛部（まゆげ）",
-            "001000808", "まぶた",
-            "001000809", "眼囲",
-            "001000810", "目の回り",
-            "001000811", "目",
-            "001000812", "口囲",
-            "001000813", "口角",
-            "001000814", "口唇",
-            "001000815", "唇",
-            "001000816", "顎（あご）",
-            "001000817", "耳",
-            "001000818", "耳介",
-            "001000819", "頬",
-            "001000820", "鼻",
-            "001000821", "口内炎に貼付",
-            "001000822", "口内炎",
-            "001000823", "口内",
-            "001000824", "",
-            "001000825", "項部",
-            "001000826", "頚部",
-            "001000827", "首",
-            "001000828", "",
-            "001000829", "",
-            // 躯幹
-            "001000830", "体",
-            "001000831", "肩",
-            "001000832", "腋窩（わき）",
-            "001000833", "胸",
-            "001000834", "背中",
-            "001000835", "腹",
-            "001000836", "おへそ",
-            "001000837", "腰",
-            "001000838", "股",
-            "001000839", "おしり",
-            "001000868", "肛囲",
-            "001000869", "陰部",
-            "001000870", "亀頭部",
-            "001000841", "",
-            "001000842", "",
-            "001000843", "",
-            "001000844", "",
-            // 上肢
-            "001000845", "四肢",
-            "001000855", "手足",
-            "001000846", "腕",
-            "001000847", "肘",
-            "001000848", "手首",
-            "001000856", "手",
-            "001000857", "手指",
-            // 下肢
-            "001000849", "下肢",
-            "001000850", "下腿部（すね）",
-            "001000851", "大腿部（太もも）",
-            "001000852", "膝",
-            "001000853", "",
-            "001000854", "",
-            "001000858", "足",
-            "001000859", "足裏",
-            "001000860", "足趾（足のゆび）",
-            "001000861", "踵（かかと）",
-            "001000862", "爪",
-            // その他
-            "001000863", "タコ",
-            "001000864", "イボ",
-            "001000865", "ウオノメ",
-            "001000866", "",
-            "001000867", "",
-            "001000871", "",
-            "001000872", "",
-            "001000873", "",
-            "001000874", "",
-            "001000875", "全身",
-            "001000876", "顔にはつけないで下さい",
-            "001000877", "",
-            "001000878", "",
-            "001000879", "",
-            "001000880", "脱毛部",
-            "001000881", "潰瘍部",
-            "001000882", "痒いところ",
-            "001000883", "ひどいところ",
-            "001000884", "かるいとき",
-            "001000885", "かるいところ",
-            "001000886", "かゆいとき",
-            "001000887", "かゆいところ",
-            "001000888", "水虫に",
-            "001000889", "傷に",
-            "001000890", "化膿止め",
-            "001000891", "しっしんに",
-            "001000892", "虫さされに",
-            "001000893", "おむつかぶれに",
-            "001000894", "おできに",
-            "001000895", "とびひに",
-            "001000896", "カサカサしたところ",
-            "001000897", "ジクジクしたところ",
-            "001000898", "ニキビに",
-            "001000899", "乾燥したところ",
-            "001000900", "やけどに",
-            "001000901", "熱傷に",
-            "001000902", "火傷に",
-            "001000903", "赤いところに",
-            "001000904", "ハンドクリームとして",
-            "001000905", "あせもに",
-            "001000906", "湿疹",
-            "001000907", "帯状疱疹",
-            "001000908", "水疱（みずぶくれ）に",
-            "001000909", "痛いところに",
-            "001000910", "腫れた（はれた）ところに",
-            "001000911", "患部に",
-            "001000912", "おむつ交換時に",
-            "001000913", "悪化時に",
-            "001000914", "落ち着いている時に",
-            "001000915", "保湿",
+        "001000001", "混合",
+        "001000801", "部位",
+        // 頭頚部
+        "001000802", "頭",
+        "001000803", "",
+        "001000804", "",
+        "001000805", "顔",
+        "001000806", "額",
+        "001000807", "眉毛部（まゆげ）",
+        "001000808", "まぶた",
+        "001000809", "眼囲",
+        "001000810", "目の回り",
+        "001000811", "目",
+        "001000812", "口囲",
+        "001000813", "口角",
+        "001000814", "口唇",
+        "001000815", "唇",
+        "001000816", "顎（あご）",
+        "001000817", "耳",
+        "001000818", "耳介",
+        "001000819", "頬",
+        "001000820", "鼻",
+        "001000821", "口内炎に貼付",
+        "001000822", "口内炎",
+        "001000823", "口内",
+        "001000824", "",
+        "001000825", "項部",
+        "001000826", "頚部",
+        "001000827", "首",
+        "001000828", "",
+        "001000829", "",
+        // 躯幹
+        "001000830", "体",
+        "001000831", "肩",
+        "001000832", "腋窩（わき）",
+        "001000833", "胸",
+        "001000834", "背中",
+        "001000835", "腹",
+        "001000836", "おへそ",
+        "001000837", "腰",
+        "001000838", "股",
+        "001000839", "おしり",
+        "001000868", "肛囲",
+        "001000869", "陰部",
+        "001000870", "亀頭部",
+        "001000841", "",
+        "001000842", "",
+        "001000843", "",
+        "001000844", "",
+        // 上肢
+        "001000845", "四肢",
+        "001000855", "手足",
+        "001000846", "腕",
+        "001000847", "肘",
+        "001000848", "手首",
+        "001000856", "手",
+        "001000857", "手指",
+        // 下肢
+        "001000849", "下肢",
+        "001000850", "下腿部（すね）",
+        "001000851", "大腿部（太もも）",
+        "001000852", "膝",
+        "001000853", "",
+        "001000854", "",
+        "001000858", "足",
+        "001000859", "足裏",
+        "001000860", "足趾（足のゆび）",
+        "001000861", "踵（かかと）",
+        "001000862", "爪",
+        // その他
+        "001000863", "タコ",
+        "001000864", "イボ",
+        "001000865", "ウオノメ",
+        "001000866", "",
+        "001000867", "",
+        "001000871", "",
+        "001000872", "",
+        "001000873", "",
+        "001000874", "",
+        "001000875", "全身",
+        "001000876", "顔にはつけないで下さい",
+        "001000877", "",
+        "001000878", "",
+        "001000879", "",
+        "001000880", "脱毛部",
+        "001000881", "潰瘍部",
+        "001000882", "痒いところ",
+        "001000883", "ひどいところ",
+        "001000884", "かるいとき",
+        "001000885", "かるいところ",
+        "001000886", "かゆいとき",
+        "001000887", "かゆいところ",
+        "001000888", "水虫に",
+        "001000889", "傷に",
+        "001000890", "化膿止め",
+        "001000891", "しっしんに",
+        "001000892", "虫さされに",
+        "001000893", "おむつかぶれに",
+        "001000894", "おできに",
+        "001000895", "とびひに",
+        "001000896", "カサカサしたところ",
+        "001000897", "ジクジクしたところ",
+        "001000898", "ニキビに",
+        "001000899", "乾燥したところ",
+        "001000900", "やけどに",
+        "001000901", "熱傷に",
+        "001000902", "火傷に",
+        "001000903", "赤いところに",
+        "001000904", "ハンドクリームとして",
+        "001000905", "あせもに",
+        "001000906", "湿疹",
+        "001000907", "帯状疱疹",
+        "001000908", "水疱（みずぶくれ）に",
+        "001000909", "痛いところに",
+        "001000910", "腫れた（はれた）ところに",
+        "001000911", "患部に",
+        "001000912", "おむつ交換時に",
+        "001000913", "悪化時に",
+        "001000914", "落ち着いている時に",
+        "001000915", "保湿",
 
-            "001000607", "１番目に外用",
-            "001000608", "２番目に外用",
+        "001000607", "１番目に外用",
+        "001000608", "２番目に外用",
 
-            "001000840", "３０ｇ×２個",
-            "001000002", "医師の指示通りに",
+        "001000840", "３０ｇ×２個",
+        "001000002", "医師の指示通りに",
     };
     /**
      * code → name の map
@@ -216,6 +219,7 @@ public class RegionView extends javax.swing.JDialog {
     private javax.swing.JRadioButton wart;
     private javax.swing.JRadioButton wound;
     private javax.swing.JRadioButton wrist;
+
     public RegionView(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         getRootPane().putClientProperty("apple.awt.brushMetalLook", Boolean.TRUE);
@@ -225,7 +229,6 @@ public class RegionView extends javax.swing.JDialog {
 
         // マッピング作成
         generateMap();
-        buttonMap.keySet().forEach(key -> buttonMap.get(key).setFocusable(false));
 
         input.addActionListener(e -> {
             cancelled = false;
@@ -252,6 +255,7 @@ public class RegionView extends javax.swing.JDialog {
         // short-cut
         InputMap im = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap am = getRootPane().getActionMap();
+
         // return で入力
         im.put(KeyStroke.getKeyStroke("ENTER"), "input");
         am.put("input", new ProxyAction(input::doClick));
@@ -264,8 +268,140 @@ public class RegionView extends javax.swing.JDialog {
         im.put(KeyStroke.getKeyStroke("BACK_SPACE"), "clear");
         am.put("clear", new ProxyAction(clear::doClick));
 
+        // 矢印キーで移動
+        im.put(KeyStroke.getKeyStroke("UP"), "moveUp");
+        am.put("moveUp", new ProxyAction(this::moveUp));
+        im.put(KeyStroke.getKeyStroke("DOWN"), "moveDown");
+        am.put("moveDown", new ProxyAction(this::moveDown));
+        im.put(KeyStroke.getKeyStroke("RIGHT"), "moveRight");
+        am.put("moveRight", new ProxyAction(this::moveRight));
+        im.put(KeyStroke.getKeyStroke("LEFT"), "moveLeft");
+        am.put("moveLeft", new ProxyAction(this::moveLeft));
+
         // default button
         getRootPane().setDefaultButton(input);
+    }
+
+    private JRadioButton findNearest(Point src, int direction) {
+        JRadioButton candidate = null;
+
+        for (JRadioButton b : buttonMap.values()) {
+            Point q = b.getLocationOnScreen();
+            Point d = new Point(q.x - src.x, q.y - src.y);
+            //logger.info("relative = " + d);
+
+            switch (direction) {
+                case SwingConstants.BOTTOM:
+                    if (d.y > 0 && Math.abs(d.x) < Math.abs(d.y)) {
+                        candidate = getNearer(src, b, candidate);
+                    }
+                    break;
+
+                case SwingConstants.TOP:
+                    if (d.y < 0 && Math.abs(d.x) < Math.abs(d.y)) {
+                        candidate = getNearer(src, b, candidate);
+                    }
+                    break;
+
+                case SwingConstants.RIGHT:
+                    if (d.x > 0 && Math.abs(d.x) > Math.abs(d.y)) {
+                        candidate = getNearer(src, b, candidate);
+                    }
+                    break;
+
+                case SwingConstants.LEFT:
+                    if (d.x < 0 && Math.abs(d.x) > Math.abs(d.y)) {
+                        candidate = getNearer(src, b, candidate);
+                    }
+                    break;
+            }
+        }
+        return candidate;
+    }
+
+    private JRadioButton getNearer(Point src, JRadioButton b1, JRadioButton b2) {
+        if (b1 == null) {
+            return b2;
+        }
+        if (b2 == null) {
+            return b1;
+        }
+        Point p1 = b1.getLocationOnScreen();
+        Point p2 = b2.getLocationOnScreen();
+        int dx1 = p1.x - src.x, dy1 = p1.y - src.y;
+        int dx2 = p2.x - src.x, dy2 = p2.y - src.y;
+        return dx1 * dx1 + dy1 * dy1 < dx2 * dx2 + dy2 * dy2 ? b1 : b2;
+    }
+
+    private JRadioButton getFocused() {
+        for (JRadioButton b : buttonMap.values()) {
+            if (b.isFocusOwner()) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public void moveUp() {
+        Rectangle r = getParentRect();
+        JRadioButton focused = getFocused();
+
+        if (focused == null) {
+            findNearest(new Point(r.x, r.y + r.height), SwingConstants.TOP).requestFocus();
+        } else {
+            JRadioButton nearest = findNearest(focused.getLocationOnScreen(), SwingConstants.TOP);
+            if (nearest == null) {
+                nearest = findNearest(new Point(focused.getLocationOnScreen().x, r.y + r.height), SwingConstants.TOP);
+            }
+            nearest.requestFocus();
+        }
+    }
+
+    public void moveDown() {
+        Rectangle r = getParentRect();
+        JRadioButton focused = getFocused();
+        if (focused == null) {
+            findNearest(new Point(r.x, r.y - 100), SwingConstants.BOTTOM).requestFocus();
+        } else {
+            JRadioButton nearest = findNearest(focused.getLocationOnScreen(), SwingConstants.BOTTOM);
+            if (nearest == null) {
+                nearest = findNearest(new Point(focused.getLocationOnScreen().x, r.y), SwingConstants.BOTTOM);
+            }
+            nearest.requestFocus();
+        }
+    }
+
+    public void moveRight() {
+        Rectangle r = getParentRect();
+        JRadioButton focused = getFocused();
+        if (focused == null) {
+            findNearest(new Point(r.x, r.y), SwingConstants.RIGHT).requestFocus();
+        } else {
+            JRadioButton nearest = findNearest(focused.getLocationOnScreen(), SwingConstants.RIGHT);
+            if (nearest == null) {
+                nearest = findNearest(new Point(r.x, focused.getLocationOnScreen().y), SwingConstants.RIGHT);
+            }
+            nearest.requestFocus();
+        }
+    }
+
+    public void moveLeft() {
+        Rectangle r = getParentRect();
+        JRadioButton focused = getFocused();
+        if (focused == null) {
+            findNearest(new Point(r.x + r.width, r.y), SwingConstants.LEFT).requestFocus();
+        } else {
+            JRadioButton nearest = findNearest(focused.getLocationOnScreen(), SwingConstants.LEFT);
+            if (nearest == null) {
+                nearest = findNearest(new Point(r.x + r.width, focused.getLocationOnScreen().y), SwingConstants.LEFT);
+            }
+            nearest.requestFocus();
+        }
+    }
+
+    private Rectangle getParentRect() {
+        Container c = backgroundPanel.getParent();
+        return new Rectangle(c.getLocationOnScreen().x, c.getLocationOnScreen().y, c.getWidth(), c.getHeight());
     }
 
     /**
@@ -372,52 +508,52 @@ public class RegionView extends javax.swing.JDialog {
         javax.swing.GroupLayout miscPanelLayout = new javax.swing.GroupLayout(miscPanel);
         miscPanel.setLayout(miscPanelLayout);
         miscPanelLayout.setHorizontalGroup(
-                miscPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(itchy)
-                        .addComponent(reddish)
-                        .addComponent(eczema)
-                        .addComponent(dryskin)
-                        .addComponent(moisture)
-                        .addComponent(acne)
-                        .addComponent(milliaria)
-                        .addComponent(wound)
-                        .addComponent(wart)
-                        .addComponent(insect)
-                        .addComponent(first)
-                        .addComponent(second)
-                        .addComponent(indication)
-                        .addComponent(mix)
+            miscPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(itchy)
+                .addComponent(reddish)
+                .addComponent(eczema)
+                .addComponent(dryskin)
+                .addComponent(moisture)
+                .addComponent(acne)
+                .addComponent(milliaria)
+                .addComponent(wound)
+                .addComponent(wart)
+                .addComponent(insect)
+                .addComponent(first)
+                .addComponent(second)
+                .addComponent(indication)
+                .addComponent(mix)
         );
         miscPanelLayout.setVerticalGroup(
-                miscPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(miscPanelLayout.createSequentialGroup()
-                                .addComponent(itchy)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(reddish)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(eczema)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(dryskin)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(moisture)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(acne)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(milliaria)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(wound)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(wart, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(insect)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(first)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(second)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(indication)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(mix))
+            miscPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(miscPanelLayout.createSequentialGroup()
+                    .addComponent(itchy)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(reddish)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(eczema)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(dryskin)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(moisture)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(acne)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(milliaria)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(wound)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(wart, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(insect)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(first)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(second)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(indication)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(mix))
         );
 
         input.setText("入力");
@@ -701,32 +837,32 @@ public class RegionView extends javax.swing.JDialog {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addComponent(backgroundPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(miscPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(clear)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(cancel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(input, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap())
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addComponent(backgroundPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(miscPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(clear)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cancel)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(input, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap())
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(backgroundPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(miscPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(clear)
-                                        .addComponent(cancel)
-                                        .addComponent(input)))
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(backgroundPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(miscPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(clear)
+                        .addComponent(cancel)
+                        .addComponent(input)))
         );
 
         pack();
@@ -867,7 +1003,6 @@ public class RegionView extends javax.swing.JDialog {
         private static final long serialVersionUID = 1L;
         private final int width, height;
 
-
         public BackgroundPanel() {
             width = GUIConst.IMAGE_BODY.getWidth();
             height = GUIConst.IMAGE_BODY.getHeight();
@@ -896,5 +1031,4 @@ public class RegionView extends javax.swing.JDialog {
             dialog.setVisible(true);
         });
     }
-
 }

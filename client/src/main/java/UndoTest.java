@@ -138,7 +138,7 @@ public class UndoTest {
                         while (start-- > 0) {
                             char c = textComponent.getText(start, 1).charAt(0);
                             logger.info(start + ": " + c);
-                            if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c)) {
+                            if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c) && !StringTool.isHankakuNumber(c)) {
                                 break;
                             }
                         }

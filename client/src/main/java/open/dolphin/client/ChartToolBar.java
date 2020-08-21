@@ -386,7 +386,6 @@ public class ChartToolBar extends JToolBar {
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
         stampSearchField = new CompletableSearchField(30);
-        IMEControl.on(stampSearchField);
         stampSearchField.setLabel("スタンプ検索");
         stampSearchField.setPreferences(prefs);
         stampSearchField.putClientProperty("Quaqua.TextField.style", "search");

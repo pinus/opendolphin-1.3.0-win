@@ -17,27 +17,24 @@ public class KarteStyledDocument extends DefaultStyledDocument {
     private static final long serialVersionUID = 1L;
     private static final String STAMP_STYLE = "stampHolder";
     private static final String SCHEMA_STYLE = "schemaHolder";
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(KarteStyledDocument.class);
 
-    // スタンプの先頭を改行する
-    private boolean putTopCr;
-    // KartePane
     private KartePane kartePane;
 
-    public KarteStyledDocument() {
-        logger = LoggerFactory.getLogger(KarteStyledDocument.class);
-        putTopCr = Project.getProjectStub().isStampSpace();
-    }
+    public KarteStyledDocument() { }
 
     public void setParent(KartePane kartePane) {
         this.kartePane = kartePane;
     }
 
+    /**
+     * 最後に改行を挿入する.
+     */
     public void makeParagraph() {
         try {
             insertString(getLength(), "\n", null);
         } catch (BadLocationException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
@@ -59,7 +56,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             int start = kartePane.getTextPane().getCaretPosition();
 
             // Stamp を挿入する
-            if (putTopCr) { insertString(start++, "\n", null); }
+            if (toPutTopCr(start)) { insertString(start++, "\n", null); }
             insertString(start, " ", runStyle);
 
             // 改行をつけないとテキスト入力制御がやりにくくなる
@@ -68,15 +65,13 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             // スタンプの開始と終了位置を生成して保存する
             sh.setEntry(createPosition(start), createPosition(start + 1));
 
-            removeRepeatedCr();
-
         } catch (BadLocationException | NullPointerException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
     /**
-     * Stamp を挿入する. Rendering の場合.
+     * Stamp を挿入する. Rendering から呼ばれる場合.
      *
      * @param sh 挿入するスタンプホルダ
      */
@@ -96,10 +91,12 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             // Stamp を挿入する
             insertString(start, " ", runStyle);
             sh.setEntry(createPosition(start), createPosition(start + 1));
-            if (putTopCr) { insertString(start + 1, "\n", null); }
+            if (Project.getProjectStub().isStampSpace()) {
+                insertString(start + 1, "\n", null);
+            }
 
         } catch (BadLocationException | NullPointerException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
@@ -121,12 +118,16 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             }
 //masuda$
         } catch (BadLocationException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
+    /**
+     * Schema を挿入する.
+     *
+     * @param sc SchemaHolder
+     */
     public void stampSchema(SchemaHolder sc) {
-
         try {
             Style runStyle = this.getStyle(SCHEMA_STYLE);
             if (runStyle == null) {
@@ -141,13 +142,17 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             insertString(start, " ", runStyle);
             insertString(start + 1, "\n", null);
             sc.setEntry(createPosition(start), createPosition(start + 1));
+
         } catch (BadLocationException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
+    /**
+     * Schema を挿入する. Rendering から呼ばれる場合.
+     * @param sh SchemaHolder
+     */
     public void flowSchema(final SchemaHolder sh) {
-
         try {
             Style runStyle = this.getStyle(SCHEMA_STYLE);
             if (runStyle == null) {
@@ -167,26 +172,52 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             sh.setEntry(createPosition(start), createPosition(start + 1));
 
         } catch (BadLocationException | NullPointerException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
+    /**
+     * 現在位置に Text を挿入する.
+     *
+     * @param text 文字列
+     */
     public void insertTextStamp(String text) {
         try {
             int pos = kartePane.getTextPane().getCaretPosition();
             insertString(pos, text, null);
 
-        } catch (BadLocationException e) {
-            e.printStackTrace(System.err);
+        } catch (BadLocationException ex) {
+            logger.error(ex.getMessage());
         }
     }
 
+    /**
+     * 現在位置に Attribute 付きの Text を挿入する.
+     *
+     * @param text 文字列
+     * @param a AttributeSet
+     */
     public void insertFreeString(String text, AttributeSet a) {
         try {
             insertString(getLength(), text, a);
-        } catch (BadLocationException e) {
-            e.printStackTrace();
+        } catch (BadLocationException ex) {
+            logger.error(ex.getMessage());
         }
+    }
+
+    /**
+     * スタンプの直前に Cr を挿入するかどうか.
+     *
+     * @param pos 挿入しようとしている場所
+     * @return スペースを挿入する場合 true
+     */
+    private boolean toPutTopCr(int pos) throws BadLocationException {
+        // Preferences で挿入しない設定になっていたら false
+        if (!Project.getProjectStub().isStampSpace()) { return false; }
+
+        Document doc = kartePane.getTextPane().getDocument();
+        return (pos == 1 && !doc.getText(0, 1).equals("\n")
+            || (pos > 1 && !doc.getText(pos - 2, 2).equals("\n\n")));
     }
 
     //masuda^   KarteStyledDocument内のStampHolderを取得する. pns先生のコード
@@ -241,7 +272,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
                 remove(pos, len - pos);
             }
         } catch (BadLocationException ex) {
-            ex.printStackTrace(System.err);
+            logger.error(ex.getMessage());
         }
     }
 
@@ -269,7 +300,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
                 pos++;
 
             } catch (BadLocationException ex) {
-                ex.printStackTrace(System.err);
+                logger.error(ex.getMessage());
             }
         }
     }

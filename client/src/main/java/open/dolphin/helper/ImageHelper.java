@@ -1,5 +1,7 @@
 package open.dolphin.helper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
 
 import javax.imageio.*;
@@ -23,6 +25,7 @@ import java.io.InputStream;
  * @author pns
  */
 public class ImageHelper {
+    private static Logger logger = LoggerFactory.getLogger(ImageHelper.class);
 
     /**
      * ImageIcon から BufferedImage に変換. alpha 対応.
@@ -203,8 +206,8 @@ public class ImageHelper {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
+        } catch (IOException | RuntimeException e) {
+            logger.error(e.getMessage());
         }
         return null;
     }
@@ -262,7 +265,7 @@ public class ImageHelper {
             ret = bos.toByteArray();
 
         } catch (IOException | RuntimeException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return ret;
     }

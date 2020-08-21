@@ -124,14 +124,14 @@ public class AtokListener implements KeyListener, InputMethodListener {
                 while (start-- > 0) {
                     char c = textComponent.getText(start, 1).charAt(0);
                     logger.debug(start + ": " + c);
-                    if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c) && c != '-') {
+                    if (!StringTool.isHanakuLower(c) && !StringTool.isHankakuUpper(c)
+                        && !StringTool.isHankakuNumber(c) && c != '-') {
                         break;
                     }
                 }
                 start++;
                 // 変換元の文字列を削除
                 textComponent.getDocument().remove(start, end - start);
-
             }
             // 英数２度打ちの処理. (1)確定前に入ってくる場合と (2)確定直後に入ってくる場合がある.
             // (1) は何もしなくていい (textCommitted != textInProcess)

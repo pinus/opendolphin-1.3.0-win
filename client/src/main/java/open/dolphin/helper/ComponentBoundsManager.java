@@ -1,11 +1,15 @@
 package open.dolphin.helper;
 
 import open.dolphin.client.ClientContext;
+import open.dolphin.event.ProxyAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 /**
@@ -23,6 +27,9 @@ public class ComponentBoundsManager implements ComponentListener {
     private final Dimension defaultSize;
     private Preferences prefs;
     private String key;
+    private Timer timer;
+    private int delay = 500;
+    private boolean resized, moved;
 
     /**
      * @param component - target component
@@ -43,34 +50,45 @@ public class ComponentBoundsManager implements ComponentListener {
         component.setSize(defaultSize);
         // リスナ
         component.addComponentListener(this);
+        // Timer
+        timer = new Timer(delay, new ProxyAction(this::flush));
     }
 
     @Override
-    public void componentMoved(java.awt.event.ComponentEvent e) {
-        Point loc = target.getLocation();
-        if (prefs != null) {
-            prefs.putInt(key + "_x", loc.x);
-            prefs.putInt(key + "_y", loc.y);
+    public void componentMoved(ComponentEvent e) {
+        if (Objects.isNull(prefs)) { return; }
+        moved = true;
+        timer.restart();
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+        if (Objects.isNull(prefs)) { return; }
+        resized = true;
+        timer.restart();
+    }
+
+    private void flush() {
+        timer.stop();
+
+        Rectangle r = target.getBounds();
+        if (moved) {
+            prefs.putInt(key + "_x", r.x);
+            prefs.putInt(key + "_y", r.y);
         }
-        logger.debug(String.format("%s loc=(%d,%d)", key, loc.x, loc.y));
-    }
-
-    @Override
-    public void componentResized(java.awt.event.ComponentEvent e) {
-        int width = target.getWidth();
-        int height = target.getHeight();
-        if (prefs != null) {
-            prefs.putInt(key + "_width", width);
-            prefs.putInt(key + "_height", height);
+        if (resized) {
+            prefs.putInt(key + "_width", r.width);
+            prefs.putInt(key + "_height", r.height);
         }
-        logger.debug(String.format("%s size=(%d,%d)", key, width, height));
+        moved = false; resized = false;
+        logger.info(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
     }
 
     @Override
-    public void componentShown(java.awt.event.ComponentEvent e) { }
+    public void componentShown(ComponentEvent e) { }
 
     @Override
-    public void componentHidden(java.awt.event.ComponentEvent e) { }
+    public void componentHidden(ComponentEvent e) { }
 
     /**
      * Preferences に記録された Bounds に戻す.
