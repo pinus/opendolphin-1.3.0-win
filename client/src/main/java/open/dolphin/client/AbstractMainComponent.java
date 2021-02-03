@@ -9,12 +9,15 @@ import open.dolphin.project.Project;
 import open.dolphin.ui.Focuser;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.sheet.JSheet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 /**
@@ -26,6 +29,7 @@ import java.util.concurrent.Callable;
  * </pre>
  */
 public abstract class AbstractMainComponent extends MouseAdapter implements MainComponent {
+    private Logger logger = LoggerFactory.getLogger(AbstractMainComponent.class);
 
     private String name;
     private String icon;
@@ -96,12 +100,10 @@ public abstract class AbstractMainComponent extends MouseAdapter implements Main
     @Override
     public abstract void stop();
 
-    // MainComponent に共通な作業
-    // 必要に応じて extend 側でオーバーライドする
-
     /**
-     * PatientModel のカルテを開く.
-     * PatientSearchImpl, LaboTestImporter
+     * 指定されたカルテ (PatientModel)を開く.
+     * 最終的に Dolphin#openKarte を呼び出す.
+     * called by PatientSearchImpl, LaboTestImporter
      *
      * @param patient 対象患者
      */
@@ -116,30 +118,32 @@ public abstract class AbstractMainComponent extends MouseAdapter implements Main
                 PvtDelegater pvtdl = new PvtDelegater();
                 List<PatientVisitModel> pvtModels = pvtdl.getPvt(patient);
 
+                // PatientVisitModel to open
+                PatientVisitModel pvtToOpen;
+
                 if (pvtModels.isEmpty()) {
                     // 来院がない場合, 来院情報を生成する
-                    PatientVisitModel pvtModel = new PatientVisitModel();
-                    pvtModel.setId(0L);
-                    pvtModel.setNumber(getNewPvtNumber()); //10000から割り当て
-                    pvtModel.setPatient(patient);
-
+                    pvtToOpen = new PatientVisitModel();
+                    pvtToOpen.setId(0L);
+                    pvtToOpen.setNumber(getNewPvtNumber()); //10000から割り当て
+                    pvtToOpen.setPatient(patient);
                     // 受け付けを通していないのでログイン情報及び設定ファイルを使用する
                     // 診療科名，診療科コード，医師名，医師コード，JMARI
-                    pvtModel.setDepartment(constarctDept());
-                    getContext().openKarte(pvtModel);
+                    pvtToOpen.setDepartment(constarctDept());
 
                 } else {
                     // 来院している場合, 最初の pvt を採用
-                    PatientVisitModel pvtModel = pvtModels.get(0);
-                    int state = pvtModel.getState();
-                    // すでに OPEN ならどっかで開いているということなので編集不可に設定
-                    if (KarteState.isOpen(state)) {
-                        openReadOnlyKarte(pvtModel, state);
-                    } //
-                    // OPEN でなければ，通常どおりオープン
-                    else {
-                        getContext().openKarte(pvtModel);
-                    }
+                    pvtToOpen = pvtModels.get(0);
+                }
+
+                // すでに OPEN ならどっかで開いているということなので編集不可に設定
+                int state = pvtToOpen.getState();
+                if (KarteState.isOpen(state)) {
+                    openReadOnlyKarte(pvtToOpen, state);
+                }
+                // OPEN でなければ，通常どおりオープン
+                else {
+                    getContext().openKarte(pvtToOpen);
                 }
             });
             t.start();
@@ -148,6 +152,47 @@ public abstract class AbstractMainComponent extends MouseAdapter implements Main
             // 既に開かれていれば，そのカルテを前に
             ChartImpl.toFront(patient);
             EditorFrame.toFront(patient);
+        }
+    }
+
+    /**
+     * 指定されたカルテ (PatientVisitModel) を開く.
+     * 最終的に Dolphin#openKarte を呼び出す.
+     * WaitingListImpl.
+     *
+     * @param pvtModel PatientVisitModel
+     */
+    public void openKarte(final PatientVisitModel pvtModel) {
+        if (canOpen(pvtModel)) {
+            // isReadOnly対応
+            Thread t = new Thread(() -> {
+                // 健康保険情報をフェッチする
+                PatientDelegater ptdl = new PatientDelegater();
+                ptdl.fetchHealthInsurance(pvtModel.getPatient());
+
+                // 現在の state をサーバからとってくる
+                PvtDelegater pvdl = new PvtDelegater();
+                int state = pvdl.getPvtState(pvtModel.getId());
+                // 読んだら table を update 　　　→ カルテが開くと update がよばれるのでここでは不要
+                //int row = getRowForPvt(pvtModel);
+                //pvtModel.setState(state);
+                //pvtTableModel.fireTableRowsUpdated(row, row);
+
+                // すでに OPEN ならどっかで開いているということなので編集不可に設定
+                if (KarteState.isOpen(state)) {
+                    openReadOnlyKarte(pvtModel, state);
+                }
+                // OPEN でなければ, 通常どおりオープン （Dolphin#openKarte を呼ぶ）
+                else {
+                    getContext().openKarte(pvtModel);
+                }
+            });
+            t.start();
+
+        } else {
+            // 既に開かれていれば, そのカルテを前に
+            ChartImpl.toFront(pvtModel);
+            EditorFrame.toFront(pvtModel);
         }
     }
 
@@ -177,13 +222,22 @@ public abstract class AbstractMainComponent extends MouseAdapter implements Main
     }
 
     /**
-     * カルテを開くことが可能かどうかを返す.
+     * カルテ (PatientModel) を開くことが可能かどうかを返す.
      *
      * @param patient PatientModel
      * @return 開くことが可能な時 true
      */
     public boolean canOpen(PatientModel patient) {
         return !ChartImpl.isKarteOpened(patient);
+    }
+
+    /**
+     * カルテ (PatientVisitModel) を開くことが可能かどうかを返す.
+     *
+     * @return 開くことが可能な時 true
+     */
+    public boolean canOpen(PatientVisitModel pvt) {
+        return Objects.nonNull(pvt) && !ChartImpl.isKarteOpened(pvt);
     }
 
     /**

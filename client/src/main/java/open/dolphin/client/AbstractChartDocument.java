@@ -22,17 +22,15 @@ public abstract class AbstractChartDocument implements ChartDocument {
     private static final String[] CHART_MENUS = {
             GUIConst.ACTION_OPEN_KARTE, GUIConst.ACTION_SAVE, GUIConst.ACTION_DELETE, GUIConst.ACTION_PRINT, GUIConst.ACTION_MODIFY_KARTE,
             GUIConst.ACTION_ASCENDING, GUIConst.ACTION_DESCENDING, GUIConst.ACTION_SHOW_MODIFIED,
-            GUIConst.ACTION_INSERT_TEXT, GUIConst.ACTION_INSERT_SCHEMA, GUIConst.ACTION_INSERT_STAMP, GUIConst.ACTION_SELECT_INSURANCE,
+            GUIConst.ACTION_INSERT_TEXT, GUIConst.ACTION_INSERT_SCHEMA,
+            GUIConst.ACTION_INSERT_STAMP, GUIConst.ACTION_SIMPLIFY_STAMP, GUIConst.ACTION_SELECT_INSURANCE,
             GUIConst.ACTION_CUT, GUIConst.ACTION_COPY, GUIConst.ACTION_PASTE, GUIConst.ACTION_UNDO, GUIConst.ACTION_REDO,
             GUIConst.ACTION_FIND_FIRST, GUIConst.ACTION_FIND_NEXT, GUIConst.ACTION_FIND_PREVIOUS, GUIConst.ACTION_SEND_CLAIM
     };
-    /**
-     * この ChartDocument を保持する Chart.
-     */
+
+     // この ChartDocument を保持する Chart. (ChartImpl or EditorFrame)
     private Chart chartContext;
-    /**
-     * この ChartDocument が保持する DocumentModel.
-     */
+     // この ChartDocument が保持する DocumentModel.
     private DocumentModel documentModel;
     private String title;
     private JPanel ui;
@@ -83,6 +81,7 @@ public abstract class AbstractChartDocument implements ChartDocument {
         getContext().getChartMediator().addChartDocumentChain(this);
         disableMenus();
         getContext().enabledAction(GUIConst.ACTION_NEW_KARTE, true);
+        getContext().enabledAction(GUIConst.ACTION_SIMPLIFY_STAMP, true);
     }
 
     @Override
@@ -112,6 +111,16 @@ public abstract class AbstractChartDocument implements ChartDocument {
         // このウインドウに関連する全てのメニューをdisableにする
         ChartMediator mediator = getContext().getChartMediator();
         mediator.disableMenus(CHART_MENUS);
+    }
+
+    /**
+     * スタンプ標準表示/簡易表示を切り替える.
+     *
+     * @param doc KarteStyledDocument
+     */
+    public void toggleSimplifyStamp(KarteStyledDocument doc) {
+        doc.setSimplifyStamp(!doc.isSimplifyStamp());
+        doc.getStampHolders().stream().forEach(sh -> sh.setSimplify(doc.isSimplifyStamp()));
     }
 
     /**

@@ -129,6 +129,11 @@ public class Patientmodreq {
     private PaymentInformation Payment_Information;
 
     /**
+     * 状態情報 (例:  )
+     */
+    private ConditionInformation Condition_Information;
+
+    /**
      * 変更キー (例: 2)
      *
      * @return the Mod_Key
@@ -540,5 +545,41 @@ public class Patientmodreq {
      */
     public void setHealthInsurance_Information(HealthInsuranceInformation HealthInsurance_Information) {
         this.HealthInsurance_Information = HealthInsurance_Information;
+    }
+
+    /**
+     * Payment_Information
+     *
+     * @return Payment_Information
+     */
+    public PaymentInformation getPayment_Information() {
+        return Payment_Information;
+    }
+
+    /**
+     * Payment_Information
+     *
+     * @param Payment_Information to set
+     */
+    public void setPayment_Information(PaymentInformation Payment_Information) {
+        this.Payment_Information = Payment_Information;
+    }
+
+    /**
+     * Condition_Information
+     *
+     * @return Condition_Information
+     */
+    public ConditionInformation getCondition_Information() {
+        return Condition_Information;
+    }
+
+    /**
+     * Condition_Information
+     *
+     * @param Condition_Information to set
+     */
+    public void setCondition_Information(ConditionInformation Condition_Information) {
+        this.Condition_Information = Condition_Information;
     }
 }

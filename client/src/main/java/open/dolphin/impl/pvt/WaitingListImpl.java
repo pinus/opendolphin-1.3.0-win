@@ -2,7 +2,6 @@ package open.dolphin.impl.pvt;
 
 import open.dolphin.client.*;
 import open.dolphin.delegater.DolphinClientContext;
-import open.dolphin.delegater.PatientDelegater;
 import open.dolphin.delegater.PvtDelegater;
 import open.dolphin.dto.PvtStateSpec;
 import open.dolphin.event.BadgeEvent;
@@ -460,53 +459,9 @@ public class WaitingListImpl extends AbstractMainComponent {
     public void openKarte() {
         PatientVisitModel[] pvtModel = getSelectedPvt();
         if (pvtModel != null) {
-            Arrays.asList(pvtModel).forEach(this::openKarte);
-        }
-    }
-
-    /**
-     * 指定されたカルテを開く.
-     *
-     * @param pvtModel PatientVisitModel
-     */
-    public void openKarte(final PatientVisitModel pvtModel) {
-
-        if (canOpen(pvtModel)) {
             setBusy(true);
-
-            // isReadOnly対応
-            Runnable r = () -> {
-                // 健康保険情報をフェッチする
-                PatientDelegater ptdl = new PatientDelegater();
-                ptdl.fetchHealthInsurance(pvtModel.getPatient());
-
-                // 現在の state をサーバからとってくる
-                PvtDelegater pvdl = new PvtDelegater();
-                int state = pvdl.getPvtState(pvtModel.getId());
-                // 読んだら table を update 　　　→ カルテが開くと update がよばれるのでここでは不要
-                //int row = getRowForPvt(pvtModel);
-                //pvtModel.setState(state);
-                //pvtTableModel.fireTableRowsUpdated(row, row);
-
-                // すでに OPEN ならどっかで開いているということなので編集不可に設定
-                if (KarteState.isOpen(state)) {
-                    openReadOnlyKarte(pvtModel, state);
-                }
-                // OPEN でなければ, 通常どおりオープン （Dolphin#openKarte を呼ぶ）
-                else {
-                    getContext().openKarte(pvtModel);
-                }
-                setBusy(false);
-                // startCheckTimer(); // openKarte すると ChartImpl が open するので, updateState が必ず呼ばれるので, そちらで startCheckTimer される
-            };
-            // ここは database とは関係ないので thread で
-            Thread t = new Thread(r);
-            t.start();
-
-        } else {
-            // 既に開かれていれば, そのカルテを前に
-            ChartImpl.toFront(pvtModel);
-            EditorFrame.toFront(pvtModel);
+            Arrays.asList(pvtModel).forEach(this::openKarte);
+            setBusy(false);
         }
     }
 
@@ -590,45 +545,10 @@ public class WaitingListImpl extends AbstractMainComponent {
 
     /**
      * 現在の selectedPvt が canOpen かどうか判定.
-     * １つでも開けられないものがあれば false とする.
      */
     private boolean canOpen() {
-
         PatientVisitModel[] pvt = getSelectedPvt();
-
-        if (pvt == null || pvt.length == 0) {
-            return false;
-        } else {
-            for (PatientVisitModel model : pvt) {
-                // 既に開かれているカルテを openKarte すると toFront になるので,
-                // open できないカルテは cancel されたカルテのみである
-                if (isKarteCanceled(model)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 指定されたカルテを開くことが可能かどうかを返す.
-     *
-     * @return 開くことが可能な時 true
-     */
-    private boolean canOpen(PatientVisitModel pvt) {
-        if (pvt == null || isKarteCanceled(pvt)) {
-            return false;
-        }
-        return !ChartImpl.isKarteOpened(pvt);
-    }
-
-    /**
-     * 受付がキャンセルされているかどうかを返す.
-     *
-     * @return キャンセルされている時 true
-     */
-    private boolean isKarteCanceled(PatientVisitModel pvtModel) {
-        return pvtModel != null && pvtModel.getState() == KarteState.CANCEL_PVT;
+        return Objects.nonNull(pvt) && pvt.length > 0;
     }
 
     /**

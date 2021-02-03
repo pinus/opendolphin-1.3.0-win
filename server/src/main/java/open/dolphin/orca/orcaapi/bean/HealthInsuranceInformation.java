@@ -47,6 +47,11 @@ public class HealthInsuranceInformation {
     private String HealthInsuredPerson_Number;
 
     /**
+     * 枝番 (例: 01)
+     */
+    private String HealthInsuredPerson_Branch_Number;
+
+    /**
      * 継続区分(1:継続療養、2:任意継続) (例:  )
      */
     private String HealthInsuredPerson_Continuation;
@@ -327,6 +332,24 @@ public class HealthInsuranceInformation {
      */
     public void setHealthInsuredPerson_Number(String HealthInsuredPerson_Number) {
         this.HealthInsuredPerson_Number = HealthInsuredPerson_Number;
+    }
+
+    /**
+     * HealthInsuredPerson_Branch_Number
+     *
+     * @return HealthInsuredPerson_Branch_Number
+     */
+    public String getHealthInsuredPerson_Branch_Number() {
+        return HealthInsuredPerson_Branch_Number;
+    }
+
+    /**
+     * HealthInsuredPerson_Branch_Number
+     *
+     * @param HealthInsuredPerson_Branch_Number to set
+     */
+    public void setHealthInsuredPerson_Branch_Number(String HealthInsuredPerson_Branch_Number) {
+        this.HealthInsuredPerson_Branch_Number = HealthInsuredPerson_Branch_Number;
     }
 
     /**

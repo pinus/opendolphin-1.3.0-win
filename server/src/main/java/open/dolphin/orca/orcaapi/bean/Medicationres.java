@@ -127,6 +127,11 @@ public class Medicationres {
     private String Specific_Equipment_Code;
 
     /**
+     * 部位選択式コメントコード (例:  )
+     */
+    private String Location_Comment_Code;
+
+    /**
      * 実施日 (例: 2014-07-15)
      *
      * @return the Information_Date
@@ -556,5 +561,23 @@ public class Medicationres {
      */
     public void setSpecific_Equipment_Code(String Specific_Equipment_Code) {
         this.Specific_Equipment_Code = Specific_Equipment_Code;
+    }
+
+    /**
+     * Location_Comment_Code
+     *
+     * @return Location_Comment_Code
+     */
+    public String getLocation_Comment_Code() {
+        return Location_Comment_Code;
+    }
+
+    /**
+     * Location_Comment_Code
+     *
+     * @param Location_Comment_Code to set
+     */
+    public void setLocation_Comment_Code(String Location_Comment_Code) {
+        this.Location_Comment_Code = Location_Comment_Code;
     }
 }

@@ -129,6 +129,14 @@ public class KarteDocumentViewer extends AbstractChartDocument {
     }
 
     /**
+     * スタンプ標準表示/簡易表示を切り替える.
+     */
+    public void simplifyStamp() {
+        //toggleSimplifyStamp(selectedKarte.getPPane().getDocument());
+        karteList.stream().map(KarteViewer2::getPPane).map(KartePane::getDocument).forEach(this::toggleSimplifyStamp);
+    }
+
+    /**
      * 全てを選択　の動作.
      */
     public void selectAll() {

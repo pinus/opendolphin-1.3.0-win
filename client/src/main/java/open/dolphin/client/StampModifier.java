@@ -115,6 +115,13 @@ public class StampModifier {
                     c.setNumber(String.format("%02d-%02d", calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DATE)));
                     break;
                 }
+            } else if ("850100268".equals(c.getCode())) {
+                // 熱傷処置の日付
+                if (c.getNumber() == null || !c.getNumber().matches("[0-9]*-[0-9]*-[0-9]*")) {
+                    Calendar calendar = Calendar.getInstance();
+                    c.setNumber(String.format("%4d-%02d-%02d", calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DATE)));
+                    break;
+                }
             }
         }
     }

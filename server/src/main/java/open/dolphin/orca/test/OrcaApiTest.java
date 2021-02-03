@@ -21,7 +21,7 @@ public class OrcaApiTest {
         System.setProperty("jboss.server.base.dir", userDir);
 
         OrcaApiTest test = new OrcaApiTest();
-        test.patientgetv2();
+        //test.patientgetv2();
         //test.appointmodv2();
         //test.medicalmodv2();
         //test.acceptmodv2();
@@ -34,7 +34,7 @@ public class OrcaApiTest {
         //test.system01lstv2();
         //test.medicalgetv2();
         //test.diseasegetv2();
-        //test.patientmodv2();
+        test.patientmodv2();
         //test.appointlst2v2();
         //test.acsimulatev2();;
         //test.subjectivesv2();
@@ -271,7 +271,7 @@ public class OrcaApiTest {
         System.out.println("患者登録");
 
         Patientmodreq req = new Patientmodreq();
-        req.setPatient_ID("*");
+        req.setPatient_ID("000002");
         req.setWholeName("淀橋　加米良");
         req.setWholeName_inKana("ヨドバシ　カメラ");
         req.setBirthDate("2017-01-01");
@@ -282,6 +282,13 @@ public class OrcaApiTest {
         pi.setPregnant_Class("True");
         hi.setPersonally_Information(pi);
         req.setHealthInsurance_Information(hi);
+
+        PaymentInformation pay = new PaymentInformation();
+        pay.setReduction_Reason("01");
+        ConditionInformation cond = new ConditionInformation();
+        cond.setCondition1("condition1");
+        req.setPayment_Information(pay);
+        req.setCondition_Information(cond);
 
         Patientmodres res = api.post(req, "01");
 

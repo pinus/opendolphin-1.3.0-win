@@ -18,6 +18,9 @@ import java.awt.event.FocusEvent;
 public class PNSCellEditor extends DefaultCellEditor {
     private static final long serialVersionUID = 1L;
 
+    // Focus を取ったときに JTextField#selectAll するかどうか.
+    boolean shouldSelectAll;
+
     // JTextField の UndoManager
     private TextComponentUndoManager undoManager;
 
@@ -35,6 +38,16 @@ public class PNSCellEditor extends DefaultCellEditor {
         // UndoManager 登録
         undoManager = TextComponentUndoManager.createManager(textField);
         textField.getDocument().addUndoableEditListener(undoManager);
+        shouldSelectAll = true;
+    }
+
+    /**
+     * Focus を取ったときに JTextField#selectAll するかどうか.
+     *
+     * @param shouldSelect true to selectAll
+     */
+    public void setShouldSelectAll(boolean shouldSelect) {
+        shouldSelectAll = shouldSelect;
     }
 
     /**
@@ -67,7 +80,7 @@ public class PNSCellEditor extends DefaultCellEditor {
     private class TextFieldFocusListener extends FocusAdapter {
         @Override
         public void focusGained(FocusEvent e) {
-            ((JTextComponent) e.getSource()).selectAll();
+            if (shouldSelectAll) { ((JTextComponent) e.getSource()).selectAll(); }
             // restart undoing
             undoManager.discardAllEdits();
         }

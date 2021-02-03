@@ -21,13 +21,11 @@ import javax.swing.FocusManager;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -294,27 +292,40 @@ public class ItemTablePanel extends JPanel {
         im.put(KeyStroke.getKeyStroke("shift TAB"), "focusPrevious");
         am.put("focusPrevious", new ProxyAction(FocusManager.getCurrentManager()::focusPreviousComponent));
 
-        // ENTER キーで cell editor を activate する
-        im.put(KeyStroke.getKeyStroke("ENTER"), "startEditing");
-        am.put("startEditing", new ProxyAction(() -> {
+        // cell editor を起動する consumer
+        Consumer<Character> startEditing = initialChar -> {
             int row = table.getSelectedRow();
             if (row < 0) { return; }
-            MasterItem item = tableModel.getObject(row);
 
-            int activeCol = item.getCode().startsWith("810")
+            MasterItem item = tableModel.getObject(row);
+            int col = item.getCode().startsWith("810")
                 ? 1 // コメントコードの場合 col=1 (診療内容) を activate
                 : item.getCode().startsWith("6") || item.getCode().startsWith("160")
                 ? 2 // 薬剤 or 検査コードの場合 col=2 (数量)
                 : item.getCode().startsWith("001000")
                 ? 5 // 用法コードの場合 col=5 (回数)
                 : 0;
+            // 初期値が有効なのは col 2, 5 だけ
+            if (initialChar != null && col != 2 && col != 5) { return; }
 
-            if (table.isCellEditable(row, activeCol)) {
-                PNSCellEditor editor = (PNSCellEditor) table.getColumnModel().getColumn(activeCol).getCellEditor();
-                Focuser.requestFocus(editor.getComponent());
-                table.editCellAt(row, activeCol);
+            if (table.isCellEditable(row, col)) {
+                PNSCellEditor editor = (PNSCellEditor) table.getColumnModel().getColumn(col).getCellEditor();
+                JTextField tf = (JTextField) editor.getComponent();
+                table.editCellAt(row, col);
+                // 初期値設定
+                if (initialChar != null) {
+                    editor.setShouldSelectAll(false);
+                    tf.setText(initialChar.toString());
+                } else {
+                    editor.setShouldSelectAll(true);
+                }
+                Focuser.requestFocus(tf);
             }
-        }));
+        };
+
+        // ENTER キーで cell editor を起動する
+        im.put(KeyStroke.getKeyStroke("ENTER"), "startEditing");
+        am.put("startEditing", new ProxyAction(() -> startEditing.accept(null)));
 
         // SHIFT+UP/DOWN で項目を上下に移動する
         im.put(KeyStroke.getKeyStroke("shift UP"), "moveUp");
@@ -342,6 +353,16 @@ public class ItemTablePanel extends JPanel {
 
             table.getSelectionModel().setSelectionInterval(row + 1, row + 1);
         }));
+
+        // 数字キーで cell editor を起動する
+        table.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (Character.isDigit(e.getKeyChar())) {
+                    startEditing.accept(e.getKeyChar());
+                }
+            }
+        });
 
         // クリアボタンを生成する
         clearButton = new JButton(CLEAR_BUTTON_IMAGE);

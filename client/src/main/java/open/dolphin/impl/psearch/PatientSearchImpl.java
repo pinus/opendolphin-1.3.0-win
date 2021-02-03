@@ -393,7 +393,7 @@ public class PatientSearchImpl extends AbstractMainComponent {
     /**
      * カルテを開く.
      * popupMenu で選択した場合はこれが呼ばれる　複数行選択対応.
-     * openKarte(patient) は abstract に移動.
+     * openKarte(patient) は AbstractMainComponent に移動.
      * by pns
      */
     public void openKarte() {

@@ -97,6 +97,11 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
     }
 
     /**
+     * スタンプ標準表示/簡易表示を切り替える.
+     */
+    public void simplifyStamp() { toggleSimplifyStamp(getPPane().getDocument()); }
+
+    /**
      * KarteEditor の実際の高さを返す.
      *
      * @return 高さ

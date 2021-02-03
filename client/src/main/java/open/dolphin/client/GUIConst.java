@@ -49,6 +49,7 @@ public class GUIConst {
     public static final String ACTION_INSERT_TEXT = "insertText";
     public static final String ACTION_INSERT_SCHEMA = "insertSchema";
     public static final String ACTION_INSERT_STAMP = "insertStamp";
+    public static final String ACTION_SIMPLIFY_STAMP = "simplifyStamp";
     public static final String ACTION_SELECT_INSURANCE = "selectInsurance";
 
     public static final String ACTION_TEXT_MENU = "textMenu";

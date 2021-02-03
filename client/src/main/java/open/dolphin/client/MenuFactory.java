@@ -167,6 +167,9 @@ public class MenuFactory {
     public void insertStamp() { }
 
     @MenuAction
+    public void simplifyStamp() { chart.sendToChain(GUIConst.ACTION_SIMPLIFY_STAMP); }
+
+    @MenuAction
     public void selectInsurance() { }
 
     @MenuAction
@@ -440,6 +443,9 @@ public class MenuFactory {
         if (ClientContext.isWin()) {
             karte.add(createMenuItem("環境設定...", GUIConst.ACTION_SET_KARTE_ENVIROMENT));
         }
+
+        // スタンプの簡易表示
+        karte.add(createMenuItem("スタンプ簡易表示切替", GUIConst.ACTION_SIMPLIFY_STAMP, "T"));
 
         //
         // 挿入メニュー

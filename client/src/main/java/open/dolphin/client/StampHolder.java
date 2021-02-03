@@ -50,6 +50,8 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
     private String searchText = null;
     private String startTag = null;
     private String endTag = null;
+    // スタンプの簡易表示
+    private boolean simplify = false;
     // Logger
     private Logger logger = LoggerFactory.getLogger(StampHolder.class);
 
@@ -333,6 +335,16 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
     }
 
     /**
+     * スタンプの簡易表示設定.
+     *
+     * @param s true to simplify
+     */
+    public void setSimplify(boolean s) {
+        simplify = s;
+        setMyText();
+    }
+
+    /**
      * KartePane でこのスタンプがダブルクリックされた時コールされる.
      * StampEditor を開いてこのスタンプを編集する.
      */
@@ -422,20 +434,25 @@ public final class StampHolder extends AbstractComponentHolder<ModuleModel> {
 
         String text;
 
-        if (bundle instanceof BundleMed) {
-            text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
-            //logger.info("bundleMed = " + text);
-
-        } else if (getModel().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
-            && Project.getPreferences().getBoolean("laboFold", true)) {
-            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
-            //logger.info("labo = " + text);
+        if (simplify) {
+            if (bundle instanceof BundleMed) {
+                text = HtmlHelper.bundleMed2HtmlLight((BundleMed) bundle, stampName, hints);
+            } else {
+                text = HtmlHelper.bundleDolphin2HtmlLight((BundleDolphin) bundle, stampName, hints);
+            }
 
         } else {
-            text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
-            //logger.info("bundleDolphin = " + text);
-        }
+            if (bundle instanceof BundleMed) {
+                text = HtmlHelper.bundleMed2Html((BundleMed) bundle, stampName, hints);
 
+            } else if (getModel().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)
+                && Project.getPreferences().getBoolean("laboFold", true)) {
+                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints, true);
+
+            } else {
+                text = HtmlHelper.bundleDolphin2Html((BundleDolphin) bundle, stampName, hints);
+            }
+        }
 
         text = StringTool.toHankakuNumber(text);
         text = StringTool.toHankakuUpperLower(text);

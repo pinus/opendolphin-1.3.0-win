@@ -1,5 +1,6 @@
 package open.dolphin.helper;
 
+import open.dolphin.client.ClientContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +48,11 @@ public class TextComponentUndoManager extends UndoManager {
         current = new TextComponentUndoableEdit();
 
         // ATOK 関連
-        AtokListener atokListener = new AtokListener(c, this);
-        c.addKeyListener(atokListener);
-        c.addInputMethodListener(atokListener);
+        if (ClientContext.isMac()) {
+            AtokListener atokListener = new AtokListener(c, this);
+            c.addKeyListener(atokListener);
+            c.addInputMethodListener(atokListener);
+        }
     }
 
     @Override

@@ -148,6 +148,11 @@ public class DiseaseInformation {
     private String Disease_AcuteFlag;
 
     /**
+     * 第三者行為区分(True:対象の保険組合せが第三者行為である) (例: True)
+     */
+    private String Third_Party_Mark;
+
+    /**
      * 診療科コード　※１(01:内科) (例: 01)
      *
      * @return the Department_Code
@@ -635,5 +640,23 @@ public class DiseaseInformation {
      */
     public void setDisease_AcuteFlag(String Disease_AcuteFlag) {
         this.Disease_AcuteFlag = Disease_AcuteFlag;
+    }
+
+    /**
+     * Third_Party_Mark
+     *
+     * @return Third_Party_Mark
+     */
+    public String getThird_Party_Mark() {
+        return Third_Party_Mark;
+    }
+
+    /**
+     * Third_Party_Mark
+     *
+     * @param Third_Party_Mark to set
+     */
+    public void setThird_Party_Mark(String Third_Party_Mark) {
+        this.Third_Party_Mark = Third_Party_Mark;
     }
 }

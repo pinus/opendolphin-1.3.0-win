@@ -20,12 +20,27 @@ public class KarteStyledDocument extends DefaultStyledDocument {
     private Logger logger = LoggerFactory.getLogger(KarteStyledDocument.class);
 
     private KartePane kartePane;
+    private boolean simplifyStamp = false;
 
     public KarteStyledDocument() { }
 
     public void setParent(KartePane kartePane) {
         this.kartePane = kartePane;
     }
+
+    /**
+     * スタンプ簡易表示設定.
+     *
+     * @param simplify true to simplify
+     */
+    public void setSimplifyStamp(boolean simplify) { simplifyStamp = simplify; }
+
+    /**
+     * スタンプ簡易表示をするかどうか.
+     *
+     * @return simplified if true
+     */
+    public boolean isSimplifyStamp() { return simplifyStamp; }
 
     /**
      * 最後に改行を挿入する.
@@ -51,19 +66,17 @@ public class KarteStyledDocument extends DefaultStyledDocument {
                 runStyle = addStyle(STAMP_STYLE, null);
             }
             StyleConstants.setComponent(runStyle, sh);
-
             // キャレット位置を取得する
             int start = kartePane.getTextPane().getCaretPosition();
-
             // Stamp を挿入する
             if (toPutTopCr(start)) { insertString(start++, "\n", null); }
             insertString(start, " ", runStyle);
-
             // 改行をつけないとテキスト入力制御がやりにくくなる
             insertString(start + 1, "\n", null);
-
             // スタンプの開始と終了位置を生成して保存する
             sh.setEntry(createPosition(start), createPosition(start + 1));
+            // 簡易表示
+            sh.setSimplify(simplifyStamp);
 
         } catch (BadLocationException | NullPointerException ex) {
             logger.error(ex.getMessage());
@@ -84,16 +97,16 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             }
             // このスタンプ用のスタイルを動的に生成する
             StyleConstants.setComponent(runStyle, sh);
-
             // キャレット位置を取得する
             int start = kartePane.getTextPane().getCaretPosition();
-
             // Stamp を挿入する
             insertString(start, " ", runStyle);
             sh.setEntry(createPosition(start), createPosition(start + 1));
             if (Project.getProjectStub().isStampSpace()) {
                 insertString(start + 1, "\n", null);
             }
+            // 簡易表示
+            sh.setSimplify(simplifyStamp);
 
         } catch (BadLocationException | NullPointerException ex) {
             logger.error(ex.getMessage());
