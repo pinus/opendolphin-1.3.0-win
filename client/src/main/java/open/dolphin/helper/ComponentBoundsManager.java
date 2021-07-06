@@ -9,6 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Objects;
 import java.util.prefs.Preferences;
 
@@ -19,10 +21,10 @@ import java.util.prefs.Preferences;
  * @author Kazushi Minagawa
  * @author pns
  */
-public class ComponentBoundsManager implements ComponentListener {
+public class ComponentBoundsManager extends WindowAdapter implements ComponentListener {
     private static final Logger logger = LoggerFactory.getLogger(ComponentBoundsManager.class);
 
-    private final Component target;
+    private final Window target;
     private final Point defaultLocation;
     private final Dimension defaultSize;
     private Preferences prefs;
@@ -37,7 +39,7 @@ public class ComponentBoundsManager implements ComponentListener {
      * @param size      - initial component size
      * @param object    - この object のクラス名が preference の key になる. null にすると記録されない.
      */
-    public ComponentBoundsManager(Component component, Point location, Dimension size, Object object) {
+    public ComponentBoundsManager(Window component, Point location, Dimension size, Object object) {
         target = component;
         defaultLocation = location;
         defaultSize = size;
@@ -50,6 +52,7 @@ public class ComponentBoundsManager implements ComponentListener {
         component.setSize(defaultSize);
         // リスナ
         component.addComponentListener(this);
+        component.addWindowListener(this);
         // Timer
         timer = new Timer(delay, new ProxyAction(this::flush));
     }
@@ -89,6 +92,18 @@ public class ComponentBoundsManager implements ComponentListener {
 
     @Override
     public void componentHidden(ComponentEvent e) { }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        if (Objects.isNull(prefs)) { return; }
+
+        Rectangle r = target.getBounds();
+        prefs.putInt(key + "_x", r.x);
+        prefs.putInt(key + "_y", r.y);
+        prefs.putInt(key + "_width", r.width);
+        prefs.putInt(key + "_height", r.height);
+        logger.info(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
+    }
 
     /**
      * Preferences に記録された Bounds に戻す.
