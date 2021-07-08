@@ -1015,8 +1015,14 @@ public class WaitingListImpl extends AbstractMainComponent {
 
             if (value instanceof String) {
                 switch (col) {
-                    case 1: // ID
                     case 3: // 名前
+                        if (fontSize > 12) {
+                            value = (String) value + "　(" + pvt.getPatient().getKanaName() + ")";
+                        }
+                        this.setText(IndentTableCellRenderer.addIndent((String) value, IndentTableCellRenderer.WIDE, this.getForeground()));
+                        this.setFont(view.getNormalFont());
+                        break;
+                    case 1: // ID
                     case 6: // 生年月日
                         this.setText(IndentTableCellRenderer.addIndent((String) value, IndentTableCellRenderer.WIDE, this.getForeground()));
                         this.setFont(view.getNormalFont());
