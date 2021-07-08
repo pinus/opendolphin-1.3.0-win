@@ -24,10 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -60,15 +58,10 @@ public class WaitingListImpl extends AbstractMainComponent {
     protected static final Color SHOSHIN_COLOR = new Color(180, 220, 240); //青っぽい色
     protected static final Color KARTE_EMPTY_COLOR = new Color(250, 200, 160); //茶色っぽい色
     protected static final Color DIAGNOSIS_EMPTY_COLOR = new Color(243, 255, 15); //黄色
-    // Font
-    private static final Font NORMAL_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
-    private static final Font SMALL_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 9);
     // JTableレンダラ用のカラー
     private static final Color MALE_COLOR = new Color(230, 243, 243);
     private static final Color FEMALE_COLOR = new Color(254, 221, 242);
     private static final Color CANCEL_PVT_COLOR = new Color(128, 128, 128);
-    // テーブルの row height
-    private static final int ROW_HEIGHT = 18;
     // WaitingList の表示パネル
     private WaitingListPanel view;
     // PVT Table
@@ -80,6 +73,8 @@ public class WaitingListImpl extends AbstractMainComponent {
     private boolean sexRenderer;
     // 生年月日の元号表示
     private boolean ageDisplay;
+    // フォントサイズ
+    private int fontSize;
     // 選択されている患者情報
     private PatientVisitModel[] selectedPvt; // 複数行選択対応
     private int[] selectedIndex; // 複数行選択対応
@@ -127,6 +122,7 @@ public class WaitingListImpl extends AbstractMainComponent {
         preferences = Preferences.userNodeForPackage(this.getClass());
         sexRenderer = preferences.getBoolean("sexRenderer", false);
         ageDisplay = preferences.getBoolean("ageDisplay", true);
+        fontSize = preferences.getInt("fontSize", 12);
     }
 
     /**
@@ -137,18 +133,8 @@ public class WaitingListImpl extends AbstractMainComponent {
         view = new WaitingListPanel();
         setUI(view);
 
-        // popup で状態アイコンの legend を出す
-        JLabel legend = view.getLegendLbl();
-        legend.setIcon(GUIConst.ICON_QUESTION_16);
-        legend.setText("");
-        view.getLegendLbl().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                JPopupMenu legend = new LegendPopup();
-                legend.show(e.getComponent(), e.getX(), e.getY());
-            }
-        });
-
+        // Table の設定
+        pvtTable = view.getTable();
         // 来院テーブル用のパラメータ
         List<PNSTriple<String, Class<?>, String>> reflectList = Arrays.asList(
                 new PNSTriple<>(" 受付", Integer.class, "getNumber"),
@@ -163,10 +149,7 @@ public class WaitingListImpl extends AbstractMainComponent {
                 new PNSTriple<>(" 予約", String.class, "getAppointment"),
                 new PNSTriple<>("状態", Integer.class, "getState")
         );
-        int[] columnWidth = {34, 68, 72, 140, 40, 50, 100, 75, 50, 40, 30};
 
-        // 生成する
-        pvtTable = view.getTable();
         pvtTableModel = new ObjectReflectTableModel<PatientVisitModel>(reflectList) {
             @Override
             public Object getValueAt(int row, int col) {
@@ -175,9 +158,9 @@ public class WaitingListImpl extends AbstractMainComponent {
             }
         };
         pvtTable.setModel(pvtTableModel);
+        view.setFontSize(fontSize);
 
         // 来院情報テーブルの属性を設定する
-        pvtTable.setRowHeight(ROW_HEIGHT);
         pvtTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pvtTable.setRowSelectionAllowed(true);
 
@@ -212,16 +195,6 @@ public class WaitingListImpl extends AbstractMainComponent {
         // 生年月日コラム
         sorter.setComparator(BIRTHDAY_COLUMN,
                 Comparator.comparing(x -> ageDisplay ? Gengo.toSeireki((String) x) : (String) x));
-
-        // コラム幅の設定
-        for (int i = 0; i < columnWidth.length; i++) {
-            TableColumn column = pvtTable.getColumnModel().getColumn(i);
-            column.setPreferredWidth(columnWidth[i]);
-            if (i != 3 && i != 7) { //固定幅
-                column.setMaxWidth(columnWidth[i]);
-                column.setMinWidth(columnWidth[i]);
-            }
-        }
 
         // レンダラを生成する
         MaleFemaleRenderer sRenderer = new MaleFemaleRenderer();
@@ -295,6 +268,17 @@ public class WaitingListImpl extends AbstractMainComponent {
         pvtTable.getInputMap().put(KeyStroke.getKeyStroke("TAB"), "focusPrevious");
         pvtTable.getInputMap().put(KeyStroke.getKeyStroke("shift TAB"), "focusPrevious");
         pvtTable.getActionMap().put("focusPrevious", new ProxyAction(KeyboardFocusManager.getCurrentKeyboardFocusManager()::focusPreviousComponent));
+
+        // shift alt - L でフォント拡大
+        pvtTable.getInputMap().put(KeyStroke.getKeyStroke("shift alt L"), "fontLarge");
+        pvtTable.getActionMap().put("fontLarge", new ProxyAction(() -> {
+            logger.info("=============================" + fontSize);
+            if (fontSize == 12) { fontSize = 18; }
+            else if (fontSize == 18) { fontSize = 24; }
+            else if (fontSize == 24) { fontSize = 12; }
+            view.setFontSize(fontSize);
+            preferences.putInt("fontSize", fontSize);
+        }));
 
         // pvt 受信待ち endpoint
         PvtEndpoint endpoint = new PvtEndpoint();
@@ -1036,7 +1020,7 @@ public class WaitingListImpl extends AbstractMainComponent {
                     case 3: // 名前
                     case 6: // 生年月日
                         this.setText(IndentTableCellRenderer.addIndent((String) value, IndentTableCellRenderer.WIDE, this.getForeground()));
-                        this.setFont(NORMAL_FONT);
+                        this.setFont(view.getNormalFont());
                         break;
                     case 5: // 年齢
                         String[] age = ((String) value).split("\\.");
@@ -1045,15 +1029,16 @@ public class WaitingListImpl extends AbstractMainComponent {
                         } else {
                             setText(age[0] + " 歳");
                         }
+                        this.setFont(view.getNormalFont());
                         break;
                     case 7: // ドクターに変更
                     case 8: // メモ
                         this.setText(IndentTableCellRenderer.addIndent((String) value, IndentTableCellRenderer.WIDE, this.getForeground()));
-                        this.setFont(SMALL_FONT);
+                        this.setFont(view.getSmallFont());
                         break;
                     default:
                         this.setText((String) value);
-                        this.setFont(NORMAL_FONT);
+                        this.setFont(view.getNormalFont());
                 }
             } else {
                 setIcon(null);
