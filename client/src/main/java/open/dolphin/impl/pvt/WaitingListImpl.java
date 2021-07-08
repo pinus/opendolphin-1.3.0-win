@@ -269,10 +269,9 @@ public class WaitingListImpl extends AbstractMainComponent {
         pvtTable.getInputMap().put(KeyStroke.getKeyStroke("shift TAB"), "focusPrevious");
         pvtTable.getActionMap().put("focusPrevious", new ProxyAction(KeyboardFocusManager.getCurrentKeyboardFocusManager()::focusPreviousComponent));
 
-        // shift alt - L でフォント拡大
+        // shift - alt - L でフォント拡大
         pvtTable.getInputMap().put(KeyStroke.getKeyStroke("shift alt L"), "fontLarge");
         pvtTable.getActionMap().put("fontLarge", new ProxyAction(() -> {
-            logger.info("=============================" + fontSize);
             if (fontSize == 12) { fontSize = 18; }
             else if (fontSize == 18) { fontSize = 24; }
             else if (fontSize == 24) { fontSize = 12; }
