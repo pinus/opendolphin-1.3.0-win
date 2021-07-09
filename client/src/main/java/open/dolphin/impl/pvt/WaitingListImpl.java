@@ -16,6 +16,7 @@ import open.dolphin.ui.IndentTableCellRenderer;
 import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.ui.PNSBadgeTabbedPane;
 import open.dolphin.ui.sheet.JSheet;
+import open.dolphin.ui.desktop.Taskbar;
 import open.dolphin.util.Gengo;
 import open.dolphin.util.ModelUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -384,7 +385,7 @@ public class WaitingListImpl extends AbstractMainComponent {
         pane.setBadge(e);
 
         // Dock のアイコンにバッジを出す
-        //Taskbar.getTaskbar().setIconBadge(waitingCount == 0 ? null : String.valueOf(waitingCount));
+        Taskbar.getTaskbar().setIconBadge(waitingCount == 0 ? null : String.valueOf(waitingCount));
     }
 
     /**
@@ -686,6 +687,9 @@ public class WaitingListImpl extends AbstractMainComponent {
             //logger.info("pvt added at row " + row);
             // 通知を表示
             ScriptExecutor.displayNotification(hostPvt.getPatientAgeBirthday(), "受付 " + (row + 1), hostPvt.getPatientName());
+            // 追加行までスクロール
+            int viewRow = pvtTable.convertRowIndexToView(row);
+            pvtTable.scrollRectToVisible(pvtTable.getCellRect(viewRow, 0, false));
         }
         // pvt count 更新
         updatePvtCount();
