@@ -548,6 +548,36 @@ public class OrcaApi {
     }
 
     /**
+     * PUSH通知一括取得.
+     *
+     * @param pusheventgetv2req Pusheventgetv2req
+     * @return open.dolphin.orca.pushapi.bean.Data
+     */
+    public open.dolphin.orca.pushapi.bean.Data post(Pusheventgetv2req pusheventgetv2req) {
+        Request req = new Request();
+        req.setPusheventgetv2req(pusheventgetv2req);
+
+        String url = OrcaApiUrl.PUSHEVENTGETV2;
+        Response response = request(url, req);
+        return response.getData();
+    }
+
+    /**
+     * 旧姓履歴情報取得.
+     *
+     * @param patientlst8req Patientlst8req
+     * @return Patientlst8res
+     */
+    public Patientlst8res post(Patientlst8req patientlst8req) {
+        Request req = new Request();
+        req.setPatientlst8req(patientlst8req);
+
+        String url = OrcaApiUrl.PATIENTLST8V2;
+        Response response = request(url, req);
+        return response.getPatientlst8res();
+    }
+
+    /**
      * Orca に Request を POST して Response を得る.
      *
      * @param url URL

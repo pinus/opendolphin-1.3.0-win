@@ -1541,10 +1541,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
         mediator.dispose();
         inspector.dispose();
-
-        getFrame().setVisible(false); // ここで windowClosed が呼ばれる
-        getFrame().setJMenuBar(null);
-        getFrame().dispose();
+        windowSupport.dispose(); // ここで windowClosed が呼ばれる
     }
 
     /**

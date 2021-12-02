@@ -577,8 +577,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     public void stop() {
         editor.stop();
         mediator.dispose();
-        getFrame().setVisible(false);
-        getFrame().dispose();
+        windowSupport.dispose();
         realChart.getFrame().toFront();
     }
 

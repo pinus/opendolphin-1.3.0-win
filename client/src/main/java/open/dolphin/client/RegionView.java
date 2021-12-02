@@ -247,7 +247,7 @@ public class RegionView extends javax.swing.JDialog {
 
         SwingUtilities.invokeLater(() -> {
             cancel.requestFocusInWindow();
-            input.setSelected(true);
+            //input.setSelected(true);
         });
     }
 

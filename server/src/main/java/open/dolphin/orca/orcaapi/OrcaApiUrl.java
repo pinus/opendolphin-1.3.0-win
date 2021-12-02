@@ -251,4 +251,9 @@ public class OrcaApiUrl {
      * 症状詳記情報取得 (POST): 引数なし, 症状詳記情報取得 (Ver.5.0.0).
      */
     public static final String SUBJECTIVESLSTV2 = "/api01rv2/subjectiveslstv2";
+
+    /**
+     * 旧姓履歴情報取得 (POST): 引数なし, 旧姓履歴情報取得 (Ver.5.0.0).
+     */
+    public static final String PATIENTLST8V2 = "/api01rv2/patientlst8v2";
 }

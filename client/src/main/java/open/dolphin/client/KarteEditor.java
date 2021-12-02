@@ -468,22 +468,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
             return;
         }
 
-        // debug code 希に nullpo でる
-        if (soaPane == null) {
-            logger.info("soaPane is null");
-        } else {
-            if (soaPane.getTextPane() == null) {
-                logger.info("textPane is null");
-            } else {
-                logger.info("textPane text = " + org.apache.commons.lang3.StringUtils.truncate(soaPane.getTextPane().getText(), 10));
-                if (soaPane.getParent() == null) {
-                    logger.info("soaPane parent = null");
-                } else {
-                    logger.info("soaPane title = " + soaPane.getParent().getContext().getPatient().getFullName());
-                }
-            }
-        }
-
         // 文書末の余分な改行文字を削除する by masuda-senesi
         KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
         doc.removeExtraCr();

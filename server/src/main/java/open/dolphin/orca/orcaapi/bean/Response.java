@@ -200,6 +200,17 @@ public class Response {
     private Subjectiveslstres subjectiveslstres;
 
     /**
+     * PUSH通知一括取得. https://www.orca.med.or.jp/receipt/tec/api/pusheventget.html
+     */
+    private open.dolphin.orca.pushapi.bean.Data data;
+
+    /**
+     * 旧姓履歴情報取得. https://www.orca.med.or.jp/receipt/tec/api/kyuseirireki.html
+     */
+    private Patientlst8res patientlst8res;
+
+
+    /**
      * 患者基本情報の取得. https://www.orca.med.or.jp/receipt/tec/api/patientget.html
      *
      * @return the patientinfores
@@ -871,5 +882,42 @@ public class Response {
      */
     public void setSubjectiveslstres(Subjectiveslstres subjectiveslstres) {
         this.subjectiveslstres = subjectiveslstres;
+    }
+
+    /**
+     * PUSH通知一括取得. https://www.orca.med.or.jp/receipt/tec/api/pusheventget.html
+     *
+     * @return data
+     */
+    public open.dolphin.orca.pushapi.bean.Data getData() {
+        return data;
+    }
+
+    /**
+     * PUSH通知一括取得. https://www.orca.med.or.jp/receipt/tec/api/pusheventget.html
+     *
+     * @param data to set
+     */
+    public void setData(open.dolphin.orca.pushapi.bean.Data data) {
+        this.data = data;
+    }
+
+    private Patientlst8req patientlst8req;
+    /**
+     * 旧姓履歴情報取得. https://www.orca.med.or.jp/receipt/tec/api/kyuseirireki.html
+     *
+     * @return patientlst8res
+     */
+    public Patientlst8res getPatientlst8res() {
+        return patientlst8res;
+    }
+
+    /**
+     * 旧姓履歴情報取得. https://www.orca.med.or.jp/receipt/tec/api/kyuseirireki.html
+     *
+     * @param patientlst8res to set
+     */
+    public void setPatientlst8res(Patientlst8res patientlst8res) {
+        this.patientlst8res = patientlst8res;
     }
 }

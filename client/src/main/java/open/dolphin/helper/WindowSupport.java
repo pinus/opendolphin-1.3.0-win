@@ -136,6 +136,12 @@ public class WindowSupport implements MenuListener {
         return windowAction;
     }
 
+    public void dispose() {
+        frame.setVisible(false);
+        frame.setJMenuBar(null);
+        frame.dispose();
+    }
+
     /**
      * ウインドウメニューが選択された場合，現在オープンしているウインドウのリストを使用し，
      * それらを選択するための MenuItem を追加する.

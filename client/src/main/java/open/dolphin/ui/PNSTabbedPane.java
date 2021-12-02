@@ -359,6 +359,7 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
 
         buttonPanel.revalidate();
         buttonPanel.repaint();
+        tabCount--;
     }
 
     /**
@@ -598,14 +599,25 @@ public class PNSTabbedPane extends JPanel implements ChangeListener {
                 int r = RADIUS;
                 g.setColor(fillColor);
                 g.fillRoundRect(0, 0, w, h, r * 2, r * 2); // 全体を角丸で塗って
-                g.fillRect(w - r, 0, r, h); // 右端を四角く塗り直す
+                if (tabCount > 1) { g.fillRect(w - r, 0, r, h); } // 右端を四角く塗り直す
                 // frame
                 g.setColor(frameColor);
-                g.drawLine(r, 0, w - 1, 0); // 上
-                g.drawLine(0, r, 0, h - r - 1); // 左
-                g.drawArc(0, 0, r * 2, r * 2, 90, 90); // 左上 12時から反時計 90度
-                g.drawArc(0, h - r * 2 - 1, r * 2, r * 2, 180, 90);
-                g.drawLine(r, h - 1, w - 1, h - 1); // 下
+                if (tabCount > 1) {
+                    g.drawLine(r, 0, w - 1, 0); // 上
+                    g.drawLine(0, r, 0, h - r - 1); // 左
+                    g.drawArc(0, 0, r * 2, r * 2, 90, 90); // 左上 12時から反時計 90度
+                    g.drawArc(0, h - r * 2 - 1, r * 2, r * 2, 180, 90);
+                    g.drawLine(r, h - 1, w - 1, h - 1); // 下
+                } else {
+                    g.drawLine(r, 0, w - 2*r - 1, 0); // 上
+                    g.drawLine(0, r, 0, h - r - 1); // 左
+                    g.drawLine(r, h - 1, w - 2*r - 1, h - 1); // 下
+                    g.drawLine(w - 1, r, w - 1, h - 1 - r); // 右
+                    g.drawArc(0, 0, r * 2, r * 2, 90, 90); // 左上 12時から反時計 90度
+                    g.drawArc(0, h - r * 2 - 1, r * 2, r * 2, 180, 90); // 左下
+                    g.drawArc(w - 1 - r * 2, 0, r * 2, r * 2, 0, 90); // 右上 3時から反時計 90度
+                    g.drawArc(w - 1 - r * 2, h - r * 2 - 1, r * 2, r * 2, 0, -90); // 右下 3時から時計回り90度
+                }
 
             } else if (this.isRightEnd && isTop && isBottom) {
                 // 右端のボタンの角を取る
