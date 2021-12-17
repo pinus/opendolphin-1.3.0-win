@@ -1,11 +1,13 @@
 package open.dolphin.infomodel;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
 
 /**
  * StampModel.
+ * Field 'model' contains any of BundleMed, BundleDolphin, RegisteredDiagnosisModel, or TextStampModel
  *
  * @author Minagawa, Kazushi
  */
@@ -28,7 +30,13 @@ public class StampModel extends InfoModel {
     @Lob
     private byte[] stampBytes;
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+    @JsonSubTypes({
+        @JsonSubTypes.Type(BundleMed.class),
+        @JsonSubTypes.Type(BundleDolphin.class),
+        @JsonSubTypes.Type(TextStampModel.class),
+        @JsonSubTypes.Type(RegisteredDiagnosisModel.class)
+    })
     @Transient
     private IInfoModel stamp;
 
@@ -68,9 +76,7 @@ public class StampModel extends InfoModel {
         return stamp;
     }
 
-    public void setStamp(IInfoModel stamp) {
-        this.stamp = stamp;
-    }
+    public void setStamp(IInfoModel stamp) { this.stamp = stamp; }
 
     @Override
     public int hashCode() {

@@ -5,11 +5,11 @@ import open.dolphin.helper.Task;
 import open.dolphin.project.Project;
 import open.dolphin.service.SystemService;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.*;
+import javax.ws.rs.client.ClientBuilder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -130,7 +130,7 @@ public class OIDGetter extends JPanel {
         protected String doInBackground() throws Exception {
 
             // Resteasy
-            ResteasyClient client = new ResteasyClientBuilder().build();
+            ResteasyClient client = (ResteasyClient) ClientBuilder.newClient();
             JsonConverter jsonConverter = new JsonConverter();
             client.register(jsonConverter);
 

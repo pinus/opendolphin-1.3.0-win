@@ -5,11 +5,11 @@ import open.dolphin.helper.HashUtil;
 import open.dolphin.infomodel.*;
 import open.dolphin.service.SystemService;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.ClientBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -195,7 +195,7 @@ public class InitDatabase {
         }
 
         // 登録
-        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyClient client = (ResteasyClient) ClientBuilder.newClient();
         client.register(new JsonConverter());
         ResteasyWebTarget target = client.target(hostAddress);
         service = target.proxy(SystemService.class);

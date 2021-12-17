@@ -13,8 +13,8 @@ import open.dolphin.orca.pushapi.bean.Response;
 import open.dolphin.service.PatientService;
 import open.dolphin.service.PvtService;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.jboss.resteasy.util.Base64;
+import org.jboss.resteasy.core.ResteasyContext;
+import org.jboss.resteasy.util.Encode;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -177,8 +177,8 @@ public class PvtClient {
         public static void set() {
             String str = IInfoModel.DEFAULT_FACILITY_OID + InfoModel.COMPOSITE_KEY_MAKER
                     + "dummyUser" + InfoModel.PASSWORD_SEPARATOR + "dummyPass";
-            header = Base64.encodeBytes(str.getBytes());
-            Map<Class<?>, Object> contextDataMap = ResteasyProviderFactory.getContextDataMap();
+            header = Encode.encodeString(str); // application/x-www-form-urlencoded
+            Map<Class<?>, Object> contextDataMap = ResteasyContext.getContextDataMap();
             contextDataMap.put(HttpHeaders.class, dummyHeader);
         }
 

@@ -5,7 +5,7 @@ import open.dolphin.infomodel.UserModel;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
-import org.jboss.resteasy.util.Base64;
+import org.jboss.resteasy.util.Encode;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
@@ -81,7 +81,7 @@ public class SecurityFilter implements ContainerRequestFilter {
                 final String encoded = authorization.get(0).replaceFirst(AUTHENTICATION_SCHEME + " ", "");
 
                 // Decode username and password
-                String usernameAndPassword = new String(Base64.decode(encoded));
+                String usernameAndPassword = Encode.decode(encoded); // application/x-www-form-urlencoded
 
                 // Split username and password tokens
                 // Authorization header pattern is defined in ClientRequestFilter

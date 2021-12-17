@@ -13,9 +13,10 @@
 
         <!-- versions -->
         <java.version>1.8</java.version>
-        <version.org.jboss.resteasy>3.9.0.Final</version.org.jboss.resteasy>
-        <version.org.hibernate>5.3.13.Final</version.org.hibernate>
-        <version.org.glassfish.tyrus.bundles>1.15</version.org.glassfish.tyrus.bundles>
+        <version.org.jboss.resteasy>4.7.2.Final</version.org.jboss.resteasy>
+        <version.org.hibernate>5.3.23.Final</version.org.hibernate>
+        <version.commons-codec>1.15</version.commons-codec>
+        <version.org.glassfish.tyrus.bundles>1.18</version.org.glassfish.tyrus.bundles>
     </properties>
 
     <dependencies>
@@ -36,7 +37,7 @@
         <!-- Resteasy -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
+            <artifactId>resteasy-core</artifactId>
             <version>${version.org.jboss.resteasy}</version>
         </dependency>
         <dependency>
@@ -85,12 +86,12 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.7</version>
         </dependency>
         <dependency>
             <groupId>com.j2html</groupId>
             <artifactId>j2html</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>javax.mail</groupId>

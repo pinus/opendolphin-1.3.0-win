@@ -1,5 +1,6 @@
 package open.dolphin.infomodel;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.apache.lucene.analysis.cjk.CJKAnalyzer;
 import org.hibernate.search.annotations.Analyzer;
@@ -23,7 +24,12 @@ public class ModuleModel extends KarteEntryBean<ModuleModel> {
     @Embedded
     private ModuleInfoBean moduleInfo;
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+    @JsonSubTypes({
+        @JsonSubTypes.Type(BundleDolphin.class),
+        @JsonSubTypes.Type(BundleMed.class),
+        @JsonSubTypes.Type(ProgressCourse.class)
+    })
     @Transient
     private IInfoModel model;
 
@@ -62,9 +68,7 @@ public class ModuleModel extends KarteEntryBean<ModuleModel> {
         return model;
     }
 
-    public void setModel(IInfoModel model) {
-        this.model = model;
-    }
+    public void setModel(IInfoModel model) { this.model = model; }
 
     public byte[] getBeanBytes() {
         return beanBytes;

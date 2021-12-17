@@ -1,7 +1,7 @@
 package open.dolphin.service;
 
 import open.dolphin.infomodel.InfoModel;
-import org.jboss.resteasy.util.Base64;
+import org.jboss.resteasy.util.Encode;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -27,16 +27,10 @@ public abstract class DolphinService {
      * @return FacilityId:username
      */
     private String getCallerId() {
-        try {
-            String encoded = headers.getHeaderString("Authorization");
-            String usernameAndPassword = new String(Base64.decode(encoded));
-            String[] split = usernameAndPassword.split(InfoModel.PASSWORD_SEPARATOR);
-            return split[0];
-
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
-        return "";
+        String encoded = headers.getHeaderString("Authorization");
+        String usernameAndPassword = Encode.decode(encoded);
+        String[] split = usernameAndPassword.split(InfoModel.PASSWORD_SEPARATOR);
+        return split[0];
     }
 
     /**
