@@ -14,7 +14,7 @@
   <manifest></manifest>
   <icon>icons\OpenDolphin-ICO.ico</icon>
   <jre>
-    <path>c:\Applications\jre1.8.0_251</path>
+    <path>c:\Applications\jre1.8.0_311</path>
     <minVersion>1.8.0</minVersion>
     <maxVersion></maxVersion><jdkPreference>preferJre</jdkPreference>
     <opt>-Dfile.encoding=UTF8</opt>
