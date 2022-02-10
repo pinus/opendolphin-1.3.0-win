@@ -14,7 +14,7 @@
         <!-- versions -->
         <java.version>1.8</java.version>
         <version.org.jboss.resteasy>4.7.2.Final</version.org.jboss.resteasy>
-        <version.org.hibernate>5.3.23.Final</version.org.hibernate>
+        <version.org.hibernate>5.4.24.Final</version.org.hibernate>
         <version.commons-codec>1.15</version.commons-codec>
         <version.org.glassfish.tyrus.bundles>1.18</version.org.glassfish.tyrus.bundles>
     </properties>
