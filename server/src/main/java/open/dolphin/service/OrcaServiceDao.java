@@ -1,6 +1,5 @@
 package open.dolphin.service;
 
-import open.dolphin.JsonConverter;
 import open.dolphin.dto.DiagnosisSearchSpec;
 import open.dolphin.dto.OrcaEntry;
 import open.dolphin.dto.PatientVisitSpec;
@@ -8,9 +7,7 @@ import open.dolphin.infomodel.*;
 import open.dolphin.orca.ClaimConst;
 import open.dolphin.orca.orcadao.OrcaDao;
 import open.dolphin.orca.orcadao.OrcaDbConnection;
-import open.dolphin.orca.orcadao.bean.Inputset;
-import open.dolphin.orca.orcadao.bean.Syskanri;
-import open.dolphin.orca.orcadao.bean.Wksryact;
+import open.dolphin.orca.orcadao.bean.*;
 import open.dolphin.util.ModelUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
@@ -419,8 +416,6 @@ public class OrcaServiceDao {
                     // inputcd が 616130532 のパターン
                     //
                     OrcaEntry tensu = tensuMap.get(inputcd); // inputcd が 616130532のパターン
-                    System.out.println(inputcd);
-                    System.out.println(JsonConverter.toJson(tensu));
 
                     ClaimItem item = new ClaimItem();
                     item.setCode(inputcd);
@@ -658,5 +653,137 @@ public class OrcaServiceDao {
         con.executeQuery(byomeiSql);
 
         return ret;
+    }
+
+    /**
+     * 資格確認薬剤情報格納.
+     * TBL_ONSHI_YAKUZAI_SUB 資格確認薬剤情報格納副テーブル.
+     *
+     * @param ptnum
+     * @return List of Onshi Yakuzai
+     */
+    public List<OnshiYakuzai> getDrugHistory(String ptnum) {
+        String sql = "select sryym, srydd, shoho_hakkoymd, rennum, yohocd, yohoname, shiji, srycd, yakuzainame, taniname, suryo, yoryo, kaisu, chozai_seqnum, shoho_seqnum "
+            + "from tbl_onshi_yakuzai_sub "
+            + "where ptid = (select ptid from tbl_ptnum where ptnum = ?)";
+
+        List<OnshiYakuzai> bundle = new ArrayList<>();
+        OrcaDbConnection con = dao.getConnection(rs -> {
+            while (rs.next()) {
+                OnshiYakuzai onshiYakuzai = new OnshiYakuzai();
+                String sryym = rs.getString(1); // 202107
+                String srydd = rs.getString(2); // 25
+                onshiYakuzai.setIsoDate(String.format("%s-%s-%s", sryym.substring(0,4), sryym.substring(4), srydd));
+                onshiYakuzai.setShohoHakkoymd(rs.getString(3));
+                onshiYakuzai.setRennum(rs.getInt(4)); // 明細毎の連番
+                onshiYakuzai.setYohocd(rs.getString(5)); // 3桁の用法コード: 別表12 外用剤は 900
+                onshiYakuzai.setYohoname(rs.getString(6)); // 用法名称: 外用剤の場合空欄
+                onshiYakuzai.setShiji(rs.getString(7)); // 特別指示: 外用回数、部位
+                onshiYakuzai.setSrycd(rs.getString(8)); // 医薬品コード
+                onshiYakuzai.setYakuzainame(rs.getString(9)); // 薬剤名
+                onshiYakuzai.setTaniname(rs.getString(10)); // 単位名
+                onshiYakuzai.setSuryo(rs.getInt(11)); // 1日量
+                onshiYakuzai.setYoryo(rs.getInt(12)); // 1回量: 0 が入っている
+                onshiYakuzai.setKaisu(rs.getInt(13)); // x日分: 外用剤は 1
+                onshiYakuzai.setChozaiSeqnum(rs.getInt(14)); // 薬局 1,2,..
+                onshiYakuzai.setShohoSeqnum(rs.getInt(15)); // 医院 2,3,..
+
+                bundle.add(onshiYakuzai);
+            }
+        });
+        con.setParam(1, ptnum);
+        con.executeQuery(sql);
+
+        // sort
+        Collections.sort(bundle, (o1, o2) -> {
+            int date = o1.getIsoDate().compareTo(o2.getIsoDate());
+            int shohoSeq = o1.getShohoSeqnum() - o2.getShohoSeqnum();
+            int chozaiSeq = o1.getChozaiSeqnum() - o2.getChozaiSeqnum();
+            int rennum = o1.getRennum() - o2.getRennum();
+            return date == 0? shohoSeq == 0? chozaiSeq == 0? rennum : chozaiSeq : shohoSeq : date;
+        });
+
+        return bundle;
+    }
+
+    /**
+     * 資格確認薬剤情報の有無の確認.
+     *
+     * @param ptnum
+     * @return has Onshi Yakuzai data or not
+     */
+    public boolean hasDrugHistory(String ptnum) {
+        String sql = "select sryym from tbl_onshi_yakuzai_sub where ptid = (select ptid from tbl_ptnum where ptnum = ?) limit 1";
+        List<String> sryym = new ArrayList<>();
+        OrcaDbConnection con = dao.getConnection(rs -> {
+            while (rs.next()) {
+                sryym.add(rs.getString(1));
+            }
+        });
+        con.setParam(1, ptnum);
+        con.executeQuery(sql);
+
+        return !sryym.isEmpty();
+    }
+
+    /**
+     * 資格確認特定健診情報格納.
+     * TBL_ONSHI_KENSHIN_SUB 資格確認特定健診情報格納副テーブル.
+     *
+     * @param ptnum
+     * @return List of Onshi Kenshin
+     */
+    public List<OnshiKenshin> getKenshin(String ptnum) {
+        String sql = "select jisshiymd, rennum, komokucd, komokuname, data_type, data_value, data_tani "
+            + "from tbl_onshi_kenshin_sub "
+            + "where ptid = (select ptid from tbl_ptnum where ptnum = ?)";
+
+        List<OnshiKenshin> bundle = new ArrayList<>();
+        OrcaDbConnection con = dao.getConnection(rs -> {
+            while (rs.next()) {
+                OnshiKenshin onshiKenshin = new OnshiKenshin();
+                String jisshiymd = rs.getString(1); // 20200418
+                onshiKenshin.setIsoDate(String.format("%s-%s-%s", jisshiymd.substring(0,4), jisshiymd.substring(4,6), jisshiymd.substring((6))));
+                onshiKenshin.setRennum(rs.getInt(2)); // 1,2,...
+                onshiKenshin.setKomokucd(rs.getString(3)); // 9N001000000000001
+                onshiKenshin.setKomokuname(rs.getString(4)); //
+                onshiKenshin.setDataType(rs.getString(5)); // PQ (結果が単一の物理量), CD (順序なし), ST (文字列), CO (順序付き)
+                onshiKenshin.setDataValue(rs.getString(6)); //
+                onshiKenshin.setDataTani(rs.getString(7));
+
+                bundle.add(onshiKenshin);
+            }
+        });
+        con.setParam(1, ptnum);
+        con.executeQuery(sql);
+
+        // sort
+        Collections.sort(bundle, (o1, o2) -> {
+            int date = o1.getIsoDate().compareTo(o2.getIsoDate());
+            int rennum = o1.getRennum() - o2.getRennum();
+            return date == 0? rennum : date;
+        });
+
+        return bundle;
+    }
+
+    /**
+     * 資格確認特定健診情報の有無の確認.
+     *
+     * @param ptnum
+     * @return has Onshi Kenshin or not
+     */
+    public boolean hasKenshin(String ptnum) {
+        String sql = "select jisshiymd from tbl_onshi_kenshin_sub where ptid = (select ptid from tbl_ptnum where ptnum = ?) limit 1";
+        List<String> jisshiymd = new ArrayList<>();
+        OrcaDbConnection con = dao.getConnection(rs -> {
+            while (rs.next()) {
+                jisshiymd.add(rs.getString(1));
+            }
+        });
+        con.setParam(1, ptnum);
+        con.executeQuery(sql);
+
+        return !jisshiymd.isEmpty();
     }
 }

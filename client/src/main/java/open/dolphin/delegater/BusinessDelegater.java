@@ -3,7 +3,9 @@ package open.dolphin.delegater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.lang.reflect.ParameterizedType;
+import java.util.concurrent.Callable;
 
 /**
  * BusinessDelegater.
@@ -11,6 +13,8 @@ import java.lang.reflect.ParameterizedType;
  * @author pns
  */
 public class BusinessDelegater<T> {
+    private static int RETRY = 3;
+
     protected Logger logger;
     private Result errorCode = Result.NO_ERROR;
     private String errorMessage = "delegate error";
@@ -35,6 +39,38 @@ public class BusinessDelegater<T> {
             processError(e);
         }
         return null;
+    }
+
+    public <K> K submit(Callable<K> callable) {
+        int retry = RETRY;
+        K result = null;
+
+        while (retry > 0) {
+            try {
+                result = callable.call();
+                retry = 0;
+
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                if (retry > 1) {
+                    retry --;
+                    logger.info("retry: " + (RETRY - retry));
+
+                } else {
+                    int ans = JOptionPane.showConfirmDialog(
+                        null, "エラーが発生しました。再送しますか？", e.getMessage(),
+                        JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE
+                    );
+                    if (ans == JOptionPane.YES_OPTION) {
+                        retry = RETRY;
+                    } else {
+                        processError(e);
+                        retry = 0;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public Result getErrorCode() {

@@ -1,5 +1,7 @@
 package open.dolphin.client;
 
+import open.dolphin.JsonConverter;
+import open.dolphin.delegater.BusinessDelegater;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.dnd.KartePaneTransferHandler;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
+import javax.ws.rs.BadRequestException;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -468,6 +471,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
             return;
         }
 
+        // Autosave の dirty を解消して、干渉してくるのを防ぐ
+        autosave.run();
+
+        // Debug code
+        logger.info("save started: " + System.currentTimeMillis());
+
         // 文書末の余分な改行文字を削除する by masuda-senesi
         KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
         doc.removeExtraCr();
@@ -488,7 +497,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel {
             protected String doInBackground() {
                 logger.debug("KarteSaveTask doInBackground");
                 String ret = null;
-
                 ddl.putKarte(saveModel);
 
                 if (ddl.isNoError()) {

@@ -28,6 +28,7 @@ public class ModuleModel extends KarteEntryBean<ModuleModel> {
     @JsonSubTypes({
         @JsonSubTypes.Type(BundleDolphin.class),
         @JsonSubTypes.Type(BundleMed.class),
+        @JsonSubTypes.Type(TextStampModel.class),
         @JsonSubTypes.Type(ProgressCourse.class)
     })
     @Transient

@@ -9,19 +9,25 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.orca.orcadao.bean.OnshiKenshin;
+import open.dolphin.orca.orcadao.bean.OnshiYakuzai;
 import open.dolphin.orca.orcadao.bean.Syskanri;
 import open.dolphin.orca.orcadao.bean.Wksryact;
 import open.dolphin.service.OrcaServiceApi;
 import open.dolphin.service.OrcaServiceDao;
 
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class OrcaServiceTest {
 
-    private long wrap;
+    private long lap;
 
     public static void main(String[] argv) throws ReflectiveOperationException {
+        String userDir = System.getProperty("user.dir");
+        System.setProperty("jboss.server.base.dir", userDir);
         OrcaServiceTest test = new OrcaServiceTest();
         test.executeTest();
     }
@@ -121,19 +127,96 @@ public class OrcaServiceTest {
         System.out.println(JsonConverter.toJson(result));
     }
 
+    private void getDrugHistory(OrcaServiceDao orcaService) throws ReflectiveOperationException {
+        List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "012773");
+        //List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "037145");
+
+        StringBuilder sb = new StringBuilder();
+
+        // sort
+        Collections.sort(onshiYakuzai, (o1, o2) -> {
+            int date = o1.getIsoDate().compareTo(o2.getIsoDate());
+            int name = o1.getYakuzainame().compareTo(o2.getYakuzainame());
+            int yoho = o1.getYohocd().compareTo(o2.getYohocd());
+            return yoho == 0? name == 0? date : name : yoho;
+        });
+
+        for (OnshiYakuzai o : onshiYakuzai) {
+            if (o.getYohocd().equals("900")) {
+                // 外用剤
+                sb.append(String.format("%s %s %s%s\n", o.getYakuzainame(), o.getIsoDate(), o.getSuryo(), o.getTaniname()));
+            } else {
+                LocalDate startDate = LocalDate.parse(o.getIsoDate());
+                LocalDate endDate = startDate.plusDays(o.getKaisu());
+                String date = String.format("%s〜%s", startDate.format(DateTimeFormatter.ISO_DATE), endDate.format(DateTimeFormatter.ISO_DATE));
+                sb.append(String.format("%s %s\n", o.getYakuzainame(), date));
+            }
+        }
+
+        System.out.println(sb.toString());
+    }
+
+    private void hasDrugHistory(OrcaServiceDao orcaService) {
+        boolean hasDrugHistory = orcaService.hasDrugHistory("037145");
+        System.out.println("has drug history = " + hasDrugHistory);
+    }
+
+    private void getKenshin(OrcaServiceDao orcaService) {
+        List<OnshiKenshin> kenshin = orcaService.getKenshin("037145");
+
+        StringBuilder sb = new StringBuilder();
+        String date = "";
+
+        for (OnshiKenshin k : kenshin) {
+            if (!date.equals(k.getIsoDate())) {
+                date = k.getIsoDate();
+                sb.append(date); sb.append("\n");
+            }
+            String v = k.getDataValue();
+            switch (k.getKomokuname()) {
+                case "尿糖":
+                case "尿蛋白":
+                    k.setDataValue(v.equals("1")? "-" : v.equals("2")? "±" : v.equals("3")? "+" : v.equals("4")? "++" : "+++");
+                case "既往歴":
+                case "自覚症状":
+                case "他覚症状":
+                    k.setDataValue(v.equals("1")? "特記すべきことあり" : "特記すべきことなし");
+                case "メタボリックシンドローム判定":
+                    k.setDataValue(v.equals("1")? "基準該当" : v.equals("2")? "予備軍該当" : v.equals("3")? "非該当" : "判定不能");
+                case "服薬1(血圧)":
+                case "服薬2(血糖)":
+                case "服薬3(脂質)":
+                    k.setDataValue(v.equals("1")? "服薬あり" : "服薬なし");
+                case "喫煙":
+                    k.setDataValue(v.equals("1")? "はい" : "いいえ");
+            }
+
+            sb.append(String.format("%s %s %s\n", k.getKomokuname(), k.getDataValue(), k.getDataTani()));
+        }
+        System.out.println(sb.toString());
+    }
+
+    private void hasKenshin(OrcaServiceDao orcaService) {
+        boolean hasKenshin = orcaService.hasKenshin("037145");
+        System.out.println("has kensihin = " + hasKenshin);
+    }
+
     private void executeTest() throws ReflectiveOperationException {
         OrcaServiceApi api = new OrcaServiceApi();
         OrcaServiceDao dao = new OrcaServiceDao();
 
-        wrap = System.currentTimeMillis();
+        lap = System.currentTimeMillis();
 
         //getWksryact(api); wrap = showWrap(wrap);
         //getWksryact(dao); wrap = showWrap(wrap);
         //getSyskanri(api); wrap = showWrap(wrap);
         //getSyskanri(dao); wrap = showWrap(wrap);
         //findTensu(dao); wrap = showWrap(wrap);
-        findDiagnosis(dao);
-        wrap = showWrap(wrap);
+        getDrugHistory(dao);
+        //hasDrugHistory(dao);
+        //getKenshin(dao);
+        //hasKenshin(dao);
+        lap = showLap(lap);
         //getOrcaInputCdList(api); wrap = showWrap(wrap);
         //getOrcaInputCdList(dao); wrap = showWrap(wrap);
         //getOrcaDisease(api); wrap = showWrap(wrap);
@@ -152,8 +235,8 @@ public class OrcaServiceTest {
         }
     }
 
-    private long showWrap(long t) {
-        System.out.println("wrap = " + (System.currentTimeMillis() - t) + " msec");
+    private long showLap(long t) {
+        System.out.println("lap = " + (System.currentTimeMillis() - t) + " msec");
         return System.currentTimeMillis();
     }
 }

@@ -412,6 +412,11 @@ public class PatientInfoDocument extends AbstractChartDocument {
             List<String[]> list = new ArrayList<String[]>();
 
             String[] rowData = new String[2];
+            rowData[0] = "GUID";
+            rowData[1] = insurance.getGUID();
+            list.add(rowData);
+
+            rowData = new String[2];
             rowData[0] = "保険種別";
             rowData[1] = insurance.getInsuranceClass();
             list.add(rowData);

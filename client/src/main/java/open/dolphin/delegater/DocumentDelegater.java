@@ -12,7 +12,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DocumentDelegater.
@@ -47,8 +46,8 @@ public class DocumentDelegater extends BusinessDelegater<KarteService> {
     public long putKarte(DocumentModel karteModel) {
         // 確定日，適合開始日，記録日，ステータスを DocInfo から DocumentModel(KarteEntry) に移す
         karteModel.toPersist();
-        // 保存する
-        return getService().addDocument(karteModel); // returns document pk
+        // 保存する with exception handling
+        return submit(() -> getService().addDocument(karteModel)); // return document pk
     }
 
     /**

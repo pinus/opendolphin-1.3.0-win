@@ -48,6 +48,8 @@ public class StampModifier {
      * @return duplicate の数
      */
     public static int checkDuplicates(ModuleModel srcStamp, KartePane kartePane) {
+        // チェックするのは BundleDolphin だけ
+        if (!(srcStamp.getModel() instanceof BundleDolphin)) { return 0; }
 
         BundleDolphin srcModel = (BundleDolphin) srcStamp.getModel();
         String classCode = srcModel.getClassCode();

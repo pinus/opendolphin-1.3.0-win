@@ -1,10 +1,9 @@
 package open.dolphin.delegater;
 
 import open.dolphin.dto.*;
-import open.dolphin.infomodel.DocumentModel;
-import open.dolphin.infomodel.ModuleInfoBean;
-import open.dolphin.infomodel.ModuleModel;
-import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.infomodel.*;
+import open.dolphin.orca.orcadao.bean.OnshiKenshin;
+import open.dolphin.orca.orcadao.bean.OnshiYakuzai;
 import open.dolphin.orca.orcadao.bean.Syskanri;
 import open.dolphin.orca.orcadao.bean.Wksryact;
 import open.dolphin.service.OrcaService;
@@ -12,6 +11,8 @@ import open.dolphin.service.OrcaService;
 import javax.swing.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -137,6 +138,21 @@ public class OrcaDelegater extends BusinessDelegater<OrcaService> {
      * @return ApiResult
      */
     public Result sendDocument(DocumentModel document) {
+        // 2022-06-25 健康保険情報が null 化するなぞ事態が発生
+        // 新患登録で保険登録をミスったようだが詳細不明
+        Collection<PVTHealthInsuranceModel> insurances = document.getKarte().getPatient().getPvtHealthInsurances();
+        if (insurances == null || insurances.isEmpty()) {
+            insurances = new ArrayList<>(1);
+            PVTHealthInsuranceModel model = new PVTHealthInsuranceModel();
+            model.setInsuranceClass(IInfoModel.INSURANCE_SELF);
+            model.setInsuranceClassCode(IInfoModel.INSURANCE_SELF_CODE);
+            model.setInsuranceClassCodeSys(IInfoModel.INSURANCE_SYS);
+            insurances.add(model);
+        }
+        if (document.getDocInfo().getHealthInsuranceGUID() == null) {
+            document.getDocInfo().setHealthInsuranceGUID("00000");
+        }
+
         ApiResult result = getService().sendDocument(document);
         String apiResult = result.getApiResult();
         String ptId = document.getKarte().getPatient().getPatientId();
@@ -204,4 +220,36 @@ public class OrcaDelegater extends BusinessDelegater<OrcaService> {
     public List<SubjectivesSpec> getSubjectives(SubjectivesSpec spec) {
         return getService().getSubjectives(spec);
     }
+
+    /**
+     * TBL_ONSHI_YAKUZAI_SUB から資格確認薬剤情報を得る.
+     *
+     * @param ptnum
+     * @return List of Onshi Yakuzai
+     */
+    public List<OnshiYakuzai> getDrugHistory(String ptnum) { return getService().getDrugHistory(ptnum); }
+
+    /**
+     * TBL_ONSHI_YAKUZAI_SUB に資格確認薬剤情報があるかどうかを返す.
+     *
+     * @param ptnum
+     * @return has drug history or not
+     */
+    public boolean hasDrugHistory(String ptnum) { return getService().hasDrugHistory(ptnum); }
+
+    /**
+     * TBL_ONSHI_KENSHIN_SUB から資格確認特定健診情報を得る.
+     *
+     * @param ptnum
+     * @return List of Onshi Kenshin
+     */
+    public List<OnshiKenshin> getKenshin(String ptnum) { return getService().getKenshin(ptnum); }
+
+    /**
+     * TBL_ONSHI_KENSHIN_SUB に資格確認特定健診情報があるかどうかを返す.
+     *
+     * @param ptnum
+     * @return has onshi kenshin or not
+     */
+    public boolean hasKenshin(String ptnum) { return getService().hasKenshin(ptnum); }
 }

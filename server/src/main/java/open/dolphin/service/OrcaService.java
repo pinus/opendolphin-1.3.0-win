@@ -5,6 +5,8 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.orca.orcadao.bean.OnshiKenshin;
+import open.dolphin.orca.orcadao.bean.OnshiYakuzai;
 import open.dolphin.orca.orcadao.bean.Syskanri;
 import open.dolphin.orca.orcadao.bean.Wksryact;
 
@@ -164,4 +166,44 @@ public interface OrcaService {
     @POST
     @Path("getSubjectives")
     public List<SubjectivesSpec> getSubjectives(SubjectivesSpec spec);
+
+    /**
+     * TBL_ONSHI_YAKUZAI_SUB から資格確認薬剤情報を得る.
+     *
+     * @param ptnum
+     * @return List of OnshiYakuzai
+     */
+    @POST
+    @Path("getDrugHistory")
+    public List<OnshiYakuzai> getDrugHistory(String ptnum);
+
+    /**
+     * TBL_ONSHI_YAKUZAI_SUB に資格確認薬剤情報があるかどうかを返す.
+     *
+     * @param ptnum
+     * @return has drug history or not
+     */
+    @POST
+    @Path("hasDrugHistory")
+    public boolean hasDrugHistory(String ptnum);
+
+    /**
+     * TBL_ONSHI_KENSHIN_SUB から資格確認特定健診情報を得る.
+     *
+     * @param ptnum
+     * @return List of Onshi Kenshin
+     */
+    @POST
+    @Path("getKenshin")
+    public List<OnshiKenshin> getKenshin(String ptnum);
+
+    /**
+     * TBL_ONSHI_KENSHIN_SUB に資格確認特定健診情報があるかどうかを返す.
+     *
+     * @param ptnum
+     * @return has kenshin or not
+     */
+    @POST
+    @Path("hasKenshin")
+    public boolean hasKenshin(String ptnum);
 }

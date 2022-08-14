@@ -84,7 +84,7 @@ public class ComponentBoundsManager extends WindowAdapter implements ComponentLi
             prefs.putInt(key + "_height", r.height);
         }
         moved = false; resized = false;
-        logger.info(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
+        logger.debug(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ComponentBoundsManager extends WindowAdapter implements ComponentLi
         prefs.putInt(key + "_y", r.y);
         prefs.putInt(key + "_width", r.width);
         prefs.putInt(key + "_height", r.height);
-        logger.info(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
+        logger.debug(String.format("%s loc(%d,%d) size(%d,%d)", key, r.x, r.y, r.width, r.height));
     }
 
     /**

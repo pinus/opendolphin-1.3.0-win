@@ -20,8 +20,8 @@ import java.util.stream.Stream;
  * @author pns
  */
 public class Autosave implements Runnable {
-    private final static int INTERVAL = 1;
-    private final static int INITIAL_DELAY = 1;
+    private final static int INTERVAL = 2;
+    private final static int INITIAL_DELAY = 2;
     private final static String SUFFIX = "open.dolphin";
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
     private final KarteEditor editor;
@@ -151,7 +151,7 @@ public class Autosave implements Runnable {
      * 編集中カルテの記録を終了し, TemporaryFile を消去する.
      */
     public void stop() {
-        executor.shutdown();
+        executor.shutdownNow();
         tmpFile.delete();
     }
 

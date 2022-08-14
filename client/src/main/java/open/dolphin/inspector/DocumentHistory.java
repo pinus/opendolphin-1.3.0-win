@@ -7,13 +7,15 @@ import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.dto.DocumentSearchSpec;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.DBTask;
-import open.dolphin.ui.ObjectReflectTableModel;
 import open.dolphin.helper.PNSPair;
 import open.dolphin.helper.PNSTriple;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
-import open.dolphin.ui.*;
+import open.dolphin.ui.ComboBoxFactory;
+import open.dolphin.ui.IndentTableCellRenderer;
+import open.dolphin.ui.ObjectReflectTableModel;
+import open.dolphin.ui.PNSCellEditor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,10 @@ import javax.swing.FocusManager;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -281,15 +286,20 @@ public class DocumentHistory implements IInspector {
      * @param busy true の時検索中
      */
     public void blockHistoryTable(boolean busy) {
-        BlockGlass blockGlass = (BlockGlass) context.getFrame().getGlassPane();
-        if (busy) {
-            view.getTable().addKeyListener(blockKeyListener);
-            blockGlass.setText("読み込み中");
-            blockGlass.block();
+        // JSheet が表示されると、glasspane が JPanel に入れ替わっており、そっちでブロックされている
+        if (context.getFrame().getGlassPane() instanceof BlockGlass) {
+            BlockGlass blockGlass = (BlockGlass) context.getFrame().getGlassPane();
+            if (busy) {
+                view.getTable().addKeyListener(blockKeyListener);
+                blockGlass.setText("読み込み中");
+                blockGlass.block();
+            } else {
+                view.getTable().removeKeyListener(blockKeyListener);
+                blockGlass.setText("");
+                blockGlass.unblock();
+            }
         } else {
-            view.getTable().removeKeyListener(blockKeyListener);
-            blockGlass.setText("");
-            blockGlass.unblock();
+            logger.info("Block glass has been replaced by JSheet");
         }
     }
 

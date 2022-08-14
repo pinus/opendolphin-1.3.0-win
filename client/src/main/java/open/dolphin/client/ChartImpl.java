@@ -1,10 +1,12 @@
 package open.dolphin.client;
 
 import open.dolphin.delegater.DocumentDelegater;
+import open.dolphin.event.BadgeEvent;
 import open.dolphin.event.ProxyAction;
 import open.dolphin.helper.*;
 import open.dolphin.impl.care.CareMapDocument;
 import open.dolphin.impl.lbtest.LaboTestBean;
+import open.dolphin.impl.onshi.Onshi;
 import open.dolphin.impl.pinfo.PatientInfoDocument;
 import open.dolphin.impl.pvt.PvtListener;
 import open.dolphin.infomodel.*;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
@@ -45,7 +46,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private final Logger logger;
     private final Preferences prefs;
     /// Document Plugin を格納する TabbedPane
-    private PNSTabbedPane tabbedPane;
+    private PNSBadgeTabbedPane tabbedPane;
     // Active になっているDocument Plugin
     private HashMap<String, ChartDocument> providers;
     // 患者インスペクタ
@@ -765,23 +766,24 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      * ドキュメントタブを生成する.
      * 遅延実行される initComponents() から呼ばれるので遅延実行される.
      */
-    private PNSTabbedPane loadDocuments() {
+    private PNSBadgeTabbedPane loadDocuments() {
 
         providers = new HashMap<>();
 
-        PNSTabbedPane tab = new PNSTabbedPane();
+        PNSBadgeTabbedPane tab = new PNSBadgeTabbedPane();
         tab.setButtonPanelPadding(new Dimension(0, 4));
 
-        ChartDocument[] plugin = new ChartDocument[5];
+        ChartDocument[] plugin = new ChartDocument[6];
         plugin[0] = new DocumentBridgeImpl();
         plugin[1] = new DiagnosisDocument();
         plugin[2] = new LaboTestBean();
         plugin[3] = new CareMapDocument();
         plugin[4] = new PatientInfoDocument();
+        plugin[5] = new Onshi();
 
         for (int index = 0; index < plugin.length; index++) {
-
-            if (index == 0) {
+            // start が必要な tab
+            if (index == 0 || index == 5) {
                 plugin[index].setContext(this);
                 plugin[index].start();
             }
@@ -805,6 +807,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
 
         return tab;
+    }
+
+    /**
+     * Tab に Badge を付ける.
+     * @param e
+     */
+    public void setBadge(BadgeEvent e) {
+        tabbedPane.setBadge(e);
     }
 
     /**

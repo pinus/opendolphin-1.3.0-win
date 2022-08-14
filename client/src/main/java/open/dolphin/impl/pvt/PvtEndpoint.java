@@ -2,6 +2,8 @@ package open.dolphin.impl.pvt;
 
 import open.dolphin.JsonConverter;
 import open.dolphin.infomodel.PatientVisitModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
@@ -14,6 +16,7 @@ import javax.websocket.Session;
 public class PvtEndpoint extends Endpoint {
 
     private PvtListener pvtListener;
+    private Logger logger = LoggerFactory.getLogger(PvtEndpoint.class);
 
     public PvtEndpoint() {
         super();
@@ -33,11 +36,12 @@ public class PvtEndpoint extends Endpoint {
 
     @Override
     public void onError(Session session, Throwable t) {
-        System.out.println("WaitingListImp: WebSocket error: " + t.toString());
+        logger.info("websocket error");
+        t.printStackTrace(System.err);
     }
 
     @Override
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("WaitingListImpl: WebSocket colosed: " + reason.getReasonPhrase());
+        logger.info("websocket closed: " + reason.getReasonPhrase());
     }
 }
