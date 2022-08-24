@@ -62,6 +62,9 @@ public class OrcaDbConnection {
                 case "java.lang.Integer":
                     st.setInt(index, (Integer) value);
                     break;
+
+                case "java.lang.Float":
+                    st.setFloat(index, (Float) value);
             }
         }
     }

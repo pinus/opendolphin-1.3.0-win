@@ -52,12 +52,12 @@ public class OnshiYakuzai {
     /**
      * 使用量.
      */
-    private int suryo;
+    private float suryo;
 
     /**
      * 1回用量.
      */
-    private int yoryo;
+    private float yoryo;
 
     /**
      * 回数
@@ -241,7 +241,7 @@ public class OnshiYakuzai {
      *
      * @return suryo
      */
-    public int getSuryo() {
+    public float getSuryo() {
         return suryo;
     }
 
@@ -250,7 +250,7 @@ public class OnshiYakuzai {
      *
      * @param suryo to set
      */
-    public void setSuryo(int suryo) {
+    public void setSuryo(float suryo) {
         this.suryo = suryo;
     }
 
@@ -259,7 +259,7 @@ public class OnshiYakuzai {
      *
      * @return yoryo
      */
-    public int getYoryo() {
+    public float getYoryo() {
         return yoryo;
     }
 
@@ -268,7 +268,7 @@ public class OnshiYakuzai {
      *
      * @param yoryo to set
      */
-    public void setYoryo(int yoryo) {
+    public void setYoryo(float yoryo) {
         this.yoryo = yoryo;
     }
 

@@ -108,16 +108,15 @@ public class Onshi extends AbstractChartDocument {
                         sb.append(String.format("\n%s 医療機関:%d 薬局:%d\n", date, shoho, chozai));
                     }
                     String yakuzainame = o.getYakuzainame();
-                    yakuzainame = StringTool.toHankakuNumber(yakuzainame);
-                    yakuzainame = StringTool.toHankakuUpperLower(yakuzainame);
-                    yakuzainame = yakuzainame.replaceAll("．", ".");
+                    yakuzainame = toHankaku(yakuzainame);
 
                     sb.append(String.format("    %s ", yakuzainame));
+                    String suryo = Float.toString(o.getSuryo()).replaceAll(".0$", "");
                     if (o.getYohoname().equals("")) {
                         // 外用剤
-                        sb.append(String.format("%s%s %s\n", o.getSuryo(), o.getTaniname(), o.getShiji()));
+                        sb.append(String.format("%s%s %s\n", suryo, o.getTaniname(), o.getShiji()));
                     } else {
-                        sb.append(String.format("%s%s %s %sTD\n", o.getSuryo(), o.getTaniname(), o.getYohoname(), o.getKaisu()));
+                        sb.append(String.format("%s%s %s %sTD\n", suryo, o.getTaniname(), o.getYohoname(), o.getKaisu()));
                     }
                 }
 
@@ -132,14 +131,16 @@ public class Onshi extends AbstractChartDocument {
                 });
 
                 for (OnshiYakuzai o : onshiYakuzai) {
+                    String yakuzainame = toHankaku(o.getYakuzainame());
+                    String suryo = Float.toString(o.getSuryo()).replaceAll(".0$", "");
                     if (o.getYohocd().equals("900")) {
                         // 外用剤
-                        sb.append(String.format("%s %s %s%s\n", o.getYakuzainame(), o.getIsoDate(), o.getSuryo(), o.getTaniname()));
+                        sb.append(String.format("%s %s%s, %s\n", yakuzainame, suryo, o.getTaniname(), o.getIsoDate()));
                     } else {
                         LocalDate startDate = LocalDate.parse(o.getIsoDate());
                         LocalDate endDate = startDate.plusDays(o.getKaisu());
-                        date = String.format("%s〜%s", startDate.format(DateTimeFormatter.ISO_DATE), endDate.format(DateTimeFormatter.ISO_DATE));
-                        sb.append(String.format("%s %s\n", o.getYakuzainame(), date));
+                        date = String.format("%s ~ %s", startDate.format(DateTimeFormatter.ISO_DATE), endDate.format(DateTimeFormatter.ISO_DATE));
+                        sb.append(String.format("%s, %s\n", yakuzainame, date));
                     }
                 }
 
@@ -238,6 +239,19 @@ public class Onshi extends AbstractChartDocument {
             }
         };
         task.execute();
+    }
+
+    private String toHankaku(String str) {
+        str = StringTool.toHankakuNumber(str);
+        str = StringTool.toHankakuUpperLower(str);
+        str = str.replaceAll("　", " ");
+        str = str.replaceAll("（", "(");
+        str = str.replaceAll("）", ")");
+        str = str.replaceAll("．", ".");
+        str = str.replaceAll("％", "%");
+        str = str.replaceAll("「", "｢");
+        str = str.replaceAll("」", "｣");
+        return str;
     }
 
     /**

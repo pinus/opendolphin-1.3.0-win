@@ -142,9 +142,10 @@ public class OrcaServiceTest {
         });
 
         for (OnshiYakuzai o : onshiYakuzai) {
+            String suryo = Float.toString(o.getSuryo()).replace(".0", "");
             if (o.getYohocd().equals("900")) {
                 // 外用剤
-                sb.append(String.format("%s %s %s%s\n", o.getYakuzainame(), o.getIsoDate(), o.getSuryo(), o.getTaniname()));
+                sb.append(String.format("%s %s %s%s\n", o.getYakuzainame(), o.getIsoDate(), suryo, o.getTaniname()));
             } else {
                 LocalDate startDate = LocalDate.parse(o.getIsoDate());
                 LocalDate endDate = startDate.plusDays(o.getKaisu());

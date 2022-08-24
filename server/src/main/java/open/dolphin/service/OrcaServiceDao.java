@@ -682,8 +682,8 @@ public class OrcaServiceDao {
                 onshiYakuzai.setSrycd(rs.getString(8)); // 医薬品コード
                 onshiYakuzai.setYakuzainame(rs.getString(9)); // 薬剤名
                 onshiYakuzai.setTaniname(rs.getString(10)); // 単位名
-                onshiYakuzai.setSuryo(rs.getInt(11)); // 1日量
-                onshiYakuzai.setYoryo(rs.getInt(12)); // 1回量: 0 が入っている
+                onshiYakuzai.setSuryo(rs.getFloat(11)); // 1日量
+                onshiYakuzai.setYoryo(rs.getFloat(12)); // 1回量: 0 が入っている
                 onshiYakuzai.setKaisu(rs.getInt(13)); // x日分: 外用剤は 1
                 onshiYakuzai.setChozaiSeqnum(rs.getInt(14)); // 薬局 1,2,..
                 onshiYakuzai.setShohoSeqnum(rs.getInt(15)); // 医院 2,3,..
