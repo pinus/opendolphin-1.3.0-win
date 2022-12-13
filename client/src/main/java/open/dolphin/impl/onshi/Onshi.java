@@ -98,25 +98,31 @@ public class Onshi extends AbstractChartDocument {
                 // 日付順
                 sb.append("日付順\n");
                 String date = "";
-                int shoho = 0;
-                int chozai = 0;
-                for (OnshiYakuzai o : onshiYakuzai) {
-                    if (!date.equals(o.getIsoDate()) || o.getShohoSeqnum() != shoho || o.getChozaiSeqnum() != chozai) {
-                        date = o.getIsoDate();
-                        shoho = o.getShohoSeqnum();
-                        chozai = o.getChozaiSeqnum();
-                        sb.append(String.format("\n%s 医療機関:%d 薬局:%d\n", date, shoho, chozai));
-                    }
-                    String yakuzainame = o.getYakuzainame();
-                    yakuzainame = toHankaku(yakuzainame);
+                String prevLabel = "";
 
+                for (OnshiYakuzai o : onshiYakuzai) {
+                    String hosp = o.getHosp().getFacilityName();
+                    String chozai = o.getChozai().getFacilityName();
+                    if (o.getHosp().isPharmacy()) {
+                        chozai = o.getHosp().getFacilityName();
+                        hosp = o.getChozai().getFacilityName();
+                    }
+                    String label = hosp + "／" + chozai;
+
+                    if (!date.equals(o.getIsoDate()) || !prevLabel.equals(label)) {
+                        date = o.getIsoDate();
+                        prevLabel = label;
+                        sb.append(String.format("\n%s %s\n", date, label));
+                    }
+
+                    String yakuzainame = o.getYakuzainame();
                     sb.append(String.format("    %s ", yakuzainame));
                     String suryo = Float.toString(o.getSuryo()).replaceAll(".0$", "");
                     if (o.getYohoname().equals("")) {
                         // 外用剤
                         sb.append(String.format("%s%s %s\n", suryo, o.getTaniname(), o.getShiji()));
                     } else {
-                        sb.append(String.format("%s%s %s %sTD\n", suryo, o.getTaniname(), o.getYohoname(), o.getKaisu()));
+                        sb.append(String.format("%s%s %s %s日分\n", suryo, o.getTaniname(), o.getYohoname(), o.getKaisu()));
                     }
                 }
 

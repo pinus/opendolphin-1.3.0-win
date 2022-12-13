@@ -14,6 +14,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
+import javax.swing.tree.TreeNode;
 import java.awt.datatransfer.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -188,9 +189,9 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
                         testNode = droppedNode;
 
                     } else {
-                        Enumeration<StampTreeNode> e = droppedNode.preorderEnumeration();
+                        Enumeration<TreeNode> e = droppedNode.preorderEnumeration();
                         while (e.hasMoreElements()) {
-                            StampTreeNode node = e.nextElement();
+                            StampTreeNode node = (StampTreeNode) e.nextElement();
                             if (node.isLeaf()) {
                                 // leaf が1つでもとれたら, その leaf で判断する
                                 testNode = node;
@@ -243,9 +244,9 @@ public class KartePaneTransferHandler extends DolphinTransferHandler {
                 }
             } else {
                 // 葉を探す
-                Enumeration<StampTreeNode> e = droppedNode.preorderEnumeration();
+                Enumeration<TreeNode> e = droppedNode.preorderEnumeration();
                 while (e.hasMoreElements()) {
-                    StampTreeNode node = e.nextElement();
+                    StampTreeNode node = (StampTreeNode) e.nextElement();
                     if (node.isLeaf()) {
                         ModuleInfoBean stampInfo = node.getStampInfo();
                         if (canImport(stampInfo.getStampRole())) {

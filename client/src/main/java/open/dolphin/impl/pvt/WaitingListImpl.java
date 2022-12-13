@@ -362,8 +362,11 @@ public class WaitingListImpl extends AbstractMainComponent {
                 continuousCount++;
 
                 if (!found) {
-                    Date pvtDate = ModelUtils.getDateTimeAsObject(pvt.getPvtDate());
-                    waitingTime = DurationFormatUtils.formatPeriod(pvtDate.getTime(), new Date().getTime(), "HH:mm");
+                    long pvtTime = ModelUtils.getDateTimeAsObject(pvt.getPvtDate()).getTime();
+                    long nowTime = new Date().getTime();
+                    if (pvtTime < nowTime) { // サーバ・クライアント時間がミリ秒単位でずれて反転することがある
+                        waitingTime = DurationFormatUtils.formatPeriod(pvtTime, nowTime, "HH:mm");
+                    }
                     found = true;
                 }
             } else {

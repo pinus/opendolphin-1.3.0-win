@@ -128,29 +128,40 @@ public class OrcaServiceTest {
     }
 
     private void getDrugHistory(OrcaServiceDao orcaService) throws ReflectiveOperationException {
-        List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "012773");
-        //List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "037145");
+        List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "030308");
+        //List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "008617");
+        //List<OnshiYakuzai> onshiYakuzai = (List<OnshiYakuzai>) invoke(orcaService, "getDrugHistory", "012773");
 
         StringBuilder sb = new StringBuilder();
 
-        // sort
-        Collections.sort(onshiYakuzai, (o1, o2) -> {
-            int date = o1.getIsoDate().compareTo(o2.getIsoDate());
-            int name = o1.getYakuzainame().compareTo(o2.getYakuzainame());
-            int yoho = o1.getYohocd().compareTo(o2.getYohocd());
-            return yoho == 0? name == 0? date : name : yoho;
-        });
+        // 日付順
+        sb.append("日付順\n");
+        String date = "";
+        String prevLabel = "";
 
         for (OnshiYakuzai o : onshiYakuzai) {
-            String suryo = Float.toString(o.getSuryo()).replace(".0", "");
-            if (o.getYohocd().equals("900")) {
+            String hosp = o.getHosp().getFacilityName();
+            String chozai = o.getChozai().getFacilityName();
+            if (o.getHosp().isPharmacy()) {
+                chozai = o.getHosp().getFacilityName();
+                hosp = o.getChozai().getFacilityName();
+            }
+            String label = hosp + "／" + chozai;
+
+            if (!date.equals(o.getIsoDate()) || !prevLabel.equals(label)) {
+                date = o.getIsoDate();
+                prevLabel = label;
+                sb.append(String.format("\n%s %s\n", date, label));
+            }
+
+            String yakuzainame = o.getYakuzainame();
+            sb.append(String.format("    %s ", yakuzainame));
+            String suryo = Float.toString(o.getSuryo()).replaceAll(".0$", "");
+            if (o.getYohoname().equals("")) {
                 // 外用剤
-                sb.append(String.format("%s %s %s%s\n", o.getYakuzainame(), o.getIsoDate(), suryo, o.getTaniname()));
+                sb.append(String.format("%s%s %s\n", suryo, o.getTaniname(), o.getShiji()));
             } else {
-                LocalDate startDate = LocalDate.parse(o.getIsoDate());
-                LocalDate endDate = startDate.plusDays(o.getKaisu());
-                String date = String.format("%s〜%s", startDate.format(DateTimeFormatter.ISO_DATE), endDate.format(DateTimeFormatter.ISO_DATE));
-                sb.append(String.format("%s %s\n", o.getYakuzainame(), date));
+                sb.append(String.format("%s%s %s %s日分\n", suryo, o.getTaniname(), o.getYohoname(), o.getKaisu()));
             }
         }
 

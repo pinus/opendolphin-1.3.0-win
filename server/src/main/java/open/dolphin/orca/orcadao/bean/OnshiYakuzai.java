@@ -65,14 +65,14 @@ public class OnshiYakuzai {
     private int kaisu;
 
     /**
-     * 調剤期間毎連番.
+     * 調剤薬局名.
      */
-    private int chozaiSeqnum;
+    private Facility chozai;
 
     /**
-     * 処方期間毎連番.
+     * 処方機関名.
      */
-    private int shohoSeqnum;
+    private Facility hosp;
 
     /**
      * isoDate
@@ -291,38 +291,38 @@ public class OnshiYakuzai {
     }
 
     /**
-     * chozaiSeqnum
+     * chozaiName
      *
-     * @return chozaiSeqnum
+     * @return chozaiName
      */
-    public int getChozaiSeqnum() {
-        return chozaiSeqnum;
+    public Facility getChozai() {
+        return chozai;
     }
 
     /**
-     * chozaiSeqnum
+     * chozaiName
      *
-     * @param chozaiSeqnum to set
+     * @param chozai to set
      */
-    public void setChozaiSeqnum(int chozaiSeqnum) {
-        this.chozaiSeqnum = chozaiSeqnum;
+    public void setChozai(Facility chozai) {
+        this.chozai = chozai;
     }
 
     /**
-     * shohoSeqnum
+     * hospName
      *
-     * @return shohoSeqnum
+     * @return hospName
      */
-    public int getShohoSeqnum() {
-        return shohoSeqnum;
+    public Facility getHosp() {
+        return hosp;
     }
 
     /**
-     * shohoSeqnum
+     * hospName
      *
-     * @param shohoSeqnum to set
+     * @param hosp to set
      */
-    public void setShohoSeqnum(int shohoSeqnum) {
-        this.shohoSeqnum = shohoSeqnum;
+    public void setHosp(Facility hosp) {
+        this.hosp = hosp;
     }
 }

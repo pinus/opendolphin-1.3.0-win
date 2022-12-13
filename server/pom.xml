@@ -17,13 +17,14 @@
         <!-- versions -->
         <java.version>1.8</java.version>
         <version.com.fasterxml.jackson>2.12.3</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson-databind>2.12.7.1</version.com.fasterxml.jackson-databind>
         <version.org.jboss.resteasy>4.7.2.Final</version.org.jboss.resteasy>
         <version.org.hibernate>5.4.24.Final</version.org.hibernate>
         <version.org.hibernate.search>5.10.11.Final</version.org.hibernate.search>
         <version.org.apache.lucene>5.5.5</version.org.apache.lucene>
         <version.commons-codec>1.15</version.commons-codec>
         <version.commons-lang3>3.11</version.commons-lang3>
-        <version.org.postgresql>42.4.1</version.org.postgresql>
+        <version.org.postgresql>42.4.3</version.org.postgresql>
     </properties>
 
     <dependencies>
@@ -84,7 +85,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${version.com.fasterxml.jackson}</version>
+            <version>${version.com.fasterxml.jackson-databind}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

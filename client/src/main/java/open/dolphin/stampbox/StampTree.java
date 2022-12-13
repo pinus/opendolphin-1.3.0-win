@@ -749,7 +749,7 @@ public class StampTree extends JTree implements TreeModelListener {
 
         // このノードをルートにするサブツリーを前順走査する列挙を生成して返します.
         // 列挙の nextElement() メソッドによって返される最初のノードは，この削除するノードです.
-        Enumeration<StampTreeNode> e = theNode.preorderEnumeration();
+        Enumeration<TreeNode> e = theNode.preorderEnumeration();
 
         // このリストのなかに削除するノードとその子を含める
         final List<String> deleteList = new ArrayList<>();
@@ -760,7 +760,7 @@ public class StampTree extends JTree implements TreeModelListener {
         // 列挙する
         while (e.hasMoreElements()) {
             logger.debug("stampTree deleteNode e.hasMoreElements()");
-            StampTreeNode node = e.nextElement();
+            StampTreeNode node = (StampTreeNode) e.nextElement();
 
             if (node.isLeaf()) {
 

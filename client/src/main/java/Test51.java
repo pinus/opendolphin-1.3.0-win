@@ -1,3 +1,7 @@
+import open.dolphin.JsonConverter;
+import open.dolphin.infomodel.BundleDolphin;
+import open.dolphin.infomodel.StampModel;
+
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
@@ -22,30 +26,16 @@ public class Test51 extends JEditorPane {
     UndoManager undoManager=new UndoManager();
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Merge undoable actions in one group");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        final Test51 app = new Test51();
-        JScrollPane scroll = new JScrollPane(app);
-        frame.getContentPane().add(scroll);
+        StampModel model = new StampModel();
+        BundleDolphin stamp = new BundleDolphin();
+        stamp.setOrderName("Order");
+        model.setStamp(stamp);
 
-        JToolBar tb=new JToolBar();
-        app.btnUndo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                app.undoManager.undo();
-            }
-        });
-        tb.add(app.btnUndo);
-        app.btnRedo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                app.undoManager.redo();
-            }
-        });
-        tb.add(app.btnRedo);
-        frame.getContentPane().add(tb, BorderLayout.NORTH);
+        String json = JsonConverter.toJson(model);
+        System.out.println("json = " + json);
+        StampModel model2 = JsonConverter.fromJson(json, StampModel.class);
+        System.out.println("orderName = " + model2.getStamp());
 
-        frame.setSize(400, 200);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
     }
 
     public Test51() {
